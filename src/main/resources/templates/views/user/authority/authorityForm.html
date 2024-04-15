@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="user-5-1">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>관리시스템 권한</h2>
+        </div>
+
+        <div class="tableLeftResponsive" th:if="${content == null}">
+            <table class="tableLeft">
+                <colgroup>
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                </colgroup>
+                <tbody>
+                <tr>
+                    <th scope="row"><span class="el_required">*</span>권한코드</th>
+                    <td>
+                        <input type="text" class="hp_w400" id="roleGroupCode">
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><span class="el_required">*</span>권한명</th>
+                    <td>
+                        <input type="text" class="hp_w400" id="roleGroupName">
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">권한설명</th>
+                    <td>
+                        <input type="text" class="hp_w400" id="memo">
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="d-flex justify-content-between" th:unless="${content == null}">
+            <div class="contents_lft w70p">
+                <div class="tableLeftResponsive">
+                    <table class="tableLeft">
+                        <colgroup>
+                            <col style="width: 200px">
+                            <col style="width: auto">
+                        </colgroup>
+                        <tbody>
+                        <tr>
+                            <th scope="row"><span class="el_required">*</span>권한코드</th>
+                            <td>
+                                <input type="text" class="hp_w400" id="roleGroupCode" th:value="${content[0].roleGroupCode}" disabled>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row"><span class="el_required">*</span>권한명</th>
+                            <td>
+                                <input type="text" class="hp_w400" id="roleGroupName" th:value="${content[0].roleGroupName}">
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row">권한설명</th>
+                            <td>
+                                <input type="text" class="hp_w400" id="memo" th:value="${content[0].memo}">
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="contents_rgt">
+                <div id="jsTree"></div>
+            </div>
+        </div>
+
+        <!-- GRID : BUTTON -->
+        <div class="bl_gridBtns">
+            <div class="bl_gridBtns_rgt">
+                <a class="btn btnDefault btnList" href="/user/authority">목록</a>
+                <a th:if="${content} != null" class="btn btnDefault btnModify" onclick="update()">수정</a>
+                <a th:unless="${content} != null" class="btn btnDefault btnRegister" onclick="create()">등록</a>
+            </div>
+        </div>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            /* <![CDATA[ */
+            const CONT = [[ ${content} ]];
+            const MENU = [[ ${menus} ]];
+            let $tree1 = $('#jsTree');
+            let resData = [];
+
+            let selectedData = []; // 메뉴 트리 선택 데이터
+            let checkedData = [];
+
+            function makeData(){
+                for(let i=0; i<MENU.length; i++){
+                    let tempObj = {};
+                    tempObj.id = MENU[i].sequenceNo;
+                    if (MENU[i].depth == 0) {
+                        tempObj.parent = '#';
+                    } else {
+                        tempObj.parent = MENU[i].topSequenceNo;
+                    }
+                    tempObj.text = MENU[i].menuName;
+
+                    tempObj.sequenceNo = MENU[i].sequenceNo;
+                    tempObj.topSequenceNo = MENU[i].topSequenceNo;
+
+                    tempObj.menuName = MENU[i].menuName;
+                    tempObj.menuFullName = MENU[i].menuFullName;
+                    tempObj.subAdminMenu = MENU[i].subAdminMenu;
+
+                    tempObj.sort = MENU[i].sort;
+                    tempObj.depth = MENU[i].depth;
+
+                    tempObj.uri = MENU[i].uri;
+
+                    tempObj.registUserId = MENU[i].registUserId;
+                    tempObj.modifyUserId = MENU[i].modifyUserId;
+
+                    tempObj.isUsable = MENU[i].isUsable;
+
+                    tempObj.updateDateTime = MENU[i].updateDateTime;
+                    tempObj.createDateTime = MENU[i].createDateTime;
+
+                    resData.push(tempObj);
+                }
+            }
+
+            function dataChk() {
+                if (CONT[0].adminRoleMenus && CONT[0].adminRoleMenus != null) {
+                    for(let i=0; i<CONT[0].adminRoleMenus.length; i++){
+                        checkedData[i] = {};
+                        checkedData[i].sequenceNo = CONT[0].adminRoleMenus[i].menuSequenceNo;
+                        checkedData[i].uri = CONT[0].adminRoleMenus[i].uri;
+                    }
+                }
+            }
+
+            makeData();
+            dataChk();
+
+            $tree1.on('changed.jstree', function(event, data){
+                let selectedNodes = data.selected;
+
+                selectedData = []; // 초기화
+
+                // 선택한 데이터 리스트 - seq 값 넣어줌
+                for (let i = 0; i < selectedNodes.length; i++) {
+                    let node = data.instance.get_node(selectedNodes[i]);
+                    selectedData[i] = {};
+                    selectedData[i].sequenceNo = node.id;
+                    selectedData[i].uri = node.original.uri;
+                }
+
+            }).jstree({
+                "json_data": {},
+                "checkbox" : {
+                    "keep_selected_style" : false,
+                    "three_state" : true //checkbox가 부모 자식노드 상관이 체크되도록
+                },
+                "plugins": ["json_data", "checkbox"],
+                "core": {
+                    "themes": {"icons": true, "dots": true, "stripes" : true},
+                    "multiple": true, "data": resData,
+                    "check_callback": resData.map(function (node, index) {
+                        for (let i=0; i<checkedData.length; i++) {
+                            if (checkedData[i].sequenceNo === node.id) {
+                                node.state = { 'selected': true };
+
+                                break;
+                            }
+                        }
+                        return true;
+                    }),
+                }
+            });
+
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+            }
+
+            function getFormData(){
+                let params = {};
+                params.roleGroupCode =$("#roleGroupCode").val()
+                params.roleGroupName =$("#roleGroupName").val()
+                params.memo=$("#memo").val()
+
+                return params;
+            }
+
+            function create(){
+                if($("#roleGroupName").val()){
+                    let params = getFormData();
+                    $.ajax({
+                        type: "post", //http method
+                        url: `/api/user/authority/create`, //값을 가져올 경로
+                        headers: {'Content-Type': 'application/json'},
+                        data: JSON.stringify(params),
+                        dataType: "json",
+                        async:false,
+                        success: function(data) {
+                            alert("관리시스템 권한 정보를 등록하였습니다.");
+                            window.location.reload();
+                        },
+                        error: function(e) {
+                            alert("관리시스템 권한 정보 등록에 실패했습니다.");
+                        }
+                    })
+                } else {
+                    alert("권한명은 필수입니다.");
+                }
+            }
+
+            function update(){
+                if($("#roleGroupName").val()){
+                    let params = getFormData();
+                    $.ajax({
+                        type: "put", //http method
+                        url: `/api/user/authority/update`, //값을 가져올 경로
+                        headers: {'Content-Type': 'application/json'},
+                        data: JSON.stringify(params),
+                        dataType: "json",
+                        async:false,
+                        success: function(data) {
+                            let menus = {};
+                            menus.roleGroupCode = params.roleGroupCode;
+                            menus.menuSequenceNo = 0;
+
+                            if(CONT[0].adminRoleMenus != null) {
+                                $.ajax({
+                                    type: "delete", //http method
+                                    url: `/api/user/authority/menu/delete`, //값을 가져올 경로
+                                    headers: {'Content-Type': 'application/json'},
+                                    data: JSON.stringify(menus),
+                                    dataType: "json",
+                                    async:false,
+                                    success: function(data) {
+                                        var arrs = new Array();
+                                        for(let i=0; i<selectedData.length; i++) {
+                                            let arr = {};
+                                            arr.roleGroupCode = params.roleGroupCode
+                                            arr.menuSequenceNo = selectedData[i].sequenceNo
+                                            arr.uri = selectedData[i].uri
+                                            arrs.push(arr)
+                                        }
+
+                                        $.ajax({
+                                            type: "post", //http method
+                                            url: `/api/user/authority/menu/create`, //값을 가져올 경로
+                                            headers: {'Content-Type': 'application/json'},
+                                            data: JSON.stringify(arrs),
+                                            dataType: "json",
+                                            async:false,
+                                            success: function(data) {
+                                                alert("관리시스템 권한 정보를 수정하였습니다.");
+                                                window.location.reload();
+                                            },
+                                            error: function(e) {
+                                                alert("관리시스템 권한 메뉴 수정에 실패했습니다.2");
+                                            }
+                                        })
+                                    },
+                                    error: function(e) {
+                                        alert("관리시스템 권한 메뉴 수정에 실패했습니다.1");
+                                    }
+                                })
+                            } else {
+                                var arrs = new Array();
+                                for(let i=0; i<selectedData.length; i++) {
+                                    let arr = {};
+                                    arr.roleGroupCode = params.roleGroupCode
+                                    arr.menuSequenceNo = selectedData[i].sequenceNo
+                                    arr.uri = selectedData[i].uri
+                                    arrs.push(arr)
+                                }
+
+                                $.ajax({
+                                    type: "post", //http method
+                                    url: `/api/user/authority/menu/create`, //값을 가져올 경로
+                                    headers: {'Content-Type': 'application/json'},
+                                    data: JSON.stringify(arrs),
+                                    dataType: "json",
+                                    async:false,
+                                    success: function(data) {
+                                        alert("관리시스템 권한 정보를 수정하였습니다.");
+                                        window.location.reload();
+                                    },
+                                    error: function(e) {
+                                        alert("관리시스템 권한 메뉴 수정에 실패했습니다.2");
+                                    }
+                                })
+                            }
+                        },
+                        error: function(e) {
+                            alert("관리시스템 권한 정보 수정에 실패했습니다.");
+                        }
+                    })
+                } else {
+                    alert("권한명은 필수입니다.");
+                }
+            }
+            /* ]]> */
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

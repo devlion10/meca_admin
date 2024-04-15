@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="business-4-2">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>강사배정 관리</h2>
+        </div>
+
+        <div class="sch_box">
+            <select id="bizPbancYr" class="common_select" data-list="yearList"></select>
+            <select id="bizPbancType" class="common_select">
+                <option value="">사업</option>
+                <option value="0">기본형</option>
+                <option value="1">미디어교육 평생교실</option>
+                <option value="2">미디어교육 운영학교</option>
+                <option value="3">자유학기제 미디어교육지원</option>
+                <option value="4">팩트체크 교실</option>
+            </select>
+            <select id="bizPbancRnd" class="common_select" data-list="numList"></select>
+            <select id="containTextType" class="common_select">
+                <option value="2">기관명</option>
+                <option value="3">강사명</option>
+                <option value="1">사업명</option>
+            </select>
+            <input id="containText" type="text" class="hp_w400">
+            <a th:onclick="searchInstAssgn()" class="btn btnDefault btnSearch">검색</a>
+            <a class="btn btnDefault btnReset">리셋</a>
+            <a href="/api/business/instructor/assignment/excel" class="btn btnDefault download_excel download_search">excel 다운로드</a>
+        </div>
+
+        <!-- BOARD : CONTROLLER -->
+        <div class="bl_boardCtrls">
+            <div class="bl_boardCtrls_lft">
+                <p class="bl_boardCtrls_total">
+                     총: <strong th:text="${pageable.totalElements}"></strong>건
+                </p>
+            </div>
+            <div class="bl_boardCtrls_rgt">
+                <select class="common_select" data-list="countSortList"></select>
+            </div>
+        </div>
+
+        <div class="tableResponsive overflowMulti">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">
+                            <div class="chk_box">
+                                <input id="list_all" type="checkbox" name="instructorAssignment">
+                                <label for="list_all">
+                                    <span class="me-0"></span>
+                                </label>
+                            </div>
+                        </th>
+                        <th scope="col">번호</th>
+                        <th scope="col">년도</th>
+                        <th scope="col">사업명</th>
+                        <th scope="col">차수</th>
+                        <th scope="col">신청기관</th>
+                        <th scope="col">교육기간</th>
+                        <th scope="col">신청강사</th>
+                        <th scope="col">승인강사</th>
+                    </tr>
+                </thead>
+                <tbody th:if="${content != null && content.size > 0}">
+                    <tr th:each="item, stat : ${content}">
+                        <td>
+                            <div class="chk_box">
+                                <input id="list_1" type="checkbox" name="">
+                                <label for="list_1">
+                                    <span class="me-0"></span>
+                                </label>
+                            </div>
+                        </td>
+                        <td th:text="${pageable.totalElements - ((pageable.page * pageable.size) + stat.index)}"></td>
+                        <td th:text="${item.bizPbancMaster.bizPbancYr}">2022</td>
+                        <td>
+                            <a th:href="@{/business/pbanc/list/{type}/{id}(type=${item.bizPbancMaster.bizPbancType}, id=${item.bizPbancMaster.bizPbancNo})}" th:text="${item.bizPbancMaster.bizPbancNm}">사업명</a>
+                        </td>
+                        <td th:text="${item.bizPbancMaster.bizPbancRnd}">1</td>
+                        <td th:text="${item.organizationInfo.organizationName}">기관명</td>
+                        <td><span th:text="${item.bizOrgAplyLsnPlanBgng}">2022.03.23</span> - <span th:text="${item.bizOrgAplyLsnPlanEnd}">2022.11.30</span></td>
+                        <td>
+                            <a th:href="@{/business/instructor/assignment/apply/{id}(id=${item.bizOrgAplyNo})}">
+                                <span th:text="${#lists.size(item.bizInstructorAplies)}"></span>명
+                            </a>
+                        </td>
+                        <td>
+                            <div class="d-flex gap-2 align-items-center justify-content-center">
+                                <a th:href="@{/business/instructor/assignment/{id}(id=${item.bizOrgAplyNo})}" class="btn btnDefault me-2">보기</a>
+                                <th:block th:each="item2 : ${item.bizInstructorAplies}">
+                                    <span th:if="${item2.bizInstrAplyStts ==2}" th:text="${#strings.defaultString(item2.bizInstrAplyInstrNm, ' ')}"></span>
+                                </th:block>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+                <tbody th:unless="${content != null && content.size > 0}">
+                <tr class="empty_data"><td colspan="9">조회된 내용이 없습니다.</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="bl_paginate"></div>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            function searchInstAssgn(){
+                let searchQuery = {}
+                let name = $("#containText").val();
+                let year = $("#bizPbancYr").val();
+                let rnd = $("#bizPbancRnd").val();
+                let type = $("#bizPbancType").val();
+                if(name){
+                    searchQuery.containText = name;
+                    searchQuery.containTextType = $("#containTextType").val();
+                }
+                if(year && year!=0){
+                    searchQuery.bizPbancYr = year;
+                }
+                if(rnd && rnd!=0){
+                    searchQuery.bizPbancRnd =rnd;
+                }
+                if(type){
+                    searchQuery.bizPbancType  = type;
+                }
+                searchJson(searchQuery);
+            }
+
+            /* <![CDATA[ */
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+                pagination([[ ${pageable} ]], false)
+            }
+            /* ]]> */
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

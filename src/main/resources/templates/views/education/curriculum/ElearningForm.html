@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="edu-1">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>과정 관리</h2>
+        </div>
+
+        <div class="bl_tab2 js_tab">
+            <!-- 등록 페이지일 때 숨김, 상세 페이지일 때 노출 -->
+            <th:block th:if="${content.size > 0}">
+                <ul class="bl_tab2_menu">
+                    <li class="is_active">
+                        <a th:href="@{/education/curriculum/e-learning/{curriculumCode}(curriculumCode=${content[0].curriculumCode})}">상세</a>
+                    </li>
+                    <li>
+                        <a th:href="@{/education/curriculum/e-learning/exam/{curriculumCode}(curriculumCode=${content[0].curriculumCode})}">시험</a>
+                    </li>
+                    <li>
+                        <a th:href="@{/education/curriculum/e-learning/question/{curriculumCode}(curriculumCode=${content[0].curriculumCode})}">문항</a>
+                    </li>
+                    <li>
+                        <a th:href="@{/education/curriculum/reference-room/{curriculumCode}?educationType=e-learning(curriculumCode=${content[0].curriculumCode})}">자료실</a>
+                    </li>
+                </ul>
+                <div class="bl_tab2_rgt">
+                    <a href="/education/curriculum" class="btn btnDefault">목록</a>
+                </div>
+            </th:block>
+
+
+            <div class="bl_tab2_body js_tab_contents">
+                <div class="bl_tab2_item js_tab_item">
+                    <div class="tableLeftResponsive">
+                        <table class="tableLeft">
+                            <colgroup>
+                                <col style="width: 200px">
+                                <col style="width: auto">
+                                <col style="width: 200px">
+                                <col style="width: auto">
+                            </colgroup>
+                            <tbody>
+                                <tr>
+                                    <th scope="row"><span class="el_required">*</span>유형</th>
+                                    <td>이러닝 교육</td>
+                                    <th scope="row"><span class="el_required">*</span>담당자</th>
+                                    <td>
+                                        <input type="text" class="hp_w200" data-key="managerName" name="managerName" th:value="${content.size > 0 ? content[0].managerName : null}" readonly>
+                                        <input type="hidden" class="hp_w200" data-key="managerDepartment" name="managerDepartment" th:value="${content.size > 0 ? content[0].managerDepartment : null}" readonly>
+                                        <button type="button" onclick="findAdminUser()" class="btn btnDefault">검색</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><span class="el_required">*</span>구분</th>
+                                    <td>
+                                        <select class="common_select" id="categoryCode" onchange="codeSelector('curriculumAreaCode', this.value)">
+                                            <option value="">구분</option>
+                                            <th:block th:each="commonCode : ${commonCode}" th:if="${commonCode.code} == 'CTS_CTGR'">
+                                                <option th:each="categoryCode : ${commonCode.subCode}" th:value="${categoryCode.code}"
+                                                        th:text="${categoryCode.codeName}" th:selected="${content.size > 0 ? content[0].categoryCode == categoryCode.code : false}"></option>
+                                            </th:block>
+                                        </select>
+                                    </td>
+                                    <th scope="row">분류</th>
+                                    <td>
+                                        <select class="common_select" id="curriculumAreaCode" onchange="codeSelector('curriculumAreaCodeDetail', this.value)"></select>
+                                        <select class="common_select" id="curriculumAreaCodeDetail"></select>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><span class="el_required">*</span>콘텐츠</th>
+                                    <td colspan="3">
+                                        <div class="d-flex gap-2">
+                                            <input type="text" class="hp_w600" name="contentsName" th:id="${content.size > 0 ? content[0].curriculumContentsList[0].contentsMaster.contentsCode : null}"
+                                                   th:value="${content.size > 0 ? content[0].curriculumContentsList[0].contentsMaster.contentsName : null}" readonly>
+                                            <a href="#modalOfContents" data-control="modal" data-handler="modalOfContents" class="btn btnDefault" onclick="goContentsSearch(true, $('#categoryCode').val())">콘텐츠 선택</a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><span class="el_required">*</span>과정명</th>
+                                    <td colspan="3">
+                                        <input type="text" class="hp_w600" id="curriculumName" th:value="${content.size > 0 ? content[0].curriculumName : null}">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><span class="el_required">*</span>인정시간</th>
+                                    <td>
+                                        <div class="d-flex-2">
+                                            <div class="d-flex-1">
+                                                <input type="text" class="hp_w120" id="educationPerHour" th:value="${content.size > 0 ? content[0].educationPerHour : null}">
+                                                시간
+                                            </div>
+                                            <div class="d-flex-1">
+                                                <input type="text" class="hp_w120" id="educationPerMinute" th:value="${content.size > 0 ? content[0].educationPerMinute : null}">
+                                                분
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <th scope="row">집행구분</th>
+                                    <td>
+                                        <select class="common_select" id="enforcementType">
+                                            <option value="" >미집행</option>
+                                            <th:block th:each="commonCode : ${commonCode}" th:if="${commonCode.code} == 'ENFRC_TYPE'" >
+                                                <option th:each="enforcementType : ${commonCode.subCode}" th:value="${enforcementType.code}"
+                                                        th:text="${enforcementType.codeName}" th:selected="${content.size > 0 ? content[0].enforcementType == enforcementType.code : false}"></option>
+                                            </th:block>
+                                        </select>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><span class="el_required">*</span>정원</th>
+                                    <td colspan="3">
+                                        <div class="d-flex-1">
+                                            <input type="text" class="hp_w120" id="numberOfPeople" th:value="${content.size > 0 ? content[0].numberOfPeople : null}">
+                                            명(0명 일 경우 무제한)
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><span class="el_required">*</span>배점비율</th>
+                                    <td colspan="3">
+                                        <div class="guide_text justify-content-end">* 총 100점 만점 기준의 각 평가비율</div>
+                                        <div class="tableResponsive overflowMulti">
+                                            <table class="table">
+                                                <thead>
+                                                    <tr>
+                                                        <th scope="col">진도</th>
+                                                        <th scope="col">시험</th>
+                                                        <th scope="col">합계</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td>
+                                                            <div class="d-flex-center-1">
+                                                                <input type="text" class="hp_w120" name="percent" th:value="${content.size > 0 ? content[0].progressRateOfEnd : 0}" id="progressRateOfEnd">%
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            <div class="d-flex-center-1">
+                                                                <input type="text" class="hp_w120" name="percent" th:value="${content.size > 0 ? content[0].examRateOfEnd : 0}" id="examRateOfEnd">%
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            <div class="d-flex-center-1">
+                                                                <input type="text" class="hp_w120" id="totalPercent" th:value="${content.size > 0 ? (content[0].progressRateOfEnd + content[0].examRateOfEnd) : 0}" readonly>%
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><span class="el_required">*</span>수료점수</th>
+                                    <td colspan="3">
+                                        <div class="guide_text justify-content-end" style="flex-direction: column; align-items: flex-end">
+                                            <div>* 각 평가항목의 수료가능 최고점수</div>
+                                            <div>* 각 평가항목의 만점은 100점입니다.</div>
+                                        </div>
+                                        <div class="tableResponsive overflowMulti">
+                                            <table class="table">
+                                                <thead>
+                                                    <tr>
+                                                        <th scope="col">진도</th>
+                                                        <th scope="col">시험</th>
+                                                        <th scope="col">합계</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td>
+                                                            <div class="d-flex-center-1">
+                                                                <input type="text" class="hp_w120" name="score" th:value="${content.size > 0 ? content[0].progressScoreOfEnd : 0}" id="progressScoreOfEnd">점
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            <div class="d-flex-center-1">
+                                                                <input type="text" class="hp_w120" name="score" th:value="${content.size > 0 ? content[0].examScoreOfEnd : 0}" id="examScoreOfEnd">점
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            <div class="d-flex-center-1">
+                                                                <input type="text" class="hp_w120" th:value="${content.size > 0 ? (content[0].progressScoreOfEnd + content[0].examScoreOfEnd) : 0}" id="totalScore" readonly>점
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><span class="el_required">*</span>신청방식</th>
+                                    <td>
+                                        <select class="common_select" id="applyApprovalType">
+                                            <th:block th:each="commonCode : ${commonCode}" th:if="${commonCode.code} == 'APLY_APPR_TYPE'" >
+                                                <option th:each="applyApprovalType : ${commonCode.subCode}" th:value="${applyApprovalType.code}"
+                                                        th:text="${applyApprovalType.codeName}" th:selected="${content.size > 0 ? content[0].applyApprovalType == applyApprovalType.code : false}"></option>
+                                            </th:block>
+                                        </select>
+                                    </td>
+                                    <th scope="row"><span class="el_required">*</span>수료방식</th>
+                                    <td>
+                                        <select class="common_select" id="completionType">
+                                            <th:block th:each="commonCode : ${commonCode}" th:if="${commonCode.code} == 'EUD_FNSH_TYPE'" >
+                                                <option th:each="completionType : ${commonCode.subCode}" th:value="${completionType.code}"
+                                                        th:text="${completionType.codeName}" th:selected="${content.size > 0 ? content[0].completionType == completionType.code : false}"></option>
+                                            </th:block>
+                                        </select>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">
+                                        <div class="d-flex">
+                                            <span class="el_required">*</span>
+                                            <div>
+                                                복습기간
+                                                <span class="text_sm">(0개월 일 경우 무제한)</span>
+                                            </div>
+                                        </div>
+                                    </th>
+                                    <td>
+                                        <div class="d-flex-1">
+                                            수료 후<input type="text" class="hp_w120" id="reEducationTerm" th:value="${content.size > 0 ? content[0].reEducationTerm : null}">개월
+                                        </div>
+                                    </td>
+                                    <th scope="row"><span class="el_required">*</span>차시진도기준</th>
+                                    <td>
+                                        <div class="d-flex-1">
+                                            <input type="text" class="hp_w120" id="progressRate" th:value="${content.size > 0 ? content[0].progressRate : null}">%
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><span class="el_required">*</span>순차학습</th>
+                                    <td>
+                                        <select class="common_select" id="isSequentialEducation">
+                                            <option value=true th:selected="${content.size > 0 ? content[0].isSequentialEducation == true : false}">적용</option>
+                                            <option value=false th:selected="${content.size > 0 ? content[0].isSequentialEducation != true : true}">미적용</option>
+                                        </select>
+                                    </td>
+                                    <th scope="row"><span class="el_required">*</span>시험 응시가능 횟수</th>
+                                    <td>
+                                        <div class="d-flex-1">
+                                            <input type="text" class="hp_w120" id="reExamCount" th:value="${content.size > 0 ? content[0].reExamCount : null}">회(0 입력: 무제한)
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><span class="el_required">*</span>시험시작일</th>
+                                    <td colspan="3">
+                                        <div class="d-flex-between">
+                                            <div class="d-flex-1">
+                                                <input type="text" class="hp_w120" th:value="${content.size > 0 ? content[0].startExamTerm : null}" id="startExamTerm">일 후, AND 진도율
+                                                <input type="text" class="hp_w120" th:value="${content.size > 0 ? content[0].startExamRate : null}" id="startExamRate">% 이상
+                                            </div>
+                                            <div class="guide_text text-end">
+                                                * 개강일로부터 설정한 날 이후 응시할 수 있음.<br/>
+                                                * 설정한 응시일이어도 진도율 조건이 맞지 않을 경우 응시를 제한합니다.
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr id="educationGoalArea">
+                                    <th scope="row"><span class="el_required">*</span>교육목표</th>
+                                    <td colspan="3">
+                                        <textarea name="contents" class="ckeditor" style="width:100%; height:200px" id="educationGoal" th:text="${content.size > 0 ? content[0].educationGoal : null}"></textarea>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><span class="el_required">*</span>교육대상</th>
+                                    <td colspan="3">
+                                        <div class="mb-2">
+                                            <th:block th:each="commonCode : ${commonCode}" th:if="${commonCode.code} == 'EDU_TARGET'" >
+                                                <th:block th:each="educationTarget: ${commonCode.subCode}">
+                                                    <div class="radio_box">
+                                                        <input th:id="${educationTarget.codeName}" type="radio" name="eduTarget" th:value="${educationTarget.code}" th:checked="${content.size > 0 ? content[0].educationTarget == educationTarget.code : null}">
+                                                        <label th:for="${educationTarget.codeName}">
+                                                            <span></span>
+                                                            <p th:text="${educationTarget.codeName}"></p>
+                                                        </label>
+                                                    </div>
+                                                </th:block>
+                                            </th:block>
+                                        </div>
+                                        <input type="text" id="educationTargetDes" class="hp_w600" th:value="${content.size > 0 ? content[0].educationTargetDescription : null}">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><span class="el_required">*</span>교육내용</th>
+                                    <td colspan="3">
+                                        <textarea name="contents" class="ckeditor" style="width:100%; height:200px" id="educationContent" th:text="${content.size > 0 ? content[0].educationContent : null}"></textarea>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">설문</th>
+                                    <td colspan="3">
+                                        <div class="d-flex-2" th:if="${content.size > 0 && content[0].curriculumEvaluateList.size > 0}">
+                                            <input type="text" class="hp_w600" name="evaluateTitle" th:id="${content.size > 0 ? content[0].curriculumEvaluateList[0].evaluateMaster.evaluateSerialNo : ''}"
+                                                   th:value="${content.size > 0 ? content[0].curriculumEvaluateList[0].evaluateMaster.evaluateTitle : null}" readonly>
+                                            <div>
+                                                <a href="#modalOfEvaluate" data-control="modal" data-handler="modalOfEvaluate" class="btn btnDefault" onclick="goEvaluateSearch(true)">설문 선택</a>
+                                                <a onclick="delEvaluate()" class="btn btnDefault">설문 삭제</a>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex-2" th:unless="${content.size > 0 && content[0].curriculumEvaluateList.size > 0}">
+                                            <input type="text" class="hp_w600" name="evaluateTitle" readonly>
+                                            <div>
+                                                <a href="#modalOfEvaluate" data-control="modal" data-handler="modalOfEvaluate" class="btn btnDefault" onclick="goEvaluateSearch(true)">설문 선택</a>
+                                                <a onclick="delEvaluate()" class="btn btnDefault">설문 삭제</a>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><span class="el_required">*</span>수료증</th>
+                                    <td colspan="3">
+                                        <select class="common_select" id="isIssueCertificateOfCompletion">
+                                            <option value=true th:selected="${content.size > 0 ? content[0].isIssueCertificateOfCompletion == true : false}">발급</option>
+                                            <option value=false th:selected="${content.size > 0 ? content[0].isIssueCertificateOfCompletion != true : true}">미발급</option>
+                                        </select>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">연계과정</th>
+                                    <td colspan="3">
+                                        <a href="#modalOfEducation" data-control="modal" data-handler="modalOfEducation" class="btn btnDefault btn_add" onclick="goEducationSearch(true)">과정 추가</a>
+                                        <div class="tableResponsive overflowMulti mt-2">
+                                            <table class="table">
+                                                <colgroup>
+                                                    <col>
+                                                    <col>
+                                                    <col style="width: 100px">
+                                                </colgroup>
+                                                <thead>
+                                                <tr>
+                                                    <th scope="col">구분</th>
+                                                    <th scope="col">과정명</th>
+                                                    <th scope="col">관리</th>
+                                                </tr>
+                                                </thead>
+                                                <tbody id="collaboration">
+                                                <th:block th:if="${content.size > 0}">
+                                                    <tr th:if="${content[0].curriculumCollaborationList.size > 0}"
+                                                        th:each="item, stat: ${content[0].curriculumCollaborationList}" th:id="${item.referenceCurriculumCode}" th:name="collaborationCurriculum">
+                                                        <th:block th:each="commonCode : ${commonCode}" th:if="${commonCode.code} == 'EDU_TYPE'" >
+                                                            <td th:each="educationType : ${commonCode.subCode}"
+                                                                th:if="${educationType.code == item.referenceCurriculumMaster.educationType}"
+                                                                th:text="${educationType.codeName}"></td>
+                                                        </th:block>
+                                                        <td th:text="${item.referenceCurriculumMaster.curriculumName}"></td>
+                                                        <td class="text-center">
+                                                            <a class="btn btnDefault btnDelete btn_del" onclick="deleteRow(this)">삭제</a>
+                                                        </td>
+                                                    </tr>
+                                                </th:block>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><span class="el_required">*</span>상태</th>
+                                    <td colspan="3">
+                                        <select class="common_select" id="isUsable">
+                                            <option value="true" th:selected="${content.size > 0 ? content[0].isUsable == true : false}">사용</option>
+                                            <option value="false" th:selected="${content.size > 0 ? content[0].isUsable != true : true}">사용안함</option>
+                                        </select>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="bl_gridBtns">
+                        <div class="bl_gridBtns_rgt">
+                            <a th:unless="${content.size > 0}" href="/education/curriculum" class="btn btnDefault btnList">목록</a>
+                            <a th:if="${content.size > 0}" name="button" class="btn btnDefault btnRegister" onclick="modify()">수정</a>
+                            <a th:unless="${content.size > 0}" name="button" class="btn btnDefault btnRegister" onclick="regist()">등록</a>
+                        </div>
+                    </div>
+
+                    <div class="iframe_wrap">
+                        <iframe id="findUser" src="about:blank" width="1000"></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- POPUP : 콘텐츠 선택 -->
+        <article class="pop_wrapper ui-modal" id="modalOfContents">
+            <div class="pop_wrap pop_secondary">
+                <div class="pop_cont">
+                    <div class="sch_box">
+                        <input type="text" class="hp_w200" placeholder="콘텐츠명을 입력해주세요.">
+                        <a class="btn btnDefault btnSearch" onclick="goContentsSearch(false, $('#categoryCode').val())">검색</a>
+                    </div>
+
+                    <!-- BOARD : CONTROLLER -->
+                    <div class="bl_boardCtrls">
+                        <div class="bl_boardCtrls_lft">
+                            <p class="bl_boardCtrls_total">
+                                총: <strong id="searchContentsCount"></strong>건
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="tableResponsive overflowMulti">
+                        <table class="table">
+                            <colgroup>
+                                <col style="width: 50px">
+                                <col>
+                                <col>
+                                <col>
+                            </colgroup>
+                            <thead>
+                                <tr>
+                                    <th scope="col">번호</th>
+                                    <th scope="col">카테고리</th>
+                                    <th scope="col">콘텐츠명</th>
+                                    <th scope="col">선택</th>
+                                </tr>
+                            </thead>
+                            <tbody id="modalBodyOfContents"></tbody>
+                        </table>
+                    </div>
+                    <div class="bl_paginate"></div>
+                </div>
+                <button type="button" class="pop_close pop-close">닫기</button>
+            </div>
+        </article>
+
+        <!-- POPUP : 설문 선택 -->
+        <article class="pop_wrapper ui-modal" id="modalOfEvaluate">
+            <div class="pop_wrap pop_secondary">
+                <div class="pop_cont">
+                    <div class="sch_box">
+                        <input type="text" class="hp_w200" placeholder="설문명을 입력해주세요.">
+                        <a class="btn btnDefault btnSearch" onclick="goEvaluateSearch(false)">검색</a>
+                    </div>
+
+                    <!-- BOARD : CONTROLLER -->
+                    <div class="bl_boardCtrls">
+                        <div class="bl_boardCtrls_lft">
+                            <p class="bl_boardCtrls_total">
+                                총: <strong id="searchEvaluateCount"></strong>건
+                            </p>
+                            <select class="common_select" data-list="countSortList"></select>
+                        </div>
+                    </div>
+
+                    <div class="tableResponsive overflowMulti">
+                        <table class="table">
+                            <colgroup>
+                                <col style="width: 50px">
+                                <col>
+                                <col>
+                                <col>
+                            </colgroup>
+                            <thead>
+                                <tr>
+                                    <th scope="col">번호</th>
+                                    <th scope="col">카테고리</th>
+                                    <th scope="col">설문명</th>
+                                    <th scope="col">선택</th>
+                                </tr>
+                            </thead>
+                            <tbody id="modalBodyOfEvaluate"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <button type="button" class="pop_close pop-close">닫기</button>
+            </div>
+        </article>
+
+        <!-- POPUP : 과정 추가 -->
+        <article class="pop_wrapper ui-modal" id="modalOfEducation">
+            <div class="pop_wrap pop_secondary">
+                <div class="pop_cont">
+                    <div class="sch_box">
+                        <input type="text" class="hp_w200" placeholder="과정명을 입력해주세요.">
+
+                        <a class="btn btnDefault btnSearch" onclick="goEducationSearch(false)">검색</a>
+                    </div>
+
+                    <!-- BOARD : CONTROLLER -->
+                    <div class="bl_boardCtrls">
+                        <div class="bl_boardCtrls_lft">
+                            <p class="bl_boardCtrls_total">
+                                총: <strong id="searchEducationCount"></strong>건
+                            </p>
+                            <select class="common_select" data-list="countSortList"></select>
+                        </div>
+                    </div>
+
+                    <div class="tableResponsive overflowMulti">
+                        <table class="table">
+                            <colgroup>
+                                <col style="width: 50px">
+                                <col>
+                                <col>
+                                <col>
+                            </colgroup>
+                            <thead>
+                                <tr>
+                                    <th scope="col">번호</th>
+                                    <th scope="col">구분</th>
+                                    <th scope="col">과정명</th>
+                                    <th scope="col">선택</th>
+                                </tr>
+                            </thead>
+                            <tbody id="modalBodyOfEducation">
+                                <tr>
+                                    <td>1</td>
+                                    <td></td>
+                                    <td>과정명 입니다.</td>
+                                    <td>
+                                        <a href="" class="btn btnDefault">선택</a>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <button type="button" class="pop_close pop-close">닫기</button>
+            </div>
+        </article>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            /* <![CDATA[ */
+            const commonCode = [[ ${commonCode} ]];
+            const content = [[ ${content} ]][0];
+            const params = {};
+
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+                if (content) {
+                    codeSelector('curriculumAreaCode', content.categoryCode)
+                    codeSelector('curriculumAreaCodeDetail', content.curriculumAreaCode)
+                    $('#curriculumAreaCode').val(content.curriculumAreaCode).prop("selected", true)
+                    $('#curriculumAreaCodeDetail').val(content.curriculumAreaCodeDetail).prop("selected", true)
+                }
+
+                Array.from($("input[name=percent]")).forEach(function (form, index, list) {
+                    form.addEventListener('focusout', ev => {
+                        document.querySelector("#totalPercent").value = Number.parseInt(document.querySelector("#progressRateOfEnd").value)
+                            + Number.parseInt(document.querySelector("#examRateOfEnd").value);
+                    });
+                });
+
+                Array.from($("input[name=score]")).forEach(function (form, index, list) {
+                    form.addEventListener('focusout', ev => {
+                        document.querySelector("#totalScore").value = Number.parseInt(document.querySelector("#progressScoreOfEnd").value)
+                            + Number.parseInt(document.querySelector("#examScoreOfEnd").value);
+                    });
+                });
+            }
+
+            let contentsData = [];
+            function goContentsSearch(hidden, category) {
+                if(hidden) {
+                    document.querySelector('#modalOfContents > div').setAttribute('style', 'visibility: hidden');
+                }
+                const subParams = {};
+                subParams.categoryCode = category;
+                subParams.contentsName = document.querySelector('#modalOfContents > div > div > div.sch_box > input').value;
+                const queryParams = Object.entries(subParams).filter(data => data[1] != null && data[1] !== '').map(data => data.join('=')).join('&');
+                /** 콘텐츠 정보 조회 */
+                $.ajax({ //jquery ajax
+                    type:"get", //http method
+                    url:"/api/contents/list?size=100&" + queryParams, //값을 가져올 경로
+                    dataType:"json", //html, xml, text, script, json, jsonp 등 다양하게 쓸 수 있음
+                    success: function(data) {   //요청 성공시 실행될 메서드
+                        document.querySelector("#modalBodyOfContents").innerHTML = "";
+                        data.content.forEach(function (conInfo, index, list) {
+                            contentsData[index] = JSON.stringify(conInfo);
+                            document.querySelector("#modalBodyOfContents").innerHTML +=
+                                "<tr>" +
+                                "<td>" + (index + 1) + "</td>" +
+                                "<td>" + commonCode.filter(code => code.code === "CTS_CTGR").map(filterCode => filterCode.subCode.filter(seleted => seleted.code == conInfo.categoryCode))[0][0].codeName + "</td>" +
+                                "<td>" + conInfo.contentsName + "</td>" +
+                                `<td><a class='btn btnDefault' onclick="addContents(` + index + `)">선택</a></td>` +
+                                "</tr>";
+                        })
+                        document.querySelector('#searchContentsCount').textContent = data.pageable.totalElements;
+                        document.querySelector('#modalOfContents > div').setAttribute('style', 'visibility: visible');
+                    },
+                    error: function(e){		 //요청 실패시 에러 확인을 위함
+                        alert(e.responseJSON.resultMessage);
+                    }
+                })
+            }
+
+            function addContents(idx) {
+                let item = JSON.parse(contentsData[idx]);
+
+                document.querySelector('#modalOfContents > div > button').click();
+                $("input[name=contentsName]")[0].value = item.contentsName;
+                $("input[name=contentsName]")[0].id = item.contentsCode;
+            }
+
+            function goEvaluateSearch(hidden) {
+                if(hidden) {
+                    document.querySelector('#modalOfEvaluate > div').setAttribute('style', 'visibility: hidden');
+                }
+                const subParams = {};
+                subParams.evaluateTitle = document.querySelector('#modalOfEvaluate > div > div > div.sch_box > input').value;
+                const queryParams = Object.entries(subParams).filter(data => data[1] != null && data[1] !== '').map(data => data.join('=')).join('&');
+                /** 콘텐츠 정보 조회 */
+                $.ajax({ //jquery ajax
+                    type:"get", //http method
+                    url:"/api/contents/evaluate?" + queryParams, //값을 가져올 경로
+                    dataType:"json", //html, xml, text, script, json, jsonp 등 다양하게 쓸 수 있음
+                    success: function(data) {   //요청 성공시 실행될 메서드
+                        document.querySelector("#modalBodyOfEvaluate").innerHTML = "";
+                        data.content.forEach(function (evalInfo, index, list) {
+                            document.querySelector("#modalBodyOfEvaluate").innerHTML +=
+                                "<tr>" +
+                                "<td>" + (index + 1) + "</td>" +
+                                "<td>" + commonCode.filter(code => code.code === "EVAL_TYPE").map(filterCode => filterCode.subCode.filter(seleted => seleted.code == evalInfo.evaluateType))[0][0].codeName + "</td>" +
+                                "<td>" + evalInfo.evaluateTitle + "</td>" +
+                                "<td><a class='btn btnDefault' onclick='addEvaluate(" + JSON.stringify(evalInfo) + ")'>선택</a></td>" +
+                                "</tr>";
+                        })
+                        document.querySelector('#searchEvaluateCount').textContent = data.pageable.totalElements;
+                        document.querySelector('#modalOfEvaluate > div').setAttribute('style', 'visibility: visible');
+                    },
+                    error: function(e){		 //요청 실패시 에러 확인을 위함
+                        alert(e.responseJSON.resultMessage);
+                    }
+                })
+            }
+
+            function addEvaluate(item) {
+                document.querySelector('#modalOfEvaluate > div > button').click();
+                $("input[name=evaluateTitle]")[0].value = item.evaluateTitle;
+                $("input[name=evaluateTitle]")[0].id = item.evaluateSerialNo;
+            }
+
+            function delEvaluate() {
+                if(confirm('정말 삭제하시겠습니까?')) {
+                    $("input[name=evaluateTitle]")[0].value = '';
+                    $("input[name=evaluateTitle]")[0].id = '0';
+                }
+            }
+
+            function goEducationSearch(hidden) {
+                if(hidden) {
+                    document.querySelector('#modalOfEducation > div').setAttribute('style', 'visibility: hidden');
+                }
+                const subParams = {};
+                subParams.curriculumName = document.querySelector('#modalOfEducation > div > div > div.sch_box > input').value;
+                const queryParams = Object.entries(subParams).filter(data => data[0] != null && data[0] !== '').map(data => data.join('=')).join('&');
+                /** 교육 과정 조회 */
+                $.ajax({ //jquery ajax
+                    type:"get", //http method
+                    url:"/api/education/curriculum?size=100&" + queryParams, //값을 가져올 경로
+                    dataType:"json", //html, xml, text, script, json, jsonp 등 다양하게 쓸 수 있음
+                    success: function(data) {   //요청 성공시 실행될 메서드
+                        document.querySelector("#modalBodyOfEducation").innerHTML = "";
+                        data.content.forEach(function (eduInfo, index, list) {
+                            document.querySelector("#modalBodyOfEducation").innerHTML += "<tr>" +
+                                "<td>" + (index + 1) + "</td>" +
+                                "<td>" + commonCode.filter(code => code.code === "EDU_TYPE").map(filterCode => filterCode.subCode.filter(seleted => seleted.code == eduInfo.educationType))[0][0].codeName + "</td>" +
+                                "<td>" + eduInfo.curriculumName + "</td>" +
+                                "<td><a class='btn btnDefault' onclick='addEducation(decodeURIComponent(\"" + encodeURIComponent(JSON.stringify(eduInfo)) + "\"))'>선택</a></td>" +
+                                "</tr>";
+                        })
+                        // pagination(data.pageable, false);
+                        document.querySelector('#searchEducationCount').textContent = data.pageable.totalElements;
+                        document.querySelector('#modalOfEducation > div').setAttribute('style', 'visibility: visible');
+                    },
+                    error: function(e){		 //요청 실패시 에러 확인을 위함
+                        alert(e.responseJSON.resultMessage);
+                    }
+                })
+            }
+
+            function addEducation(item) {
+                item = JSON.parse(item)
+                document.querySelector('#modalOfEducation > div > button').click();
+                document.querySelector('#collaboration').innerHTML +=
+                    "<tr id=" + item.curriculumCode + " name=collaborationCurriculum>" +
+                    "<td>" + commonCode.filter(code => code.code === "EDU_TYPE").map(filterCode => filterCode.subCode.filter(seleted => seleted.code == item.educationType))[0][0].codeName + "</td>" +
+                    "<td>" + item.curriculumName + "</td>" +
+                    "<td class='text-center'>" +
+                    "<a class='btn btnDefault btnDelete btn_del' onclick='deleteRow(this)'>삭제</a>" +
+                    "</td>" +
+                    "</tr>"
+            }
+
+            function deleteRow(item) {
+                item.parentElement.parentElement.outerHTML = "";
+            }
+
+            // 미입력된 필수 정보가 있을 경우 alert
+            function requiredChk() {
+                if (!document.querySelector("#categoryCode").value) {
+                    alert('카테고리는 필수입니다.');
+                    return false;
+                } else params.categoryCode = document.querySelector("#categoryCode").value;
+
+                if (!document.querySelector("#curriculumName").value) {
+                    alert('교육 과정명은 필수입니다.');
+                    return false;
+                } else params.curriculumName = document.querySelector("#curriculumName").value;
+
+                if (!($('input[name=managerDepartment]').val() || $('input[name=managerName]').val())) {
+                    alert('담당자 정보는 필수입니다.');
+                    return false;
+                } else {
+                    /** 담당자 아이디 */params.managerDepartment = $('input[name=managerDepartment]').val();
+                    /** 담당자 */params.managerName = $('input[name=managerName]').val();
+                }
+
+                params.contentsList = [];
+                if (!$("input[name=contentsName]")[0].id) {
+                    alert('콘텐츠는 필수입니다.');
+                    return false;
+                } else params.contentsList.push({sortNo: 0, value: $("input[name=contentsName]")[0].id});
+
+                if (!(document.querySelector("#educationPerHour").value && document.querySelector("#educationPerMinute").value)) {
+                    alert('인정시간은 필수입니다.');
+                    return false;
+                } else {
+                    params.educationPerHour = document.querySelector("#educationPerHour").value;
+                    params.educationPerMinute = document.querySelector("#educationPerMinute").value;
+                }
+
+                if (!document.querySelector("#numberOfPeople").value) {
+                    alert('정원은 필수입니다.');
+                    return false;
+                } else params.numberOfPeople = document.querySelector("#numberOfPeople").value;
+
+                if (Number.parseInt(document.querySelector("#progressRateOfEnd").value)
+                    + Number.parseInt(document.querySelector("#examRateOfEnd").value) != 100) {
+                    alert('배점 비율이 올바르지 않습니다.');
+                    return false;
+                } else {
+                    params.progressRateOfEnd = document.querySelector("#progressRateOfEnd").value;
+                    params.examRateOfEnd = document.querySelector("#examRateOfEnd").value;
+                }
+
+                if (!(0 <= Number.parseInt(document.querySelector("#progressScoreOfEnd").value) <= 100)
+                    || !(0 <= Number.parseInt(document.querySelector("#examScoreOfEnd").value) <= 100)) {
+                    alert('수료 점수가 올바르지 않습니다.');
+                    return false;
+                } else {
+                    params.progressScoreOfEnd = document.querySelector("#progressScoreOfEnd").value;
+                    params.examScoreOfEnd = document.querySelector("#examScoreOfEnd").value;
+                    params.totalScore = document.querySelector("#totalScore").value;
+                }
+
+                if (!document.querySelector("#applyApprovalType").value) {
+                    alert('신청 방식은 필수입니다.');
+                    return false;
+                } else params.applyApprovalType = document.querySelector("#applyApprovalType").value;
+
+                if (!document.querySelector("#completionType").value) {
+                    alert('수료 방식은 필수입니다.');
+                    return false;
+                } else params.completionType = document.querySelector("#completionType").value;
+
+                if (!document.querySelector("#reEducationTerm").value) {
+                    alert('복습 기간은 필수입니다.');
+                    return false;
+                } else params.reEducationTerm = document.querySelector("#reEducationTerm").value;
+
+                if (!document.querySelector("#progressRate").value) {
+                    alert('차시 진도 기준은 필수입니다.');
+                    return false;
+                } else params.progressRate = document.querySelector("#progressRate").value;
+
+                if (!document.querySelector("#reExamCount").value) {
+                    alert('시험 응시 가능 횟수는 필수입니다.');
+                    return false;
+                } else params.reExamCount = document.querySelector("#reExamCount").value;
+
+                if (!(document.querySelector("#startExamTerm").value || document.querySelector("#startExamRate").value)) {
+                    alert('시험 시작 가능 조건은 필수입니다.');
+                    return false;
+                } else {
+                    params.startExamTerm = document.querySelector("#startExamTerm").value;
+                    params.startExamRate = document.querySelector("#startExamRate").value;
+                }
+                if (!document.querySelectorAll('iframe')[0].contentWindow.document.body.children[0].textContent) {
+                    alert('교육 목표는 필수입니다.');
+                    return false;
+                } else params.educationGoal = document.querySelectorAll('iframe')[0].contentWindow.document.body.children[0].textContent;
+
+                if (!document.querySelectorAll('iframe')[1].contentWindow.document.body.children[0].textContent) {
+                    alert('교육 내용은 필수입니다.');
+                    return false;
+                } else params.educationContent = document.querySelectorAll('iframe')[1].contentWindow.document.body.children[0].textContent;
+
+                return true;
+            }
+
+            /** 등록 */
+            function regist() {
+                Array.from($("a[name=button]")).forEach(function (form, index, list) {
+                    form.disabled = true;
+                });
+                /** 필수 값 체크 */
+                if (!requiredChk()) return;
+                /** 교육 유형 */
+                params.educationType = '3' // 이러닝
+                /** 비필수 값 셋팅 */
+                /** 교육 대상 */
+                params.educationTarget = $('input[name=eduTarget]:checked').length ? $('input[name=eduTarget]:checked')[0].value : '';
+                if( !params.educationTarget ){
+                    alert('교육 대상을 선택해 주세요.');
+                    $('input[name=eduTarget]').focus();
+                    return false;
+                }
+                params.educationTargetDescription = $('#educationTargetDes').val();
+                if (document.querySelector("#curriculumAreaCode").value) {
+                    /** 과정 분야 대분류 */params.curriculumAreaCode = document.querySelector("#curriculumAreaCode").value;
+                }
+                if (document.querySelector("#curriculumAreaCodeDetail").value) {
+                    /** 과정 분야 소분류 */params.curriculumAreaCodeDetail = document.querySelector("#curriculumAreaCodeDetail").value;
+                }
+                /** 집행 구분 */params.enforcementType = document.querySelector("#enforcementType").value;
+                /** 순차 학습 */params.isSequentialEducation = document.querySelector("#isSequentialEducation").value;
+                /** 수료 번호 발급 여부 */params.isIssueCertificateOfCompletion = document.querySelector("#isIssueCertificateOfCompletion").value
+                /** 연계 과정 */params.curriculumCollaborationList = [];
+                $("[name=collaborationCurriculum]").each(function(index, data, list) {
+                    params.curriculumCollaborationList.push({sortNo: index, value: data.id})
+                });
+                /** 사용 여부 */params.isUsable = document.querySelector("#isUsable").value;
+                /** 설문 */
+                var evaluates = [];
+                var evaluateData = {};
+                if ($("input[name=evaluateTitle]")[0].id) {
+                    if ($("input[name=evaluateTitle]")[0].id != "" && $("input[name=evaluateTitle]")[0].id != "0") {
+                        evaluateData.value = $("input[name=evaluateTitle]")[0].id;
+                        evaluateData.sortNo = 0;
+                        evaluates.push(evaluateData)
+                    }
+                }
+                params.evaluateList = evaluates
+
+                /** 교육과정 등록 */
+                $.ajax({ //jquery ajax
+                    type:"post", //http method
+                    url:"/api/education/curriculum/e-learning/create", //값을 가져올 경로
+                    headers: {'Content-Type': 'application/json'},
+                    data: JSON.stringify(params),
+                    dataType:"json", //html, xml, text, script, json, jsonp 등 다양하게 쓸 수 있음
+                    success: function(result) {   //요청 성공시 실행될 메서드
+                        alert("교육과정 정보 생성이 완료되었습니다.");
+                        window.location.replace("/education/curriculum");
+                    },
+                    error: function(e){		 //요청 실패시 에러 확인을 위함
+                        alert(e.responseJSON.resultMessage);
+                        Array.from($("a[name=button]")).forEach(function (form, index, list) {
+                            form.disabled = false;
+                        });
+                    }
+                })
+            }
+            /** 수정 */
+            function modify() {
+                Array.from($("a[name=button]")).forEach(function (form, index, list) {
+                    form.disabled = true;
+                });
+                /** 필수 값 체크 */
+                if (!requiredChk()) return;
+                /** 교육 유형 */
+                params.educationType = '3' // 이러닝
+                /** 교육과정 코드 */
+                params.curriculumCode = content.curriculumCode;
+                /** 교육 유형 */
+                params.educationType = '3' // 이러닝
+                /** 비필수 값 셋팅 */
+                /** 교육 대상 */
+                params.educationTarget = $('input[name=eduTarget]:checked').length ? $('input[name=eduTarget]:checked')[0].value : '';
+                if( !params.educationTarget ){
+                    alert('교육 대상을 선택해 주세요.');
+                    $('input[name=eduTarget]').focus();
+                    return false;
+                }
+                params.educationTargetDescription = $('#educationTargetDes').val();
+                if (document.querySelector("#curriculumAreaCode").value) {
+                    /** 과정 분야 대분류 */params.curriculumAreaCode = document.querySelector("#curriculumAreaCode").value;
+                }
+                if (document.querySelector("#curriculumAreaCodeDetail").value) {
+                    /** 과정 분야 소분류 */params.curriculumAreaCodeDetail = document.querySelector("#curriculumAreaCodeDetail").value;
+                }
+                /** 집행 구분 */params.enforcementType = document.querySelector("#enforcementType").value;
+                /** 순차 학습 */params.isSequentialEducation = document.querySelector("#isSequentialEducation").value;
+                /** 수료 번호 발급 여부 */params.isIssueCertificateOfCompletion = document.querySelector("#isIssueCertificateOfCompletion").value
+                /** 연계 과정 */params.curriculumCollaborationList = [];
+                $("[name=collaborationCurriculum]").each(function(index, data, list) {
+                    params.curriculumCollaborationList.push({sortNo: index, value: data.id})
+                });
+                /** 사용 여부 */params.isUsable = document.querySelector("#isUsable").value;
+                /** 설문 */
+                var evaluates = [];
+                var evaluateData = {};
+                if ($("input[name=evaluateTitle]")[0].id) {
+                    if ($("input[name=evaluateTitle]")[0].id != "" && $("input[name=evaluateTitle]")[0].id != "0") {
+                        evaluateData.value = $("input[name=evaluateTitle]")[0].id;
+                        evaluateData.sortNo = 0;
+                        evaluates.push(evaluateData)
+                    }
+                }
+                params.evaluateList = evaluates
+
+                /** 교육과정 업데이트 */
+                $.ajax({ //jquery ajax
+                    type:"put", //http method
+                    url:"/api/education/curriculum/e-learning/update", //값을 가져올 경로
+                    headers: {'Content-Type': 'application/json'},
+                    data: JSON.stringify(params),
+                    dataType:"json", //html, xml, text, script, json, jsonp 등 다양하게 쓸 수 있음
+                    success: function(result) {   //요청 성공시 실행될 메서드
+                        alert("교육과정 정보 업데이트에 성공하였습니다.");
+                        window.location.reload();
+                    },
+                    error: function(e){		 //요청 실패시 에러 확인을 위함
+                        alert(e.responseJSON.resultMessage);
+                        Array.from($("a[name=button]")).forEach(function (form, index, list) {
+                            form.disabled = false;
+                        });
+                    }
+                })
+            }
+
+            function findAdminUser() {
+                let url = window.location.pathname
+                if ((url.indexOf("regist") >= 0) ? true : confirm("담당자를 변경하시겠습니까?")) {
+                    openPop('', '/popup/find/admin/user', 'findUser')
+                }
+            }
+
+            function setPopData(popData){
+                if(popData && popData != null && popData.userId != null) {
+                    if($("input[name=managerDepartment]").val() == popData.userId){
+                        alert('이미 선택된 담당자입니다.');
+                    }else{
+                        $("input[name=managerDepartment]").val(popData.userId)
+                        $("input[name=managerName]").val(popData.userName)
+                    }
+                }
+            }
+
+            window.addEventListener('message', handleDocHeightMsg, false); // 메시지 수신 이벤트 등록
+            function handleDocHeightMsg(eventObj) { // 메시지 수신 처리를 위한 함수
+                setPopData(eventObj.data);
+            }
+
+            // 동적 select - onChange
+            var codeSelector = function (type, value) {
+                var codes = ''
+                var selector = document.querySelector('#'+type)
+                selector.innerHTML = '';
+                var option = document.createElement('option')
+
+                if (type.indexOf('Detail') >= 0) { // id:curriculumAreaCodeDetail 제어
+                    codes = commonCode.filter(code => code.code === "EDU_CTGR_SUB")[0].subCode
+                    option.innerText = '소분류'
+                } else { // id:curriculumAreaCode 제어
+                    codes = commonCode.filter(code => code.code === "EDU_CTGR")[0].subCode
+                    option.innerText = '대분류'
+                    var selector2 = document.querySelector('#'+type+'Detail')
+                    selector2.innerHTML = '';
+                }
+                option.value = ''
+                selector.append(option)
+
+                // select에 옵션 추가, 공통인 value:3 옵션은 모두 넣기
+                codes.forEach(item => {
+                    if (value != '3') {
+                        if (item.code.startsWith(value) || item.code.startsWith('3')) {
+                            return $(selector).append(`<option value="${item.code}">${item.codeName}</option>`)
+                        }
+                    } else {
+                        if (item.code.startsWith(value)) {
+                            return $(selector).append(`<option value="${item.code}">${item.codeName}</option>`)
+                        }
+                    }
+                })
+            }
+            /* ]]> */
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

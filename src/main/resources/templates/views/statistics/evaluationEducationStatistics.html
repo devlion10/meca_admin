@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="statistics-3">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>강의평가 통계</h2>
+        </div>
+
+        <div class="tableLeftResponsive">
+            <table class="tableLeft">
+                <colgroup>
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                </colgroup>
+                <tbody>
+                    <tr>
+                        <th scope="row">교육유형</th>
+                        <td>
+                            <select class="common_select" id="educationType">
+                                <option value="" th:selected="${true}">전체</option>
+                                <th:block th:each="commonCode : ${commonCode}" th:if="${commonCode.code} == 'EDU_TYPE'">
+                                    <option th:each="codes : ${commonCode.subCode}" th:value="${codes.code}"
+                                            th:text="${codes.codeName}" th:selected="${false}" th:if="${codes.code!='4'}"></option>
+                                </th:block>
+                            </select>
+                        </td>
+                        <th scope="row">카테고리</th>
+                        <td>
+                            <select class="common_select" id="categoryCode">
+                                <option value="" th:selected="${true}">전체</option>
+                                <th:block th:each="commonCode : ${commonCode}" th:if="${commonCode.code} == 'CTS_CTGR'">
+                                    <option th:each="codes : ${commonCode.subCode}" th:value="${codes.code}"
+                                            th:text="${codes.codeName}" th:selected="${false}"></option>
+                                </th:block>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">과정명</th>
+                        <td colspan="3">
+                            <input type="text" id="curriculumName" class="hp_w600">
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="bl_gridBtns">
+            <div class="bl_gridBtns_md">
+                <div class="btn btnDefault btnReset">리셋</div>
+                <a onclick="searchValue()" class="btn btnDefault btnSearch">검색</a>
+                <a href="/api/statistics/evaluation/curriculum/excel" target="_blank" class="btn btnDefault download_excel download_search">excel 다운로드</a>
+            </div>
+        </div>
+
+        <div class="bl_tab2">
+            <ul class="bl_tab2_menu">
+                <li>
+                    <a href="/statistics/evaluation">설문지별</a>
+                </li>
+                <li class="is_active">
+                    <a href="/statistics/evaluation/education">강좌(과정)별</a>
+                </li>
+            </ul>
+            
+            <!-- BOARD : CONTROLLER -->
+            <div class="bl_boardCtrls">
+                <div class="bl_boardCtrls_lft">
+                    <p class="bl_boardCtrls_total">
+                        총: <strong th:text="${pageable.totalElements}"></strong>건
+                    </p>
+                </div>
+                <div class="bl_boardCtrls_rgt">
+                    <select class="common_select" data-list="countSortList"></select>
+                </div>
+            </div>
+
+            <div class="tableResponsive overflowMulti">
+                <table class="table">
+                    <colgroup>
+                        <col style="width: 50px">
+                        <col>
+                        <col>
+                        <col>
+                        <col>
+                        <col>
+                    </colgroup>
+                    <thead>
+                        <tr>
+                            <th scope="col">번호</th>
+                            <th scope="col">교육유형</th>
+                            <th scope="col">카테고리</th>
+                            <th scope="col">과정명</th>
+                            <th scope="col">수료자수</th>
+                            <th scope="col">응답자수</th>
+                            <th scope="col">응답률</th>
+                            <th scope="col">응답결과</th>
+                        </tr>
+                    </thead>
+                    <tbody th:if="${content != null && content.size > 0}">
+                        <tr th:each="item,stat:${content}" th:id="${item.evaluateSerialNo}">
+                            <td th:text="${pageable.totalElements - ((pageable.page * pageable.size) + stat.index)}">1</td>
+                            <td id="educationType">
+                                <th:block th:each="commonCode : ${commonCode}" th:if="${commonCode.code} == 'EDU_TYPE'">
+                                    <th:block th:each="codes : ${commonCode.subCode}">
+                                        <span th:if="${codes.code == item.educationType}" th:text="${codes.codeName}"></span>
+                                    </th:block>
+                                </th:block>
+                            </td>
+                            <td id="category">
+                                <th:block th:each="commonCode : ${commonCode}" th:if="${commonCode.code} == 'CTS_CTGR'">
+                                    <th:block th:each="codes : ${commonCode.subCode}">
+                                        <span th:if="${codes.code == item.categoryCode}" th:text="${codes.codeName}"></span>
+                                    </th:block>
+                                </th:block>
+                            </td>
+                            <td id="curriculumName" th:text="${item.curriculumName}">2021 직무강좌 만족도 조사지</td>
+                            <td th:text="${item.countEnd}">10</td>
+                            <td th:text="${item.countAnswer}">10</td>
+                            <td th:text="${item.rateAnswer + '%'}">10</td>
+                            <td>
+                                <button class="btn btnDefault" th:onclick="popResponseResult([[${item}]])">보기</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                    <tbody th:unless="${content != null && content.size > 0}">
+                        <tr class="empty_data"><td colspan="9">조회된 내용이 없습니다.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="bl_paginate"></div>
+        </div>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.5.1/dist/chart.min.js"></script>
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            /* <![CDATA[ */
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+                pagination([[ ${pageable} ]], false)
+            }
+
+            function searchValue() {
+                let searchQuery = {}
+                let type = $('#educationType').val()
+                let category = $('#categoryCode').val()
+                let name = $('#curriculumName').val()
+
+                if(type){
+                    searchQuery.educationType = type
+                }
+                if(category){
+                    searchQuery.categoryCode = category
+                }
+                if(name){
+                    searchQuery.curriculumName = name
+                }
+                searchJson(searchQuery)
+            }
+
+            function popResponseResult(item) {
+                const target = $('#'+item.evaluateSerialNo);
+                const educationType = target.find('#educationType').text();
+                const category = target.find('#category').text();
+                const curriculumName = target.find('#curriculumName').text();
+
+                const popup = $(`
+                    <article class="pop_wrapper ui-modal" id="popResponseResult">
+                        <div class="pop_wrap pop_secondary">
+                            <div class="pop_cont">
+                                <div class="pop_tit">응답결과</div>
+                                <div class="tableLeftResponsive">
+                                    <table class="tableLeft" onclick='testFunction()'>
+                                        <colgroup>
+                                            <col style="width: 200px">
+                                            <col style="width: auto">
+                                        </colgroup>
+                                        <tbody>
+                                            <tr>
+                                                <th scope="row">구분</th>
+                                                <td>${educationType}</td>
+                                            </tr>
+                                            <tr>
+                                                <th scope="row">카테고리</th>
+                                                <td>${category}</td>
+                                            </tr>
+                                            <tr>
+                                                <th scope="row">과정명</th>
+                                                <td>${curriculumName}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <div class="bl_gridBtns">
+                                    <div class="bl_gridBtns_md">
+                                        <div class="btn btnDefault">excel 다운로드</div>
+                                    </div>
+                                </div>
+                                <!-- 설문지 영역 (동적 생성) -->
+                            </div>
+                    
+                            <button type="button" class="pop_close pop-close">닫기</button>
+                        </div>
+                    </article> 
+                `);
+                popup.openModal();
+
+                $.ajax({
+                    type: "get",
+                    headers: {'Content-Type' : 'application/json'},
+                    url: "/api/statistics/evaluation/education/"+ item.curriculumCode, //값을 가져올 경로
+                    dataType: "json",
+                    success: function (data){
+                        if (isEmptyArr(data)) {
+                            const survey = $(`<div class="survey_wrap">
+                                <div class="pop_txt" style="height: 150px; display: flex; align-items: center; justify-content: center; color: #999;">응답 결과가 없습니다.</div>
+                            </div>`);
+                            popup.find('.pop_cont').append(survey);
+                        } else {
+                            data.forEach((surveyItem, surveyIdx) => {
+                                //설문지
+                                const survey = $(`<div class="survey_wrap mt-5">
+                                    <div class="pop_subTit">[${surveyItem[0].evaluateTitle}]</div>
+                                    <div class="q_wrap"></div>
+                                </div>`);
+                                popup.find('.pop_cont').append(survey);
+
+                                if (isEmptyArr(surveyItem)) {
+                                    survey.find('.q_wrap').append('<div class="pop_txt" style="height: 150px; display: flex; align-items: center; justify-content: center; color: #999;">응답 결과가 없습니다.</div>');
+                                } else {
+                                    surveyItem.forEach((qItem, idx) => {
+                                        //문항
+                                        const thItems = qItem.evaluateStatisticsItems.map(item => `<th scope="col">${item.questionItemValue}</th>`).join('');
+                                        const tdItems = qItem.evaluateStatisticsItems.map(item => `<td>${item.count}</td>`).join('');
+                                        const ansBtn = `<div id="answerBtn" class="btn btnDefault" style="background: url(../../assets/images/icons/arrow_down2.png) no-repeat right 7px center; background-size: 7px; padding-right: 20px">답변 보기</div>`;
+                                        const ansItems = qItem.evaluateStatisticsItems.map(item => `<div>${item.questionItemValue}</div>`).join('');
+    
+                                        //문항 영역
+                                        const question = $(`
+                                            <div class="q_item">
+                                                <div class="pop_txt mt-4 mb-3">${qItem.questionTitle}</div>
+                                                ${qItem.questionType === '1' || qItem.questionType === '2' ?
+                                                    `<div class="tableResponsive overflowMulti">
+                                                        <table class="table">
+                                                            <thead>
+                                                                <tr>
+                                                                    ${thItems}
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                <tr>
+                                                                    ${tdItems}
+                                                                </tr>
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                    <div class="qChart_wrap" style="width: 500px; height: auto; margin: 0 auto">
+                                                        <canvas id="qChart${surveyIdx+1}-${idx+1}"></canvas>
+                                                    </div>` : qItem.questionType === '0' ? `` : `${ansBtn}
+                                                            <div class="pop_txt mt-2" style="display: none;">${ansItems}</div>`
+                                                }
+                                            </div>
+                                        `);
+                                        survey.find('.q_wrap').append(question);
+
+                                        question.find('#answerBtn').click(function(){
+                                            $(this).next().toggle();
+                                            $(this).text($(this).next().is(':visible') ? '답변 닫기' : '답변 보기');
+                                            $(this).css($(this).next().is(':visible') ? {
+                                                'background': 'url(../../assets/images/icons/arrow_up2.png) no-repeat right 7px center',
+                                                'background-size': '7px',
+                                            } : {
+                                                'background': 'url(../../assets/images/icons/arrow_down2.png) no-repeat right 7px center',
+                                                'background-size': '7px',
+                                            });
+                                        })
+                                        
+                                        if (qItem.questionType === '1' || qItem.questionType === '2') {
+                                            const questionChart = document.getElementById('qChart'+(surveyIdx+1)+"-"+(idx+1)).getContext('2d');
+                                            const labelsList = qItem.evaluateStatisticsItems.map(item => item.questionItemValue);
+                                            const dataList = qItem.evaluateStatisticsItems.map(item => item.count);
+                                            
+                                            const barChart = new Chart(questionChart, {
+                                                type: 'bar',
+                                                data: {
+                                                    labels: labelsList,
+                                                    datasets: [{
+                                                        data: dataList,
+                                                        backgroundColor: [
+                                                            'rgba(255, 99, 132, 0.2)',
+                                                            'rgba(54, 162, 235, 0.2)',
+                                                            'rgba(255, 206, 86, 0.2)',
+                                                            'rgba(75, 192, 192, 0.2)',
+                                                            'rgba(153, 102, 255, 0.2)'
+                                                        ],
+                                                        borderColor: [
+                                                            'rgba(255, 99, 132, 1)',
+                                                            'rgba(54, 162, 235, 1)',
+                                                            'rgba(255, 206, 86, 1)',
+                                                            'rgba(75, 192, 192, 1)',
+                                                            'rgba(153, 102, 255, 1)'
+                                                        ],
+                                                        borderWidth: 1
+                                                    }]
+                                                },
+                                                options: {
+                                                    plugins: {
+                                                        legend: {
+                                                            display: false
+                                                        }
+                                                    },
+                                                    scales: {
+                                                        y: {
+                                                            beginAtZero: true
+                                                        }
+                                                    }
+                                                }
+                                            });
+                                        }
+                                    });
+                                }
+                            });
+                        }
+                    },
+                    error: function (e){ }
+                });
+            }
+            /* ]]> */
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

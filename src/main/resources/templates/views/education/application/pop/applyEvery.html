@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/pop_layout}">
+<body>
+<div layout:fragment="pop">
+    <!-- POPUP : -->
+    <article class="pop_page">
+        <div class="pop_secondary">
+            <div class="pop_head">
+                <div class="tit">교육관리 일괄등록</div>
+            </div>
+            <div class="pop_cont">
+                <div class="bl_uploadGrid justify-content-center">
+                    <div class="bl_upload js_upload hp_lg_w462">
+                        <input type="text" class="bl_upload_path js_path" readonly>
+                        <label class="btn btnDefault bg-secondary text-white bl_upload_btn">찾아보기</label>
+                        <input id="excelFile" type="file" name="file" class="bl_upload_file js_file" accept=".xlsx">
+                    </div>
+                    <a href="/assets/sample/교육관리샘플.xlsx" class="btn_type4 btn_blue btn_underline">샘플 다운로드.xlsx</a>
+                </div>
+                
+                <div class="bl_gridBtns">
+                    <div class="bl_gridBtns_md">
+                        <a class="btn btnDefault pop-close" onclick="create()">저장</a>
+                    </div>
+                </div>
+
+                <div class="guide_text mt-3">
+                    1. 엑셀 양식을 다운로드하여 등록해주시기 바랍니다.<br/>
+                    2. 회원가입이 되어있는 회원의 경우에만 강제 입과가 가능합니다.<br/>
+                    3. 아이디를 잘못 입력하거나, 이미 등록된 사용자를 등록하면 오류가 발생합니다.
+                </div>
+            </div>
+            <button type="button" class="pop_close pop-close" onclick="parent.window.closePop()">닫기</button>
+        </div>
+    </article>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            /* <![CDATA[ */
+            function create(){
+                let CONT = [[ ${content} ]];
+                if(confirm('정말로 등록하시겠습니까?')){
+                    if($("#excelFile")[0].files.length>0){
+                        let form = new FormData();
+                        form.append( "excelFile", $("#excelFile")[0].files[0] );
+                        $.ajax({
+                            type:"post", //http method
+                            url:`/api/education/application/create-by-file/${CONT[0].curriculumCode}/${CONT[0].educationPlanCode}`, //값을 가져올 경로
+                            processData : false,
+                            contentType : false,
+                            data: form,
+                            async:false,
+                            success: function(data) {   //요청 성공시 실행될 메서드
+                                alert("엑셀 파일로 일괄 등록되었습니다.");
+                                parent.window.location.reload();
+                            }, error: function(e) {
+                                if(e && e.responseJSON && e.responseJSON.resultMessage){
+                                    alert('등록하는 과정에서 오류가 발생하였습니다. 사용자 아이디가 올바른지, 이미 등록된 사용자가 있는지 확인해 주세요.');
+                                }else{
+                                    alert('등록하는 과정에서 알 수 없는 오류가 발생하였습니다.');
+                                }
+                            }
+                        })
+                    }else{
+                        alert("파일이 없습니다.");
+                    }
+                }
+            }
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+            }
+            /* ]]> */
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

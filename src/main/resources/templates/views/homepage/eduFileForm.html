@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="homepage-6">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>교재자료 관리</h2>
+        </div>
+        
+        <form class="tableLeftResponsive">
+            <table class="tableLeft">
+                <colgroup>
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                </colgroup>
+                <tbody>
+                    <tr>
+                        <th scope="row"><span class="el_required">*</span>구분</th>
+                        <td>
+                            <select id="category" class="common_select" not_null="true" alert_name="구분">
+                                <th:block th:each="commonCode : ${commonCode}" th:if="${commonCode.code} == 'TEAM_CTGR'">
+                                    <option th:if="${content != null}" th:each="categories : ${commonCode.subCode}"
+                                            th:value="${categories.code}" th:text="${categories.codeName}" th:selected="${categories.code}==${content[0].teamCategory}"></option>
+                                    <option th:unless="${content != null}" th:each="categories : ${commonCode.subCode}"
+                                            th:value="${categories.code}" th:text="${categories.codeName}"></option>
+                                </th:block>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><span class="el_required">*</span>유형</th>
+                        <td>
+                            <select id="types" class="common_select" not_null="true" alert_name="유형">
+                                <th:block th:each="commonCode : ${commonCode}" th:if="${commonCode.code} == 'MTRL_TYPE'">
+                                    <th:block th:if="${content != null}">
+                                        <option th:each="types : ${commonCode.subCode}" th:if="${#strings.startsWith(types.code, '1')}"
+                                                th:value="${types.code}" th:text="${types.codeName}" th:selected="${types.code}==${content[0].materialType}"></option>
+                                    </th:block>
+                                    <th:block th:unless="${content != null}">
+                                        <option th:each="types : ${commonCode.subCode}" th:if="${#strings.startsWith(types.code, '1')}"
+                                                th:value="${types.code}" th:text="${types.codeName}"></option>
+                                    </th:block>
+                                </th:block>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><span class="el_required">*</span>제목</th>
+                        <td>
+                            <input type="text" id="title" class="hp_w600" not_null="true" alert_name="제목" th:if="${content != null}" th:value="${content[0].title}">
+                            <input type="text" id="title" class="hp_w600" not_null="true" alert_name="제목" th:unless="${content != null}">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><span class="el_required">*</span>작성자</th>
+                        <td>
+                            <input type="text" id="author" class="hp_w600" not_null="true" alert_name="작성자" th:if="${content != null}" th:value="${content[0].author}">
+                            <input type="text" id="author" class="hp_w600" not_null="true" alert_name="작성자" th:unless="${content != null}">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><span class="el_required">*</span>내용</th>
+                        <td>
+                            <textarea name="contents" class="ckeditor" style="width:100%; height:200px" th:if="${content != null}" th:text="${content[0].contents}"></textarea>
+                            <textarea name="contents" class="ckeditor" style="width:100%; height:200px" th:unless="${content != null}"></textarea>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">파일첨부</th>
+                        <td>
+                            <div class="bl_uploadGrid2Wrap">
+                                <div>
+                                    <div class="bl_uploadGrid2">
+                                        <div class="bl_upload hp_lg_w462">
+                                            <input type="text" class="bl_upload_path js_path" value="선택된 파일 없음" />
+                                            <label for="lmsDataFile" class="btn btnDefault bg-secondary text-white bl_upload_btn">파일선택</label>
+                                            <input type="file" name="lmsDataFile" id="lmsDataFile" class="bl_upload_file js_file" multiple>
+                                        </div>
+                                    </div>
+                                    <p class="bl_uploadNote">여러 파일 선택 가능, 개별 파일용량 : 20MB 미만</p>
+                                </div>
+
+                                <div class="bl_uploadList__scroll hp_w100p" th:if="${(content != null) && content[0].lmsDataFiles != null}">
+                                    <ul class="bl_uploadList">
+                                        <li th:each="item, index : ${content[0].lmsDataFiles}">
+                                            <a class="js_path" th:href="@{/api/homepage/archive/download(attachFilePath=${item.filePath})}" th:text="${item.originalFileName}"></a>
+                                            <div class="bl_uploadList_rgt">
+                                                <span class="font_roboto file_size" th:text="${item.fileSize}">5KB</span>
+                                                <a class="file_delete" th:href="@{/api/homepage/archive/upload/delete/{sn}(sn=${item.fileSn})}" th:value="${item.fileSn}">
+                                                    <i class="fas fa-times color_red"></i>
+                                                </a>
+                                            </div>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div th:unless="${(content != null) && (content[0].lmsDataFiles != null)}"></div>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </form>
+
+        <div class="bl_gridBtns">
+            <div class="bl_gridBtns_lft">
+                <div th:if="${content != null}" class="btn btnDefault btnDelete">삭제</div>
+            </div>
+            <div class="bl_gridBtns_rgt">
+                <a class="btn btnDefault btnList" href="/homepage/archive/edu-data">목록</a>
+                <div th:if="${content != null}" class="btn btnDefault btnModify">수정</div>
+                <div th:if="${content == null}" class="btn btnDefault btnRegister">등록</div>
+            </div>
+        </div>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            /* <![CDATA[ */
+            $(".file_delete").bind("click", function (e){
+                e.preventDefault();
+                let url = $(this).attr("href")
+                if(confirm("정말로 파일을 삭제하시겠습니까?")){
+                    $.ajax({
+                        type: "delete", //http method
+                        url: url, //값을 가져올 경로
+                        headers: {'Content-Type': 'application/json'},
+                        dataType: "json",
+                        success: function(data) {
+                            alert("삭제되었습니다.")
+                            window.location.reload();
+                        },
+                        error: function(data) {
+                            alert("오류가 발생했습니다.")
+                            window.location.reload();
+                        }
+                    })
+                    $(this).parent().parent().remove();
+                }
+            })
+
+            $(".btnDelete").on('click', function (){
+                let params = getFormData();
+                if(confirm(`정말로 삭제하시겠습니까?`)){
+                    $.ajax({
+                        type: "delete", //http method
+                        url: `/api/homepage/archive/delete/${params.sequenceNo}`, //값을 가져올 경로
+                        headers: {'Content-Type': 'application/json'},
+                        data: JSON.stringify(params),
+                        dataType: "json",
+                        success: function(data) {
+                            alert("삭제되었습니다.");
+                            window.location.replace('/homepage/archive/edu-data');
+                        },
+                        error:function (e){
+                            alert(e.responseJSON.resultMessage);
+                        }
+                    })
+                }
+            });
+
+            $('.btnRegister').on('click', function(){
+                if(nullCheck()){
+                    let params = getFormData();
+                    $.ajax({
+                        type: "post",
+                        headers: {'Content-Type' : 'application/json'},
+                        url: "/api/homepage/archive/create",
+                        data: JSON.stringify(params),
+                        dataType: "json",
+                        success: function (data){
+                            if (document.querySelector('#lmsDataFile').files[0]) {
+                                var formFiles = new FormData();
+                                for (var i = 0; i < $("#lmsDataFile")[0].files.length; i++) {
+                                    formFiles.append("attachFiles", $("#lmsDataFile")[0].files[i]);
+                                }
+                                if (data.sequenceNo == null) data.sequenceNo = '';
+                                $.ajax({
+                                    type: "put", //http method
+                                    url: "/api/homepage/archive/upload/" + data.sequenceNo, //값을 가져올 경로
+                                    processData : false,
+                                    contentType : false,
+                                    data: formFiles,
+                                    async :false,
+                                    success: function(subData) {   //요청 성공시 실행될 메서드
+                                        alert("교재자료 등록이 완료되었습니다.");
+                                        window.location.replace('/homepage/archive/edu-data');
+                                    },
+                                    error: function(e) {
+                                        alert(e.responseJSON.resultMessage+"("+e.responseJSON.verboseMessage+")");
+                                    }
+                                });
+                            } else {
+                                alert("교재자료 등록이 완료되었습니다.");
+                                window.location.replace('/homepage/archive/edu-data');
+                            }
+                        },
+                        error: function (e){
+                            alert(e.responseJSON.resultMessage+"("+e.responseJSON.verboseMessage+")");
+                        }
+                    })
+
+                }
+            });
+
+            $('.btnModify').on('click', function(){
+                if(nullCheck()){
+                    let params = getFormData();
+                    $.ajax({
+                        type: "put",
+                        headers: {'Content-Type' : 'application/json'},
+                        url: "/api/homepage/archive/update",
+                        data: JSON.stringify(params),
+                        dataType: "json",
+                        success: function (data){
+                            if (document.querySelector('#lmsDataFile').files[0]) {
+                                var formFiles = new FormData();
+                                for (var i = 0; i < $("#lmsDataFile")[0].files.length; i++) {
+                                    formFiles.append("attachFiles", $("#lmsDataFile")[0].files[i]);
+                                }
+                                if (data.sequenceNo == null) data.sequenceNo = '';
+                                $.ajax({
+                                    type: "put", //http method
+                                    url: "/api/homepage/archive/upload/" + data.sequenceNo, //값을 가져올 경로
+                                    processData : false,
+                                    contentType : false,
+                                    data: formFiles,
+                                    async :false,
+                                    success: function(subData) {   //요청 성공시 실행될 메서드
+                                        alert("교재자료 수정이 완료되었습니다.");
+                                        location.reload();
+                                    },
+                                    error: function(e) {
+                                        alert(e.responseJSON.resultMessage+"("+e.responseJSON.verboseMessage+")");
+                                    }
+                                });
+                            } else {
+                                alert("교재자료 수정이 완료되었습니다.");
+                                location.reload();
+                            }
+                        },
+                        error: function (e){
+                            alert(e.responseJSON.resultMessage+"("+e.responseJSON.verboseMessage+")");
+                        }
+                    })
+                }
+            });
+            let CONT = null;
+
+            function getFormData(){
+                let params = {};
+                params.sequenceNo = 0;
+                params.viewCnt = 0;
+                if(CONT!=null){
+                    params.sequenceNo = CONT[0].sequenceNo;
+                    params.viewCnt = CONT[0].viewCnt;
+                }
+
+                params.teamCategory = $('form').find("#category").val();
+                params.materialCategory = 1; // 0: 기타 자료, 1: 교재 자료, 2: 연구/통계 자료, 3: 영상 자료, 4: 사업결과물, 5: 미디어리터러시
+                params.materialType = $('form').find("#types").val();
+                params.title = $('form').find("#title").val();
+                params.author = $('form').find("#author").val();
+                params.contents = CKEDITOR.instances.contents.getData();
+                params.thumbFilePath = null;
+                params.mediaFilePath = null;
+                params.isUse = true;
+                return params;
+            }
+
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+                CONT = [[ ${content} ]]
+            }
+            /* ]]> */
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="edu-1">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>과정 관리</h2>
+        </div>
+
+        <div class="bl_tab2 js_tab">
+            <!-- 이러닝 탭 -->
+            <ul id="tabGroup1" class="bl_tab2_menu">
+                <li>
+                    <a id="tabLink1_1" href="/education/3/">상세</a>
+                </li>
+                <li>
+                    <a id="tabLink1_2" href="/education/exam">시험</a>
+                </li>
+                <li>
+                    <a id="tabLink1_3" href="/education/question">문항</a>
+                </li>
+                <li class="is_active">
+                    <a id="tabLink1_4" href="/education/archive">자료실</a>
+                </li>
+            </ul>
+
+            <!-- 집합/화상 탭 -->
+            <ul id="tabGroup2" class="bl_tab2_menu">
+                <li>
+                    <a id="tabLink2_1" href="/education/1/">상세</a>
+                </li>
+                <li class="is_active">
+                    <a id="tabLink2_2" href="/education/archive">자료실</a>
+                </li>
+            </ul>
+
+            <div class="bl_tab2_body js_tab_contents">
+                <div class="bl_tab2_item js_tab_item">
+                    <div class="tableLeftResponsive">
+                        <table class="tableLeft">
+                            <colgroup>
+                                <col style="width: 200px">
+                                <col style="width: auto">
+                            </colgroup>
+                            <tbody>
+                                <tr>
+                                    <th scope="row">카테고리명</th>
+                                    <th:block th:each="commonCode : ${commonCode}"
+                                              th:if="${commonCode.code} == 'EDU_TYPE'">
+                                        <td th:each="categoryCode : ${commonCode.subCode}"
+                                            th:if="${categoryCode.code == educationCategoryCode}"
+                                            th:text="${categoryCode.codeName}"></td>
+                                    </th:block>
+                                </tr>
+                                <tr>
+                                    <th scope="row">과정명</th>
+                                    <td th:text="${curriculumName}">과정명</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="tableLeftResponsive">
+                        <table class="tableLeft">
+                            <colgroup>
+                                <col style="width: 200px">
+                                <col style="width: auto">
+                            </colgroup>
+                            <tbody th:if="${content != null}" th:each="item: ${content}">
+                                <tr>
+                                    <th scope="row">제목</th>
+                                    <td>
+                                        <input id="title" type="text" class="hp_w600" th:value="${item.title}">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">내용</th>
+                                    <td>
+                                        <textarea name="contents" class="ckeditor" style="width:100%; height:200px" th:text="${item.contents}"></textarea>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">첨부파일</th>
+                                    <td>
+                                        <div class="bl_uploadGrid">
+                                            <div class="bl_upload hp_lg_w462">
+                                                <input id="fileName" type="text" class="bl_upload_path js_path" th:if="${item.filePath != null}" th:value="${item.filePath}" readonly>
+                                                <input id="fileName" type="text" class="bl_upload_path js_path" th:if="${item.filePath == null}" readonly>
+                                                <label for="referenceRoomFile" class="btn btnDefault bg-secondary text-white bl_upload_btn">파일선택</label>
+                                                <input id="referenceRoomFile" type="file" name="file" class="bl_upload_file js_file">
+                                            </div>
+                                            <a th:if="${item.filePath != null}" class="btn btnDefault" th:onclick="fileDelete()">파일삭제</a>
+                                            <a class="btn btnDefault bg_blue download_ajax" th:if="${item.filePath != null}" th:href="@{/api/education/curriculum/reference-room/download(attachFilePath=${content[0].filePath})}">다운로드</a>
+                                        </div>
+                                        <p class="bl_uploadNote">※ 파일형식 제한 없음, 100MB 미만</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                            <tbody th:if="${content == null}">
+                                <tr>
+                                    <th scope="row">제목</th>
+                                    <td>
+                                        <input id="title" type="text" class="hp_w600">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">내용</th>
+                                    <td>
+                                        <textarea name="contents" class="ckeditor" style="width:100%; height:200px"></textarea>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">첨부파일</th>
+                                    <td>
+                                        <div class="bl_uploadGrid">
+                                            <div class="bl_upload js_upload hp_lg_w462">
+                                                <input type="text" class="bl_upload_path js_path" readonly>
+                                                <label for="referenceRoomFile" class="btn btnDefault bg-secondary text-white bl_upload_btn">파일선택</label>
+                                                <input id="referenceRoomFile" type="file" name="file" class="bl_upload_file js_file">
+                                            </div>
+                                        </div>
+                                        <p class="bl_uploadNote">※ 파일형식 제한 없음, 100MB 미만</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- GRID : BUTTON -->
+                    <div class="bl_gridBtns">
+                        <div th:if="${content != null}" class="bl_gridBtns">
+                            <a th:onclick="deleteInfo([[${content[0]}]])" class="btn btnDefault btnDelete">삭제</a>
+                        </div>
+                        <div class="bl_gridBtns_rgt">
+                            <a id="btnList" class="btn btnDefault btnList" th:href="@{/education/curriculum/reference-room/{curriculumCode}?educationType={educationType}(curriculumCode=${curriculumCode},educationType=${educationType == '3' ? 'e-learning' : 'lecture'})}">목록</a>
+                            <div class="btn btnDefault btnRegister" th:if="${content == null}" onclick="regist()">등록</div>
+                            <div class="btn btnDefault btnModify" th:if="${content != null}" onclick="modify()">수정</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            $("#referenceRoomFile").bind("change", function (e){
+                if( this.files[0].name){
+                    $("#fileName").val(this.files[0].name);
+                }
+            })
+
+            /* <![CDATA[ */
+            const content = [[ ${content} ]] != null ? [[ ${content} ]][0] : null;
+            const params = {};
+
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+            }
+
+            const searchParams = new URLSearchParams(location.search);
+            let type = [[ ${educationType} ]];
+            let nowId = [[ ${curriculumCode} ]];
+
+            if(type == '3'){ //e-learning
+                document.getElementById('tabGroup2').style.display = 'none';
+                document.getElementById('tabLink1_1').setAttribute('href','/education/curriculum/e-learning/'+nowId);
+                document.getElementById('tabLink1_2').setAttribute('href','/education/curriculum/e-learning/exam/'+nowId);
+                document.getElementById('tabLink1_3').setAttribute('href','/education/curriculum/e-learning/question/'+nowId);
+                document.getElementById('tabLink1_4').setAttribute('href','/education/curriculum/reference-room/'+nowId+'?educationType=e-learning');
+                document.querySelector('.btnList').setAttribute('href','/education/curriculum/reference-room/'+nowId+'?educationType=e-learning');
+            } else { //lecture
+                document.getElementById('tabGroup1').style.display = 'none';
+                document.getElementById('tabLink2_1').setAttribute('href','/education/curriculum/lecture/'+nowId);
+                document.getElementById('tabLink2_2').setAttribute('href','/education/curriculum/reference-room/'+nowId+'?educationType=lecture');
+                document.querySelector('.btnList').setAttribute('href','/education/curriculum/reference-room/'+nowId+'?educationType=lecture');
+            }
+
+            /** 수정 */
+            function modify() {
+                Array.from($("a[name=button]")).forEach(function (form, index, list) {
+                    form.disabled = true;
+                });
+
+                /** 값 셋팅 */
+                params.curriculumCode = nowId;
+                params.sequenceNo = content.sequenceNo;
+                if (document.getElementById('title').value) params.title = document.getElementById('title').value;
+                if (document.querySelector('iframe').contentWindow.document.body.children[0].textContent) params.contents = document.querySelector('iframe').contentWindow.document.body.children[0].textContent;
+
+                params.isDeleteFile = document.querySelector('#fileName').value === "";
+
+                const form = new FormData();
+                form.append("file", document.querySelector("#referenceRoomFile").files[0]);
+                form.append("requestObject", new Blob([JSON.stringify(params)], { type: "application/json" }));
+
+                /** 교육과정 시험 문제 수정 */
+                $.ajax({ //jquery ajax
+                    type:"put", //http method
+                    url:"/api/education/curriculum/reference-room/update", //값을 가져올 경로
+                    enctype: "multipart/form-data", //form data 설정
+                    processData : false,
+                    contentType : false,
+                    data: form,
+                    success: function(result) {   //요청 성공시 실행될 메서드
+                        alert("자료실 수정이 완료되었습니다.");
+                        window.location.reload();
+                    },
+                    error: function(e){		 //요청 실패시 에러 확인을 위함
+                        alert(e.responseJSON.resultMessage);
+                        Array.from($("a[name=button]")).forEach(function (form, index, list) {
+                            form.disabled = false;
+                        });
+                    }
+                })
+            }
+
+            /** 등록 */
+            function regist() {
+                Array.from($("a[name=button]")).forEach(function (form, index, list) {
+                    form.disabled = true;
+                });
+                /** 값 셋팅 */
+                params.curriculumCode = nowId;
+                if (document.getElementById('title').value) params.title = document.getElementById('title').value;
+                if (document.querySelector('iframe').contentWindow.document.body.children[0].textContent) params.contents = document.querySelector('iframe').contentWindow.document.body.children[0].textContent;
+
+                const form = new FormData();
+                form.append("file", document.querySelector("#referenceRoomFile").files[0]);
+                form.append("requestObject", new Blob([JSON.stringify(params)], { type: "application/json" }));
+
+                /** 교육과정 시험 문제 등록 */
+                $.ajax({ //jquery ajax
+                    type:"post", //http method
+                    url:"/api/education/curriculum/reference-room/create", //값을 가져올 경로
+                    enctype: "multipart/form-data", //form data 설정
+                    processData : false,
+                    contentType : false,
+                    data: form,
+                    success: function(result) {   //요청 성공시 실행될 메서드
+                        alert("자료실 생성이 완료되었습니다.");
+                        if (result.educationType == 3)
+                            window.location.replace("/education/curriculum/reference-room/"+params.curriculumCode+"?educationType=e-learning");
+                        else
+                            window.location.replace("/education/curriculum/reference-room/"+params.curriculumCode+"?educationType=lecture");
+                    },
+                    error: function(e){		 //요청 실패시 에러 확인을 위함
+                        alert(e.responseJSON.resultMessage);
+                        Array.from($("a[name=button]")).forEach(function (form, index, list) {
+                            form.disabled = false;
+                        });
+                    }
+                })
+            }
+
+            /** 삭제 */
+            function deleteInfo(data) {
+                if (confirm("정말 삭제하시겠습니까?")) {
+                    $.ajax({ //jquery ajax
+                        type:"delete", //http method
+                        url:"/api/education/curriculum/reference-room/delete/"+data.sequenceNo, //값을 가져올 경로
+                        headers: {'Content-Type': 'application/json'},
+                        data: JSON.stringify(data),
+                        dataType: "json",
+                        success: function(result) {   //요청 성공시 실행될 메서드
+                            alert("자료 삭제가 완료되었습니다.");
+                            if (result.educationType == 3)
+                                window.location.replace("/education/curriculum/reference-room/"+data.curriculumCode+"?educationType=e-learning");
+                            else
+                                window.location.replace("/education/curriculum/reference-room/"+data.curriculumCode+"?educationType=lecture");
+                        },
+                        error: function(e){	}	 //요청 실패시 에러 확인을 위함
+                    })
+                }
+            }
+
+            /** 파일 삭제 */
+            function fileDelete() {
+                document.querySelector('#fileName').value = "";
+            }
+            /* ]]> */
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

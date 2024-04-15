@@ -1,0 +1,1340 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/default_layout}" xmlns:sec="http://www.w3.org/1999/xhtml">
+<body>
+<div layout:fragment="content" data-menu="contents-1">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>콘텐츠 관리</h2>
+        </div>
+
+        <div class="bl_tab2 js_tab">
+            <ul class="bl_tab2_menu js_tab_menu">
+                <li id="GENERAL">
+                    <a th:onclick="clickTab('GENERAL')">기본정보</a>
+                </li>
+                <li id="FILE">
+                    <a th:onclick="clickTab('FILE')">파일</a>
+                </li>
+                <li id="CHAPTER">
+                    <a th:onclick="clickTab('CHAPTER')">차시</a>
+                </li>
+            </ul>
+            <!-- 기본정보 -->
+            <div class="bl_tab2_body js_tab_contents">
+                <div th:if="${viewType == 'GENERAL'}" class="bl_tab2_item js_tab_item">
+                    <div class="tableLeftResponsive">
+                        <table class="tableLeft">
+                            <colgroup>
+                                <col style="width: 200px">
+                                <col style="width: auto">
+                            </colgroup>
+                            <tbody>
+                                <tr>
+                                    <th scope="row"><span class="el_required">*</span>카테고리</th>
+                                    <td>
+                                        <select id="categoryCode" class="common_select">
+                                            <option value="">선택</option>
+                                            <option value="1">언론인연수</option>
+                                            <option value="2">미디어교육</option>
+                                            <option value="3">공통</option>
+                                        </select>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><span class="el_required">*</span>콘텐츠명</th>
+                                    <td><input id="contentsName" type="text" th:value="${content[0].contentsName}"></td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">콘텐츠 크기</th>
+                                    <td>
+                                        <div class="d-flex">
+                                            <div class="d-flex align-items-center">
+                                                <span class="me-2">넓이</span>
+                                                <input id="width" type="text" th:value="${content[0].width}" class="hp_w120 me-1">
+                                                <span>px</span>
+                                            </div>
+                                            <div class="d-flex align-items-center">
+                                                <span class="ms-3 me-2">높이</span>
+                                                <input id="height" type="text" th:value="${content[0].height}" class="hp_w120 me-1">
+                                                <span>px</span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">재생시간</th>
+                                    <td>
+                                        <input id="educationPerMinute" type="text" th:value="${content[0].educationPerMinute}" class="hp_w120 me-1">분
+                                    </td>
+                                </tr>
+                                <!--<tr>
+                                    <th scope="row"><span class="el_required">*</span>썸네일</th>
+                                    <td>
+                                        <div class="bl_uploadGrid">
+                                            <div class="bl_upload js_upload hp_lg_w462">
+                                                <input id="thumbnailFileName" type="text" class="bl_upload_path js_path"
+                                                       th:value="${content[0].thumbnailFilePath != null ? #strings.arraySplit(content[0].thumbnailFilePath, '/')[#strings.arraySplit(content[0].thumbnailFilePath, '/').length - 1] : null}"
+                                                       readonly>
+                                                <label class="btn btnDefault bg-secondary text-white bl_upload_btn">파일선택</label>
+                                                <input id="thumbnailFile" type="file" name="file" class="bl_upload_file js_file">
+                                            </div>
+                                            <a href="" class="btn btnDefault bl_uploadGrid2_del">파일삭제</a>
+                                        </div>
+&lt;!&ndash;                                        <p id="fileSize" class="bl_uploadNote">썸네일 사이즈 : 400 X 204 (픽셀)</p>&ndash;&gt;
+                                    </td>
+                                </tr>-->
+                                <tr>
+                                    <th scope="row"><span class="el_required">*</span>상태</th>
+                                    <td>
+                                        <select id="isUsable" class="common_select">
+                                            <option value= "">선택</option>
+                                            <option value = true>사용</option>
+                                            <option value = false>사용안함</option>
+                                        </select>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="bl_gridBtns">
+                        <div class="bl_gridBtns_rgt">
+                            <a class="btn btnDefault btnList" href="/contents/list">목록</a>
+                            <a class="btn btnDefault btnModify" th:id="${content[0].contentsCode}" th:onclick="modify(this.getAttribute('id'))">수정</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 파일 -->
+                <div th:if="${viewType == 'FILE'}" class="bl_tab2_item js_tab_item">
+                    <div class="blocking">
+                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                        <span> 파일 업로드 및 정보 생성 중 입니다.</span>
+                    </div>
+                    <div class="tableLeftResponsive">
+                        <table class="tableLeft">
+                            <colgroup>
+                                <col style="width: 200px">
+                                <col style="width: auto">
+                            </colgroup>
+                            <tbody>
+                                <tr>
+                                    <th scope="row">콘텐츠명</th>
+                                    <td th:text="${content[0].contentsName}">콘텐츠명</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">콘텐츠코드</th>
+                                    <td th:text="${content[0].contentsCode}">콘텐츠코드</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">카테고리</th>
+                                    <td>
+                                        <span class="d-flex justify-content-between align-items-center" th:text="${content[0].categoryCode == '1' ? '언론인연수' : content[0].categoryCode == '2' ? '미디어교육' : content[0].categoryCode == '3' ? '공통' : '정의되지 않은 카테고리'}">
+                                        </span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <div class="contents_lft">
+                            <div id="jsTree"></div>
+                        </div>
+
+                        <!-- BOARD : CONTROLLER -->
+                        <div class="contents_rgt">
+                            <div class="bl_boardCtrls">
+                                <div class="bl_boardCtrls_rgt">
+                                    <div class="bl_uploadGrid">
+                                        <div class="bl_upload js_upload hp_lg_w462 me-0">
+                                            <input id="contentsFileName" type="text" class="bl_upload_path js_path" readonly="">
+                                            <label class="btn btnDefault bg-secondary text-white bl_upload_btn">파일선택</label>
+                                            <input id="contentsFile" type="file" name="file" class="bl_upload_file js_file">
+                                        </div>
+                                    </div>
+                                    <a class="btn btnDefault" onclick="contentsFileClick('blocking', contentsFileUpload);">선택 파일 업로드</a>
+                                    <a class="btn btnDefault" onclick="contentsFileDelete()">선택삭제</a>
+
+                                    <input type="file" id="contentZipFile" accept=".zip" style="display:none;" />
+                                    <a onclick="contentsZipUpload();" class="btn btnDefault">콘텐츠 압축파일 올리기</a>
+                                </div>
+                            </div>
+
+                            <div class="tableResponsive overflowMulti">
+                                <table class="table">
+                                    <colgroup>
+                                        <col style="width: auto" />
+                                        <col style="width: 120px" />
+                                        <col style="width: 120px" />
+                                        <col style="width: 80px" />
+                                    </colgroup>
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">파일명</th>
+                                            <th scope="col">크기</th>
+                                            <th scope="col">날짜</th>
+                                            <th scope="col"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="fileList">
+                                        <tr class="empty_data">
+                                            <td colspan="4">조회된 파일이 없습니다.</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="bl_gridBtns">
+                                <div class="bl_gridBtns_rgt">
+                                    <a href="/contents/list" class="btn btnDefault btnList">목록</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 차시 -->
+                <div th:if="${viewType == 'CHAPTER'}" class="bl_tab2_item js_tab_item">
+                    <div class="tableLeftResponsive">
+                        <table class="tableLeft">
+                            <colgroup>
+                                <col style="width: 200px">
+                                <col style="width: auto">
+                            </colgroup>
+                            <tbody>
+                                <tr>
+                                    <th scope="row">콘텐츠명</th>
+                                    <td th:text="${content[0].contentsName}">콘텐츠명</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">콘텐츠코드</th>
+                                    <td th:text="${content[0].contentsCode}">콘텐츠코드</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">카테고리</th>
+                                    <td>
+                                        <span class="d-flex justify-content-between align-items-center" th:text="${content[0].categoryCode == '1' ? '언론인연수' : content[0].categoryCode == '2' ? '미디어교육' : content[0].categoryCode == '3' ? '공통' : '정의되지 않은 카테고리'}">
+                                            카테고리명
+                                        </span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- BOARD : CONTROLLER -->
+                    <div class="bl_boardCtrls">
+                        <div class="bl_boardCtrls_lft">
+                        </div>
+                        <div class="bl_boardCtrls_rgt">
+                            <div class="bl_uploadGrid">
+                                <div class="bl_upload js_upload hp_lg_w462 me-0">
+                                    <input type="text" class="bl_upload_path js_path" readonly="">
+                                    <label class="btn btnDefault bg-secondary text-white bl_upload_btn">파일선택</label>
+                                    <input type="file" name="file" class="bl_upload_file js_file" id="excel_submit">
+                                </div>
+                                <a th:onclick="createChapterInfoByFile([[${content[0].contentsCode}]])" class="btn btnDefault">엑셀일괄등록</a>
+                                <a href="/api/common/upload/download?attachFilePath=/file/chapters_regist.xlsx" class="btn btnDefault">양식다운로드</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tableResponsive">
+                        <table id="targetTable" class="table">
+                            <colgroup>
+                                <col style="width: 80px" />
+                                <col style="width: auto" />
+                                <col style="width: 80px" />
+                                <col style="width: 80px" />
+                                <col style="width: 300px" />
+                            </colgroup>
+                            <thead>
+                                <tr>
+                                    <th scope="col">장</th>
+                                    <th scope="col">제목</th>
+                                    <th scope="col">순서</th>
+                                    <th scope="col">위치</th>
+                                    <th scope="col">수정</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            <th:block th:if="${content.size > 0}">
+                                <tr id="target" th:each="item, stat: ${content[0].contentsChapterList}">
+                                    <td><input type="text" id="chapterNum" class="text-center" th:value="${item.chapterMaster.chapterName}"></td>
+                                    <td><input type="text" th:value="${item.chapterMaster.chapterTitle}"></td>
+                                    <td><input type="text" class="text-center" th:value="${item.sortNo}" disabled></td>
+                                    <td>
+                                        <span class="orderBtn" name="up" onclick="moveRow(this)">▲</span>
+                                        <input th:value="${item.chapterCode}" style="width: 0px; visibility: hidden">
+                                        <span class="orderBtn" name="down" onclick="moveRow(this)">▼<span>
+                                    </td>
+                                    <td>
+                                        <div class="btn btnDefault" th:attr="onclick=|verseView(this)|">보기</div>
+                                        <div th:id="${item.chapterCode}" data-control="modal" data-handler="popPreview" class="btn btnDefault" onclick="preview(this.id)">페이지보기</div>
+                                        <div id="addBtn" class="btn btnDefault btn_add" onclick="addList(this, 'target', [], 'chapterNum')">추가</div>
+                                        <div id="delBtn" class="btn btnDefault btn_del" onclick="removeList(this, 'target', 'targetTable'); verseRemove(this)">삭제</div>
+                                    </td>
+                                </tr>
+                            </th:block>
+                            <th:block th:if="${content.size == 0 || content[0].contentsChapterList.size == 0}">
+                                <tr id="target">
+                                    <td><input type="text" id="chapterNum" class="text-center" value="1"></td>
+                                    <td><input type="text"></td>
+                                    <td><input type="text" class="text-center" disabled></td>
+                                    <td>
+                                        <span class="orderBtn" name="up" onclick="moveRow(this)">▲</span>
+                                        <input style="width: 0px; visibility: hidden">
+                                        <span class="orderBtn" name="down" onclick="moveRow(this)">▼<span>
+                                    </td>
+                                    <td>
+                                        <div class="btn btnDefault" th:attr="onclick=|verseView(this)|">보기</div>
+                                        <div data-control="modal" data-handler="popPreview" class="btn btnDefault">페이지보기</div>
+                                        <div id="addBtn" class="btn btnDefault btn_add" onclick="addList(this, 'target', [], 'chapterNum')">추가</div>
+                                        <div id="delBtn" class="btn btnDefault btn_del" onclick="removeList(this, 'target', 'targetTable'); verseRemove(this)">삭제</div>
+                                    </td>
+                                </tr>
+                            </th:block>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="bl_gridBtns">
+                        <div class="bl_gridBtns_lft">
+                            <div class="d-flex align-items-center gap-2">
+                                라인 추가하기:
+                                <input type="text" class="hp_w120" placeholder="0, 숫자만 입력">
+                                <div class="btn btnDefault" onclick="addLine(this, 'addBtn', 'target')">생성</div>
+                            </div>
+                        </div>
+                        <div class="bl_gridBtns_rgt">
+                            <div class="btn btnDefault btnModify" th:attr="onclick=|createAndUpdateChapter()|">적용하기</div>
+                        </div>
+                    </div>
+
+                    <div class="verse_info">
+                        <div class="table_wrap">
+                            <div class="table_tit">
+                                <span class="chapter"></span> - 절 정보
+                            </div>
+                            <div class="tableResponsive">
+                                <table id="targetTable2" class="table">
+                                    <colgroup>
+                                        <col style="width: auto" />
+                                        <col style="width: auto" />
+                                        <col style="width: 80px" />
+                                        <col style="width: 80px" />
+                                        <col style="width: 80px" />
+                                    </colgroup>
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">이름</th>
+                                            <th scope="col">콘텐츠 경로</th>
+                                            <th scope="col">순서</th>
+                                            <th scope="col">위치</th>
+                                            <th scope="col">작업</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="sectionBody">
+                                        <tr id="target2">
+                                            <td><input type="text"></td>
+                                            <td>
+                                                <div class="d-flex gap-2">
+                                                    <select class="common_select">
+                                                        <option value="">파일 주소</option>
+                                                    </select>
+                                                    <input type="text" class="flex-grow-1">
+                                                </div>
+                                            </td>
+                                            <td><input type="text" value="1" class="text-center" disabled></td>
+                                            <td>
+                                                <span class="orderBtn" name="up" onclick="moveRow(this)">▲</span>
+                                                <input style="width: 0px; visibility: hidden">
+                                                <span class="orderBtn" name="down" onclick="moveRow(this)">▼</span>
+                                            </td>
+                                            <td>
+                                                <div id="addBtn2" class="btn btnDefault btn_add" onclick="addList(this, 'target2')">추가</div>
+                                                <div id="delBtn2" class="btn btnDefault btn_del" onclick="removeList(this, 'target2', 'targetTable2')">삭제</div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+
+                                <div class="bl_gridBtns mb-0">
+                                    <div class="bl_gridBtns_lft">
+                                        <div class="d-flex align-items-center gap-2">
+                                            라인 추가하기:
+                                            <input type="text" class="hp_w120" placeholder="0, 숫자만 입력">
+                                            <div class="btn btnDefault" onclick="addLine(this, 'addBtn2', 'target2')">생성</div>
+                                        </div>
+                                    </div>
+                                    <div class="bl_gridBtns_rgt">
+                                        <div class="btn btnDefault btnModify" th:attr="onclick=|createAndUpdateSection()|">적용하기</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bl_gridBtns">
+                        <div class="bl_gridBtns_rgt">
+                            <a class="btn btnDefault btnList" href="/contents/list">목록</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- POPUP : 페이지보기(콘텐츠 미리보기) -->
+        <article class="pop_wrapper ui-modal" id="popPreview">
+            <div class="pop_wrap pop_secondary">
+                <div class="pop_head">
+                    <div class="tit">페이지보기</div>
+                </div>
+                <div class="pop_cont">
+                    <div class="d-flex justify-content-between">
+                        <div class="preview_lft">
+                            <div>
+                                <div class="subject_name">
+                                    과목명: <span>과목명입니다.</span>
+                                </div>
+                                <div class="chapter_name">
+                                    차시명: <span>장 제목1</span>
+                                </div>
+                                <div class="verse_list">
+                                    <ul>
+                                        <li>
+                                            <a href="">1. 절 제목1</a>
+                                        </li>
+                                        <li>
+                                            <a href="">2. 절 제목2</a>
+                                        </li>
+                                        <li class="active">
+                                            <a href="">3. 절 제목3</a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="preview_set">
+                                <div class="d-flex align-items-center gap-3 flex-wrap">
+                                    <div class="preview_label">
+                                        <label for="">중간저장시간</label>
+                                        <div class="input_box">
+                                            <input id="saveTime" type="text" class="hp_w120" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">초
+                                        </div>
+                                    </div>
+                                    <div class="preview_label">
+                                        <label for="">최종학습페이지</label>
+                                        <div class="input_box">
+                                            <input id="savePage" type="text" class="hp_w120" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">페이지
+                                        </div>
+                                    </div>
+                                </div>
+    
+                                <div class="d-flex align-items-center gap-3 flex-wrap">
+                                    <div class="preview_label">
+                                        <label for="">과정완료여부</label>
+                                        <div>
+                                            <div class="radio_box">
+                                                <input id="progressCompleteY" type="radio" name="progressComplete">
+                                                <label for="progressCompleteY">
+                                                    <span></span>
+                                                    Y
+                                                </label>
+                                            </div>
+                                            <div class="radio_box">
+                                                <input id="progressCompleteN" type="radio" name="progressComplete" checked>
+                                                <label for="progressCompleteN">
+                                                    <span></span>
+                                                    N
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="preview_label">
+                                        <label for="">차시완료여부</label>
+                                        <div>
+                                            <div class="radio_box">
+                                                <input id="turnCompleteY" type="radio" name="turnComplete">
+                                                <label for="turnCompleteY">
+                                                    <span></span>
+                                                    Y
+                                                </label>
+                                            </div>
+                                            <div class="radio_box">
+                                                <input id="turnCompleteN" type="radio" name="turnComplete" checked>
+                                                <label for="turnCompleteN">
+                                                    <span></span>
+                                                    N
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="preview_label">
+                                        <label for="">페이지완료여부</label>
+                                        <div>
+                                            <div class="radio_box">
+                                                <input id="pageCompleteY" type="radio" name="pageComplete">
+                                                <label for="pageCompleteY">
+                                                    <span></span>
+                                                    Y
+                                                </label>
+                                            </div>
+                                            <div class="radio_box">
+                                                <input id="pageCompleteN" type="radio" name="pageComplete" checked>
+                                                <label for="pageCompleteN">
+                                                    <span></span>
+                                                    N
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+    
+                                <div class="bl_gridBtns">
+                                    <div class="bl_gridBtns_lft">
+                                        <div class="btn btnDefault" onclick="previewInitSet()">다시 불러오기</div>
+                                        <div id="fullSizeBtn" class="btn btnDefault">전체화면</div>
+                                        <div id="prevPgBtn" class="btn btnDefault" onclick="prevPageClick()">이전페이지</div>
+                                        <div id="nextPgBtn" class="btn btnDefault" onclick="nextPageClick()">다음페이지</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="preview_rgt">
+                            <div class="video_wrap" th:with="url=${#httpServletRequest.requestURI}">
+                                <th:block th:if="${!url.contains('folder-management')}">
+                                    <iframe src="about:blank" th:width="${content[0].width}" th:height="${content[0].height}"></iframe>
+                                    <video th:width="${content[0].width}" th:height="${content[0].height}" controls>
+                                        <source src="" type="video/mp4">
+                                    </video>
+                                </th:block>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <button type="button" class="pop_close pop-close">닫기</button>
+            </div>
+        </article>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            /* <![CDATA[ */
+            const content = [[ ${content} ]][0];
+            const modifyParams = {};
+
+            let selectedFilePath = "";
+            let selectedChapterCode = "";
+
+            /*용량구하기*/
+            function getfileSize(x) {
+                var s = ['bytes', 'kB', 'MB', 'GB', 'TB', 'PB'];
+                var e = Math.floor(Math.log(x) / Math.log(1024));
+                return (x / Math.pow(1024, e)).toFixed(2) + " " + s[e];
+            }
+
+            /* [탭] 파일 - 콘텐츠 폴더 목록 */
+            const resData = [ { "id" : content.contentsCode, "parent" : "#", "text" : content.contentsCode} ];
+
+            /** 로직 개선 필요. 무한 if 문 발생 */
+            if(content.subFolderList) {
+                content.subFolderList.forEach(depth1 => {
+                    resData.push({id: resData[0].id + depth1.folderName, parent: resData[0].id, text: depth1.folderName});
+                    if(depth1.subFolderList) {
+                        depth1.subFolderList.forEach(depth2 => {
+                            resData.push({id: depth1.folderName + depth2.folderName, parent: resData[0].id + depth1.folderName, text: depth2.folderName});
+                            if(depth2.subFolderList) {
+                                depth2.subFolderList.forEach(depth3 => {
+                                    resData.push({id: depth2.folderName + depth3.folderName, parent: depth1.folderName + depth2.folderName, text: depth3.folderName});
+                                    if(depth3.subFolderList) {
+                                        depth3.subFolderList.forEach(depth4 => {
+                                            resData.push({id: depth3.folderName + depth4.folderName, parent: depth2.folderName + depth3.folderName, text: depth4.folderName});
+                                        });
+                                    }
+                                });
+                            }
+                        });
+                    }
+                });
+            }
+
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+
+                switch ([[ ${viewType} ]]) {
+                    case 'GENERAL':
+                        document.querySelector('#GENERAL').setAttribute('class', 'is_active');
+                        document.querySelector('#FILE').setAttribute('class', '');
+                        document.querySelector('#CHAPTER').setAttribute('class', '');
+                        document.querySelector('#categoryCode').value = content.categoryCode;
+                        document.querySelector('#isUsable').value = content.isUsable;
+
+                        break;
+                    case 'FILE':
+                        document.querySelector('#GENERAL').setAttribute('class', '');
+                        document.querySelector('#FILE').setAttribute('class', 'is_active');
+                        document.querySelector('#CHAPTER').setAttribute('class', '');
+
+                        $("#jsTree").on("changed.jstree", function (event, data) { /** 폴더 선택 시 이벤트 */
+                        var subParams = {};
+                            subParams.contentsCode = content.contentsCode;
+
+                            subParams.folderPath = "";
+                            let nodeId = data.selected[0];
+                            while(true) {
+                                if ($("#jsTree").jstree(true).get_node(nodeId).parent == '#') {
+                                    break;
+                                } else {
+                                    subParams.folderPath = "/" + $("#jsTree").jstree(true).get_node(nodeId).text + subParams.folderPath;
+                                    nodeId = $("#jsTree").jstree(true).get_node(nodeId).parent;
+                                }
+                            }
+
+                            selectedFilePath = subParams.folderPath;
+                            const queryParams = Object.entries(subParams).filter(data => data != null).map(data => data.join('=')).join('&');
+                            /** 파일 조회 */
+                            $.ajax({ //jquery ajax
+                                type:"get", //http method
+                                url:"/api/contents/list/folder-management/file-list?" + queryParams, //값을 가져올 경로
+                                dataType:"json", //html, xml, text, script, json, jsonp 등 다양하게 쓸 수 있음
+                                success: function(data) {   //요청 성공시 실행될 메서드
+                                    if(data.content[0].contentsFileInfoList) {
+                                        document.querySelector("#fileList").innerHTML = "";
+                                        data.content[0].contentsFileInfoList.forEach(function (fileInfo, index, list) {
+                                            document.querySelector("#fileList").innerHTML += "<tr>" +
+                                                "<td>"+ fileInfo.fileName + "</td>" +
+                                                "<td>" + getfileSize(parseInt(fileInfo.fileSize)) + "</td>" +
+                                                "<td>" + fileInfo.updateDateTime.substr(0, 10) + "</td>" +
+                                                "<td>" +
+                                                "<div className='chk_box''>" +
+                                                "<input id='fileCheckBox" + index + "' name='fileCheckBox' type='checkbox' value='" + fileInfo.fileName + "'>" +
+                                                "<label htmlFor='file1'>" +
+                                                "<span className='mr-0''></span>" +
+                                                "</label>" +
+                                                "</div>" +
+                                                "</td>" +
+                                                "</tr>";
+                                        });
+                                    } else {
+                                        document.querySelector("#fileList").innerHTML = `<tr class="empty_data">
+                                            <td colspan="4">조회된 파일이 없습니다.</td>
+                                            </tr>`;
+                                    }
+                                },
+                                error: function(e){		 //요청 실패시 에러 확인을 위함
+                                    alert(e.responseJSON.resultMessage);
+                                }
+                            })
+                        });
+                        $('#jsTree').bind("delete_node.jstree", function(event, data) { /** 폴더 삭제 시 이벤트 */
+                        });
+
+                        $('#jsTree').bind("move_node.jstree", function(event, data) { /** 폴더 이동 시 이벤트 */
+                        });
+
+                        $('#jsTree').bind("rename_node.jstree", function(event, data) { /** 폴더명 변경 시 이벤트 */
+                            if($("#jsTree").jstree(true).get_node(data.node.id).parent == '#') {
+                                alert('최상위 폴더명은 변경할 수 없습니다.'); return;
+                                location.href="/contents/list/folder-management/" + content.contentsCode;
+                            }
+
+                            const subParams = [];
+
+                            /** 폴더명이 변경된 폴더 경로 */
+                            let nodeId = data.node.id; let renameFolderPath = "";
+                            while(true) {
+                                if ($("#jsTree").jstree(true).get_node(nodeId).parent == '#') {
+                                    break;
+                                } else {
+                                    renameFolderPath = "/" + $("#jsTree").jstree(true).get_node(nodeId).text + renameFolderPath;
+                                    nodeId = $("#jsTree").jstree(true).get_node(nodeId).parent;
+                                }
+                            }
+                            /** 변경 이전 폴더 경로 */
+                            let beforeFolderPath = "";
+                            for(var index = 1; index < renameFolderPath.split('/').length - 1; ++index) {
+                                beforeFolderPath = beforeFolderPath + "/" + renameFolderPath.split('/')[index];
+                            }
+                            beforeFolderPath = beforeFolderPath + "/" + data.old;
+
+                            subParams.push({beforeFolderPath: beforeFolderPath, renameFolderPath: renameFolderPath});
+
+                            if(subParams[0].beforeFolderPath != subParams[0].renameFolderPath) {
+                                /** 폴더명 변경 */
+                                $.ajax({ //jquery ajax
+                                    type:"put", //http method
+                                    url:"/api/contents/list/folder-management/" + content.contentsCode, //값을 가져올 경로
+                                    headers: {'Content-Type': 'application/json'},
+                                    data: JSON.stringify(subParams),
+                                    dataType:"json", //html, xml, text, script, json, jsonp 등 다양하게 쓸 수 있음
+                                    success: function(data) { },  //요청 성공시 실행될 메서드
+                                    error: function(e){		 //요청 실패시 에러 확인을 위함
+                                        alert(e.responseJSON.resultMessage);
+                                        location.href="/contents/list/folder-management/" + content.contentsCode;
+                                    }
+                                })
+                            }
+                        });
+
+                        break;
+                    case 'CHAPTER':
+                        document.querySelector('#GENERAL').setAttribute('class', '');
+                        document.querySelector('#FILE').setAttribute('class', '');
+                        document.querySelector('#CHAPTER').setAttribute('class', 'is_active');
+
+                        break;
+                }
+            }
+
+            $(document)
+                .on('defaultReadyAfter',function(e){
+                    $('#jsTree').jstree({
+                        "json_data": {},
+                        "plugins": ["json_data", "contextmenu"],
+                        "core": {
+                            "themes": {"icons": true, "dots": true,"stripes" : true},
+                            "check_callback": true, "multiple": false, "data": resData
+                        },
+                    });
+                });
+
+            /**
+             * 콘텐츠 집파일 업로드
+             */
+            $("#contentZipFile").change(function(e){
+                e.preventDefault();
+                if(confirm('압축파일을 올리시겠습니까?')){
+                    $(".blocking").show();
+                    if(document.querySelector('#contentZipFile').files[0]) {
+                        var form = new FormData();
+                        form.append( "filePath", '');
+                        form.append( "zipFileList", document.querySelector('#contentZipFile').files[0] );
+                        $.ajax({
+                            type:"put", //http method
+                            url:"/api/contents/list/folder-management/zip-file/" + content.contentsCode, //값을 가져올 경로
+                            processData : false,
+                            contentType : false,
+                            data: form,
+                            async:false,
+                            xhr: function(){
+                                var xhr = $.ajaxSettings.xhr();
+                                xhr.upload.onprogress = function(e){
+                                    var per = e.loaded * 100 / e.total;
+                                };
+                                return xhr;
+                            },
+                            success: function(data) {   //요청 성공시 실행될 메서드
+                                alert("파일 업로드를 성공하였습니다.");
+                                window.location.reload();
+                            }, error: function(e) {
+                                alert(e.responseJSON.resultMessage);
+                            }
+                        })
+                    } else {
+                        alert("대상 파일정보가 유효하지 않습니다.");
+                        $(".blocking").hide();
+                    }
+                }
+            })
+            function contentsZipUpload(){
+                $("#contentZipFile").click();
+            }
+
+            /** 콘텐츠 파일 업로드 */
+            function contentsFileClick(first, second) {
+                $(`.${first}`).show();
+                setTimeout(function() {
+                    second();
+                }, 500)
+            }
+            function contentsFileUpload() {
+                if(document.querySelector('#contentsFile').files[0]) {
+                    var form = new FormData();
+                    form.append( "filePath", selectedFilePath);
+                    form.append( "contentsFile", document.querySelector('#contentsFile').files[0] );
+                    $.ajax({
+                        type:"put", //http method
+                        url:"/api/contents/list/folder-management/file/" + content.contentsCode, //값을 가져올 경로
+                        processData : false,
+                        contentType : false,
+                        data: form,
+                        async:false,
+                        success: function(data) {   //요청 성공시 실행될 메서드
+                            alert("파일 업로드를 성공하였습니다.");
+                            window.location.reload();
+                        }, error: function(e) {
+                            alert(e.responseJSON.resultMessage);
+                        }
+                    })
+                } else {
+                    alert("대상 파일정보가 유효하지 않습니다.");
+                    $(".blocking").hide();
+                }
+            }
+
+            /** 콘텐츠 파일 삭제 */
+            function contentsFileDelete() {
+                const subParams = [];
+                const deleteFileList = [];
+                $("input[name=fileCheckBox]:checked").each(function(index, element) {
+                    deleteFileList.push(element.value);
+                });
+                subParams.push({beforeFolderPath: selectedFilePath, deleteFileList: deleteFileList});
+
+                if (deleteFileList.length > 0) {
+                    $.ajax({ //jquery ajax
+                        type:"put", //http method
+                        url:"/api/contents/list/folder-management/" + content.contentsCode, //값을 가져올 경로
+                        headers: {'Content-Type': 'application/json'},
+                        data: JSON.stringify(subParams),
+                        dataType:"json", //html, xml, text, script, json, jsonp 등 다양하게 쓸 수 있음
+                        success: function(data) {   //요청 성공시 실행될 메서드
+                            alert('파일 삭제가 완료되었습니다.');
+                            window.location.reload();
+                        },
+                        error: function(e){		 //요청 실패시 에러 확인을 위함
+                            alert(e.responseJSON.resultMessage);
+                        }
+                    })
+                } else alert('삭제할 파일을 선택해주세요.');
+            }
+
+            /** 행 이동 */
+            function moveRow(object) {
+                const row = $(object).closest('tr');
+                if(object.getAttribute("name") == "up") { row.prev().before(row); }
+                else if(object.getAttribute("name") == "down") { row.next().after(row); }
+            }
+
+            /* 절 정보 보기 */
+            function verseView(viewBtn) {
+                const chapterCode = viewBtn.parentElement.parentElement.children[3].children[1].value;
+                if(!chapterCode) {
+                    return;
+                } else {
+                    selectedChapterCode = chapterCode;
+                }
+                const verse_info = document.querySelector('.verse_info');
+                const chapter = document.querySelector('.chapter');
+                verse_info.style.display = 'block';
+                chapter.innerText = viewBtn.parentElement.parentElement.children[1].querySelector('input').value;
+
+                let sectionBodyInnerHtml = "";
+                content.contentsChapterList
+                    .filter(data => data.chapterCode == chapterCode)[0].chapterMaster.sectionMasterList
+                    .forEach(subData => {
+                        sectionBodyInnerHtml += "<tr id='target2'>" +
+                            `<td><input type='text' value="` + subData.sectionName + `"></td>` +
+                            "<td>" +
+                            "<div class='d-flex gap-2'>" +
+                            "<select class='common_select' disabled>" +
+                            "<option value=''>파일 주소</option>" +
+                            "</select>" +
+                            "<input type='text' class='flex-grow-1' value='" + subData.link + "'>" +
+                            "</div>" +
+                            "</td>" +
+                            "<td><input type='text' class='text-center' value='" + subData.sortNo + "' disabled></td>" +
+                            "<td>" +
+                            "<div class='d-inline-block cursor-pointer color_blue' name=\"up\" onclick=\"moveRow(this)\">▲</div>" +
+                            "<input value='" + subData.sectionCode + "' style='width: 0px; visibility: hidden'>" +
+                            "<div class='d-inline-block cursor-pointer color_blue' name=\"down\" onclick=\"moveRow(this)\">▼</div>" +
+                            "</td>" +
+                            "<td>" +
+                            "<div id='addBtn2' class='btn btnDefault btn_add' onclick='addList(this, " + "\"target2\"" + ")'>추가</div>" +
+                            "<div id='delBtn2' class='btn btnDefault btn_del' onclick='removeList(this, " + "\"target2\"" + ", " + "\"targetTable2\"" + ")'>삭제</div>" +
+                            "</td>" +
+                            "</tr>";
+                    });
+
+                if(sectionBodyInnerHtml) {
+                    document.querySelector("#sectionBody").innerHTML = sectionBodyInnerHtml;
+                } else {
+                    document.querySelector("#sectionBody").innerHTML = "<tr id='target2'>" +
+                        "<td><input type='text'></td>" +
+                        "<td>" +
+                        "<div class='d-flex gap-2'>" +
+                        "<select class='common_select'>" +
+                        "<option value=''>파일 주소</option>" +
+                        "</select>" +
+                        "<input type='text' class='flex-grow-1'>" +
+                        "</div>" +
+                        "</td>" +
+                        "<td><input type='text' class='text-center' disabled></td>" +
+                        "<td>" +
+                        "<div class='d-inline-block cursor-pointer color_blue' name=\"up\" onclick=\"moveRow(this)\">▲</div>" +
+                        "<input style='width: 0px; visibility: hidden'>" +
+                        "<div class='d-inline-block cursor-pointer color_blue' name=\"down\" onclick=\"moveRow(this)\">▼</div>" +
+                        "</td>" +
+                        "<td>" +
+                        "<div id='addBtn2' class='btn btnDefault btn_add' onclick='addList(this, " + "\"target2\"" + ")'>추가</div>" +
+                        "<div id='delBtn2' class='btn btnDefault btn_del' onclick='removeList(this, " + "\"target2\"" + ", " + "\"targetTable2\"" + ")'>삭제</div>" +
+                        "</td>" +
+                        "</tr>";
+                }
+            }
+
+            /* 삭제된 장의 절 정보 숨김 */
+            function verseRemove(delBtn) {
+                const verse_info = document.querySelector('.verse_info');
+                const chapter = document.querySelector('.chapter');
+
+                if (chapter.innerText == delBtn.parentElement.parentElement.children[1].querySelector('input').value) {
+                    verse_info.style.display = 'none';
+                } else {
+                    return false;
+                }
+            }
+
+            /** 일괄 등록(By Excel) */
+            function createChapterInfoByFile(contentsCode) {
+                if (document.querySelector('#excel_submit').files[0]) {
+                    alert('엑셀 파일을 분석하여 차시 데이터를 생성 중입니다. 새로고침 될 때까지 잠시 기다려주세요.')
+                    const form = new FormData();
+                    form.append( "excelFile", document.querySelector('#excel_submit').files[0] );
+
+                    $.ajax({
+                        type: "post",
+                        url: "/api/contents/list/chapter/create-by-file/"+contentsCode,
+                        processData: false,
+                        contentType: false,
+                        data: form,
+                        success: function (data) {
+                            location.href="/contents/list/chapter/view/" + content.contentsCode;
+                        },
+                        error: function (e) {
+                            alert(e.responseJSON.resultMessage);
+                        }
+                    });
+                }
+            }
+
+            /** 챕터 정보 생성 및 업데이트 */
+            function createAndUpdateChapter() {
+                const chapterInfoSize = document.querySelectorAll('#target').length;
+                const chapterInfoList = [];
+
+                for(let index = 0; index < chapterInfoSize; ++index) {
+                    if($('#target > td:nth-child(1) > input')[index].value
+                        && $('#target > td:nth-child(2) > input')[index].value) {
+                        const chapterInfo = {};
+
+                        chapterInfo.contentsCode = content.contentsCode;
+                        chapterInfo.chapterCode = $('#target > td:nth-child(4) > input')[index].value;
+                        chapterInfo.chapterName = $('#target > td:nth-child(1) > input')[index].value;
+                        chapterInfo.chapterTitle = $('#target > td:nth-child(2) > input')[index].value;
+                        chapterInfo.sortNo = index + 1;
+
+                        chapterInfoList.push(chapterInfo);
+                    }
+                }
+
+                const subParams = {};
+                subParams.contentsCode = content.contentsCode;
+                subParams.chapterInfoList = chapterInfoList;
+                $.ajax({
+                    type: "put",
+                    url: "/api/contents/list/chapter/modify-list",
+                    headers: {'Content-Type': 'application/json'},
+                    data: JSON.stringify(subParams),
+                    dataType: "json",
+                    success: function (data) {
+                        location.href="/contents/list/chapter/view/" + content.contentsCode;
+                    },
+                    error: function (e) {
+                        alert(e.responseJSON.resultMessage);
+                    }
+                });
+            }
+
+            /** 절 정보 생성 및 업데이트 */
+            function createAndUpdateSection() {
+                const sectionInfoSize = document.querySelectorAll('#target2').length;
+                const sectionInfoList = [];
+
+                for(let index = 0; index < sectionInfoSize; ++index) {
+                    if($('#target2 > td:nth-child(1) > input[type=text]')[index].value
+                        && $('#target2 > td:nth-child(2) > div > input')[index].value) {
+                        const sectionInfo = {};
+
+                        sectionInfo.chapterCode = selectedChapterCode;
+                        sectionInfo.sectionCode = $('#target2 > td:nth-child(4) > input')[index].value;
+                        sectionInfo.sectionName = $('#target2 > td:nth-child(1) > input[type=text]')[index].value;
+                        sectionInfo.link = $('#target2 > td:nth-child(2) > div > input')[index].value;
+                        sectionInfo.sortNo = index + 1;
+
+                        sectionInfoList.push(sectionInfo);
+                    }
+                }
+
+                const subParams = {};
+                subParams.contentsCode = content.contentsCode;
+                subParams.chapterCode = selectedChapterCode;
+                subParams.sectionInfoList = sectionInfoList;
+                $.ajax({
+                    type: "put",
+                    url: "/api/contents/list/chapter/section/modify-list",
+                    headers: {'Content-Type': 'application/json'},
+                    data: JSON.stringify(subParams),
+                    dataType: "json",
+                    success: function (data) {
+                        location.href="/contents/list/chapter/view/" + content.contentsCode;
+                    },
+                    error: function (e) {
+                        alert(e.responseJSON.resultMessage);
+                    }
+                });
+            }
+
+            function clickTab(type) {
+                switch (type) {
+                    case 'GENERAL':
+                        location.href='/contents/list/view/' + content.contentsCode;
+                        break;
+                    case 'FILE':
+                        location.href='/contents/list/folder-management/' + content.contentsCode;
+                        break;
+                    case 'CHAPTER':
+                        location.href='/contents/list/chapter/view/' + content.contentsCode;
+                        break;
+                }
+            }
+
+
+            /* 페이지보기 팝업 매핑 */
+            function preview(chapterCode) {
+                /* 과목명 */
+                let subjectName = content.contentsName;
+                document.querySelector("#popPreview .subject_name > span").innerText = subjectName;
+
+                /* 차시명 : 장 제목 */
+                let chapterTitle = content.contentsChapterList
+                    .filter(data => data.chapterCode == chapterCode)[0].chapterMaster.chapterTitle;
+                document.querySelector("#popPreview .chapter_name > span").innerText = chapterTitle;
+
+                /* 절 리스트 */
+                let html = "";
+                content.contentsChapterList
+                    .filter(data => data.chapterCode == chapterCode)[0].chapterMaster.sectionMasterList
+                    .forEach((verseData) => {
+                        html += `<li data-link="` + verseData.link + `">` + verseData.sectionName + `</li>`;
+                    });
+
+                if(html) {
+                    document.querySelector("#popPreview .verse_list > ul").innerHTML = html;
+
+                    const firstList = document.querySelector("#popPreview .verse_list > ul > li:first-child");
+                    const video = document.querySelector("#popPreview .video_wrap video");
+                    //초기 셋팅
+                    firstList.classList.add('active');
+                    firstList.click();
+                    btnChk();
+                    previewInitSet();
+                    video.currentTime = 0;
+                    videoView(firstList.dataset.link);
+
+                    document.querySelectorAll("#popPreview .verse_list > ul > li").forEach(item => {
+                        item.addEventListener('click', function(){
+                            document.querySelector("#popPreview .verse_list > ul > li.active").classList.remove('active');
+                            item.classList.add('active');
+                            pageActive = $("#popPreview .verse_list > ul > li.active").index();
+                            btnChk();
+                            previewUpdateSet();
+                            videoView(item.dataset.link);
+                        });
+                    });
+                } else {
+                    document.querySelector("#popPreview .verse_list > ul").innerHTML = `<li class="empty">등록된 콘텐츠가 없습니다.</li>`;
+                }
+            }
+
+            /* 페이지보기 팝업 > 비디오 영역 */
+            function videoView(link) {
+                //iframe or video 판별
+                let fileExtension = link.split('.');
+                fileExtension = fileExtension[fileExtension.length-1]; //확장자
+
+                const iframeExtension = ['html'];
+                const videoExtension = ['mp4', 'm4v', 'avi', 'wmv', 'mwa', 'asf', 'mpg', 'mpeg', 'ts', 'mkv', 'mov', '3gp', '3g2', 'webm'];
+                const iframe = document.querySelector("#popPreview .video_wrap iframe");
+                const video = document.querySelector("#popPreview .video_wrap video");
+                if (iframeExtension.includes(fileExtension)) {
+                    video.pause();
+                    video.style.display = 'none';
+                    iframe.style.display = 'block';
+                    iframe.setAttribute("src", generateContentsUrl(link));
+                }
+            }
+
+            function generateContentsUrl(link){
+                return "/Contents/"+resData[0].id+"/"+link;
+            }
+
+            /* 페이지보기 팝업 > 닫기 버튼 */
+            const closeBtn = document.querySelector('.pop_close');
+            closeBtn.addEventListener('click', function(){
+                //전체화면 초기화
+                document.getElementById('popPreview').classList.remove('popFull');
+
+                //iframe, video 재생 멈춤
+                const iframe = document.querySelector("#popPreview .video_wrap iframe");
+                const video = document.querySelector("#popPreview .video_wrap video");
+                video.pause();
+                iframe.setAttribute("src", "about:blank");
+            });
+
+            /* 페이지보기 팝업 > 중간저장시간, 최종학습페이지, 과정완료여부, 차시완료여부, 페이지완료여부 */
+            let pageCount = 0; //절(페이지) 총 개수
+            let pageActive = 0; //선택된 절(페이지)index
+            let pastPageActive = 0;
+
+            let saveTime = []; //중간저장시간
+            let savePage = null; //최종학습페이지
+            let progressComplete = false; //과정완료여부
+            let turnComplete = false; //차시완료여부
+            let pageComplete = []; //페이지완료여부
+            const $saveTime = $('#popPreview #saveTime');
+            const $savePage = $('#popPreview #savePage');
+            const $progressCompleteY = $('#popPreview #progressCompleteY');
+            const $progressCompleteN = $('#popPreview #progressCompleteN');
+            const $turnCompleteY = $('#popPreview #turnCompleteY');
+            const $turnCompleteN = $('#popPreview #turnCompleteN');
+            const $pageCompleteY = $('#popPreview #pageCompleteY');
+            const $pageCompleteN = $('#popPreview #pageCompleteN');
+
+            function previewInitSet() { //초기 셋팅 (초기화)
+                pageActive = 0;
+                pastPageActive = 0;
+                savePage = null;
+                progressComplete = false;
+                turnComplete = false;
+
+                if ($("#popPreview .verse_list > ul > li").length > 0) pageCount = $("#popPreview .verse_list > ul > li").length;
+
+                for (let i = 0; i < pageCount; i++) {
+                    saveTime[i] = null;
+                    pageComplete[i] = false;
+                }
+
+                $saveTime.val('');
+                $savePage.val('');
+                $progressCompleteN.prop('checked', true);
+                $turnCompleteN.prop('checked', true);
+                $pageCompleteN.prop('checked', true);
+            }
+
+            function previewUpdateSet() { //페이지 이동시 데이터 업데이트 후 셋팅
+                $saveTime.val(saveTime[pageActive]); //중간저장시간 set
+
+                $savePage.val(savePage); //최종학습페이지 set
+
+                if (pageComplete[pageActive] == true) { //페이지완료여부 set
+                    $pageCompleteY.prop('checked', true);
+                } else {
+                    $pageCompleteN.prop('checked', true);
+                }
+
+                if (pageComplete.every(function(value){return value == true})) { //차시완료여부 - 전체 페이지가 true일 때
+                    turnComplete = true;
+                } else {
+                    turnComplete = false;
+                }
+
+                if (turnComplete) { //차시완료여부 set
+                    $turnCompleteY.prop('checked', true);
+                } else {
+                    $turnCompleteN.prop('checked', true);
+                }
+            }
+
+            //중간저장시간
+            $saveTime.on("input", function() {
+                saveTime[pageActive] = $(this).val();
+            });
+
+            //최종학습페이지
+            $savePage.on("input", function() {
+                savePage = $(this).val();
+            });
+
+            //페이지완료여부
+            $('#popPreview #pageCompleteY, #popPreview #pageCompleteN').change(function(){
+                if ($pageCompleteY.prop('checked')) {
+                    pageComplete[pageActive] = true;
+                }
+                if ($pageCompleteN.prop('checked')) {
+                    pageComplete[pageActive] = false;
+
+                    progressComplete = false;
+                    $progressCompleteN.prop('checked', true);
+                }
+
+                if (pageComplete.every(function(value){return value == true})) { //차시완료여부 - 전체 페이지가 true일 때
+                    turnComplete = true;
+                } else {
+                    turnComplete = false;
+                }
+
+                if (turnComplete) { //차시완료여부 set
+                    $turnCompleteY.prop('checked', true);
+                } else {
+                    $turnCompleteN.prop('checked', true);
+                }
+            });
+
+            //차시완로여부
+            $('#popPreview #turnCompleteY, #popPreview #turnCompleteN').change(function(){
+                if ($turnCompleteY.prop('checked')) {
+                    turnComplete = true;
+
+                    for (let i = 0; i < pageCount; i++) {
+                        pageComplete[i] = true;
+                    }
+                }
+                if ($turnCompleteN.prop('checked')) {
+                    turnComplete = false;
+
+                    for (let i = 0; i < pageCount; i++) {
+                        pageComplete[i] = false;
+                    }
+
+                    progressComplete = false;
+                    $progressCompleteN.prop('checked', true);
+                }
+
+                if (pageComplete[pageActive] == true) { //페이지완료여부 set
+                    $pageCompleteY.prop('checked', true);
+                } else {
+                    $pageCompleteN.prop('checked', true);
+                }
+            });
+
+            //과정완료여부
+            $('#popPreview #progressCompleteY, #popPreview #progressCompleteN').change(function(){
+                if ($progressCompleteY.prop('checked')) {
+                    progressComplete = true;
+                    turnComplete = true;
+                    for (let i = 0; i < pageCount; i++) {
+                        pageComplete[i] = true;
+                    }
+                }
+                if ($progressCompleteN.prop('checked')) {
+                    progressComplete = false;
+                }
+
+                if (turnComplete) { //차시완료여부 set
+                    $turnCompleteY.prop('checked', true);
+                } else {
+                    $turnCompleteN.prop('checked', true);
+                }
+
+                if (pageComplete[pageActive] == true) { //페이지완료여부 set
+                    $pageCompleteY.prop('checked', true);
+                } else {
+                    $pageCompleteN.prop('checked', true);
+                }
+            });
+
+            /* 페이지보기 팝업 > 전체화면 버튼 */
+            const fullSizeBtn = document.getElementById('fullSizeBtn');
+            fullSizeBtn.addEventListener('click', function(){
+                document.getElementById('popPreview').classList.add('popFull');
+            });
+
+            /* 페이지보기 팝업 > 이전페이지, 다음페이지 버튼 */
+            //버튼 disabled 체크
+            function btnChk() {
+                const firstList = document.querySelector("#popPreview .verse_list > ul > li:first-child");
+                const lastList = document.querySelector("#popPreview .verse_list > ul > li:last-child");
+
+                //first list active일 때 이전 페이지 버튼 disabled
+                if (firstList.classList.contains('active')) {
+                    document.getElementById('prevPgBtn').classList.add('disabled');
+                } else {
+                    document.getElementById('prevPgBtn').classList.remove('disabled');
+                }
+
+                //last list active일 때 다음 페이지 버튼 disabled
+                if(lastList.classList.contains('active')) {
+                    document.getElementById('nextPgBtn').classList.add('disabled');
+                } else {
+                    document.getElementById('nextPgBtn').classList.remove('disabled');
+                }
+            }
+
+            function prevPageClick() {
+                const prevEl = document.querySelector("#popPreview .verse_list > ul > li.active").previousElementSibling;
+                if (prevEl) {
+                    prevEl.click();
+                    btnChk();
+                }
+            }
+
+            function nextPageClick() {
+                const nextEl = document.querySelector("#popPreview .verse_list > ul > li.active").nextElementSibling;
+                if (nextEl) {
+                    nextEl.click();
+                    btnChk();
+                }
+            }
+
+
+
+            // 미입력된 필수 정보가 있을 경우 alert
+            function requiredChk() {
+                /** 카테고리 체크 */
+                if(!document.querySelector('#categoryCode').value) {
+                    alert('카테고리는 필수입니다.'); return false;
+                } else modifyParams.categoryCode = document.querySelector('#categoryCode').value;
+
+                /** 콘텐츠명 */
+                if(!document.querySelector('#contentsName').value) {
+                    alert('콘텐츠 명은 필수입니다.'); return false;
+                } else modifyParams.contentsName = document.querySelector('#contentsName').value;
+
+                /** 콘텐츠 넓이 */
+                modifyParams.width = document.querySelector('#width').value;
+                /** 콘텐츠 높이 */
+                modifyParams.height = document.querySelector('#height').value;
+                /** 재생시간 */
+                modifyParams.educationPerMinute = document.querySelector('#educationPerMinute').value;
+
+                /** 상태 */
+                if(document.querySelector('#isUsable').value === "") {
+                    alert('상태는 필수입니다.'); return false;
+                } else {
+                    modifyParams.isUsable = document.querySelector('#isUsable').value;
+                }
+
+                return true;
+            }
+
+            /** 콘텐츠 수정 */
+            function modify(contentsCode) {
+                modifyParams.contentsCode = contentsCode;
+                /** 필수 값 체크 */
+                if(!requiredChk()) return;
+                /** 콘텐츠 수정 */
+                $.ajax({ //jquery ajax
+                    type:"put", //http method
+                    url:"/api/contents/list/update", //값을 가져올 경로
+                    headers: {'Content-Type': 'application/json'},
+                    data: JSON.stringify(modifyParams),
+                    dataType:"json", //html, xml, text, script, json, jsonp 등 다양하게 쓸 수 있음
+                    success: function(data) {   //요청 성공시 실행될 메서드
+                        alert("콘텐츠 정보 수정이 완료되었습니다.");
+                        window.location.reload();
+                    },
+                    error: function(e){		 //요청 실패시 에러 확인을 위함
+                        alert(e.responseJSON.resultMessage);
+                    }
+                })
+            }
+            /* ]]> */
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

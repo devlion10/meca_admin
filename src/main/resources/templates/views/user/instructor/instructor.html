@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="user-2">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>강사 관리</h2>
+        </div>
+
+        <div class="tableLeftResponsive">
+            <table class="tableLeft">
+                <colgroup>
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                </colgroup>
+                <tbody>
+                    <tr>
+                        <th scope="row">이름</th>
+                        <td>
+                            <input id="instrNm" type="text" class="hp_w200">
+                        </td>
+                        <th scope="row">아이디</th>
+                        <td>
+                            <input id="userId" type="text" class="hp_w200">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">구분</th>
+                        <td>
+                            <div class="radio_box">
+                                <input id="ctg_all" type="radio" name="instrCtgr" checked="" value="0">
+                                <label for="ctg_all">
+                                    <span></span>
+                                    전체
+                                </label>
+                            </div>
+                            <div class="radio_box">
+                                <input id="ctg_media_instructor" type="radio" name="instrCtgr" value="INSTR">
+                                <label for="ctg_media_instructor">
+                                    <span></span>
+                                    미디어강사
+                                </label>
+                            </div>
+                            <div class="radio_box">
+                                <input id="ctg_media_lecturer" name="instrCtgr" type="radio" value="LECTURER">
+                                <label for="ctg_media_lecturer">
+                                    <span></span>
+                                    미디어교육강사
+                                </label>
+                            </div>
+                            <div class="radio_box">
+                                <input id="ctg_journalist_instructor" type="radio" name="instrCtgr" value="READER">
+                                <label for="ctg_journalist_instructor">
+                                    <span></span>
+                                    언론인연수강사
+                                </label>
+                            </div>
+                        </td>
+
+                        <th scope="row">소속</th>
+                        <td>
+                            <input id="orgName" type="text" class="hp_w200">
+                        </td>
+                    </tr>
+                    <tr id="journalist_instructor_show">
+                        <th scope="row">강의분야</th>
+                        <td colspan="3">
+                            <select name="" id="" class="common_select">
+                                <option value="">확인필요</option>
+                                <option value="">전체</option>
+                            </select>
+                            <select name="" id="" class="common_select ms-1">
+                                <option value="">확인필요</option>
+                                <option value="">전체</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">회원 상태</th>
+                        <td>
+                            <div class="radio_box">
+                                <input id="state_all" type="radio" name="state" checked="" value="0">
+                                <label for="state_all">
+                                    <span></span>
+                                    전체
+                                </label>
+                            </div>
+                            <div class="radio_box">
+                                <input id="state_normal" type="radio" name="state" value="1">
+                                <label for="state_normal">
+                                    <span></span>
+                                    정상
+                                </label>
+                            </div>
+                            <div class="radio_box">
+                                <input id="state_sleep" type="radio" name="state" value="2">
+                                <label for="state_sleep">
+                                    <span></span>
+                                    휴면
+                                </label>
+                            </div>
+                            <div class="radio_box">
+                                <input id="state_withdrawal" type="radio" name="state" value="4">
+                                <label for="state_withdrawal">
+                                    <span></span>
+                                    탈퇴
+                                </label>
+                            </div>
+                        </td>
+                        <th scope="row">강사 상태</th>
+                        <td>
+                            <div class="radio_box">
+                                <input id="instrSttsA" type="radio" name="instrStts" value="" checked>
+                                <label for="instrSttsA">
+                                    <span></span>
+                                    전체
+                                </label>
+                            </div>
+                            <div class="radio_box">
+                                <input id="instrSttsY" type="radio" name="instrStts" value="1">
+                                <label for="instrSttsY">
+                                    <span></span>
+                                    사용
+                                </label>
+                            </div>
+                            <div class="radio_box">
+                                <input id="instrSttsN" type="radio" name="instrStts" value="0">
+                                <label for="instrSttsN">
+                                    <span></span>
+                                    미사용
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- GRID : BUTTON -->
+        <div class="bl_gridBtns">
+            <div class="bl_gridBtns_md">
+                <div class="btn btnDefault btnReset">리셋</div>
+                <a class="btn btnDefault btnSearch" th:onclick="searchInstr()">검색</a>
+                <a class="btn btnDefault download_excel download_search" href="/api/user/instructor/excel">excel 다운로드</a>
+                <a class="btn btnDefault btnRegister" href="/user/instructor/">등록</a>
+            </div>
+        </div>
+
+        <!-- BOARD : CONTROLLER -->
+        <div class="bl_boardCtrls">
+            <div class="bl_boardCtrls_lft">
+                <p class="bl_boardCtrls_total">
+                     총: <strong th:text="${pageable.totalElements}"></strong>건
+                </p>
+            </div>
+            <div class="bl_boardCtrls_rgt">
+                <select class="common_select" data-list="countSortList"></select>
+            </div>
+        </div>
+
+        <div class="tableResponsive overflowMulti">
+            <table class="table">
+                <colgroup>
+                    <col>
+                    <col>
+                    <col>
+                    <col>
+                    <col>
+                    <col>
+                    <col>
+                    <col>
+                    <col>
+                    <col>
+                    <col>
+                    <col>
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th scope="col" rowspan="2">번호</th>
+                        <th scope="col" rowspan="2">이름</th>
+                        <th scope="col" rowspan="2">아이디</th>
+                        <th scope="col" rowspan="2">구분</th>
+                        <th scope="col" rowspan="2">휴대전화번호</th>
+                        <th scope="col" rowspan="2">이메일</th>
+                        <th scope="col" rowspan="2">생년월일</th>
+                        <th scope="col" rowspan="2">성별</th>
+                        <th scope="col" rowspan="2">강의가능지역</th>
+                        <th scope="col" rowspan="2">
+                            <div>소속</div>
+                            <div>직위</div>
+                        </th>
+                        <th scope="col" rowspan="2">가입일</th>
+                        <th scope="col" rowspan="2">강사 상태</th>
+                        <th scope="col" rowspan="2">관리</th>
+                    </tr>
+                </thead>
+                <tbody th:if="${content != null && content.size > 0}">
+                    <tr th:each="item,stat:${content}">
+                        <td th:text="${pageable.totalElements - ((pageable.page * pageable.size) + stat.index)}"></td>
+                        <td th:text="${item.instrNm}">홍길동</td>
+                        <td th:if="${item.lmsUser == null}"></td>
+                        <td th:text="${item.lmsUser.userId}" th:unless="${item.lmsUser == null}">test</td>
+                        <td>
+                            <div th:if="${#strings.contains(item.instrCtgr, 'INSTR')}">미디어강사</div>
+                            <div th:if="${#strings.contains(item.instrCtgr, 'LECTURER')}">미디어교육강사</div>
+                            <div th:if="${#strings.contains(item.instrCtgr, 'READER')}">언론인연수강사</div>
+                        </td>
+                        <td th:text="${item.instrTel}">010-1111-1111</td>
+                        <td>
+                            <span th:if="${item.instrEml != null}">
+                                <span th:if="${item.instrEml != '@'}" th:text="${item.instrEml}"></span>
+                                <span th:unless="${item.instrEml != '@'}"></span>
+                            </span>
+                        </td>
+                        <td th:text="${item.instrBrdt}">1990.01.01</td>
+                        <td>
+                            <span th:if="${item.gender == '1'}">남</span>
+                            <span th:if="${item.gender == '2'}">여</span>
+                        </td>
+                        <td>
+                            <div th:text="${item.instrLctRgn1}">지역1</div>
+                            <div th:text="${item.instrLctRgn2}">지역2</div>
+                        </td>
+                        <td>
+                            <div th:text="${item.orgName}">소속</div>
+                            <div th:text="${item.department}">직위</div>
+                        </td>
+                        <td th:text="${item.createDateTime}">2022.09.01</td>
+                        <td>
+                            <span th:if="${item.instrStts == 0}" class="color_red">미사용</span>
+                            <span th:if="${item.instrStts == 1}" class="color_blue">정상</span>
+                        </td>
+                        <td>
+                            <a th:if="${#strings.contains(item.instrCtgr, 'INSTR')}" th:href="@{/user/instructor/{id}(id=${item.instrSerialNo})}" class="btn btnDefault btnView icon_none">보기</a>
+                            <a th:unless="${#strings.contains(item.instrCtgr, 'INSTR')}" th:href="@{/user/instructor/{id}(id=${item.instrSerialNo})}" class="btn btnDefault btnModify icon_none">수정</a>
+                        </td>
+                    </tr>
+                </tbody>
+                <tbody th:unless="${content != null && content.size > 0}">
+                <tr class="empty_data"><td colspan="13">조회된 내용이 없습니다.</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="bl_paginate"></div>
+
+        <!-- POPUP : 일괄등록 -->
+        <article class="pop_wrapper ui-modal" id="popCollectiveRegistration">
+            <div class="pop_wrap pop_secondary">
+                <div class="pop_cont">
+                    <div class="bl_uploadGrid justify-content-center">
+                        <div class="bl_upload js_upload hp_lg_w462">
+                            <input type="text" class="bl_upload_path js_path" readonly>
+                            <label class="btn btnDefault bg-secondary text-white bl_upload_btn">찾아보기</label>
+                            <input type="file" name="file" class="bl_upload_file js_file">
+                        </div>
+                        <a href="" class="btn_type4 btn_blue btn_underline">샘플 다운로드.xlsx</a>
+                    </div>
+                    
+                    <div class="bl_gridBtns">
+                        <div class="bl_gridBtns_md">
+                            <a class="btn btnDefault pop-close" href="">저장</a>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="button" class="pop_close pop-close">닫기</button>
+            </div>
+        </article>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            $(".all_checkbox").bind('click',function (e){
+                if($(this).is(":checked")){
+                    let name=$(this).attr("name");
+                    $(`input:checkbox[name=${name}]`).prop("checked", true);
+                }else{
+                    let name=$(this).attr("name");
+                    $(`input:checkbox[name=${name}]`).prop("checked", false);
+
+                }
+            })
+            function searchInstr(){
+                let searchQuery = {}
+                let name = $("#instrNm").val();
+                let uid = $("#userId").val();
+                let type = $('input:radio[name="instrCtgr"]:checked').val();
+                let state = $('input:radio[name="state"]:checked').val();
+                let instrStts = $('input:radio[name="instrStts"]:checked').val();
+                let orgName= $("#orgName").val();
+
+                if(name){
+                    searchQuery.instrNm = name
+                }
+                if(uid){
+                    searchQuery.userId = uid
+                }
+                if(state && state!="0"){
+                    searchQuery.state =state
+                }
+                if(instrStts && instrStts!=""){
+                    searchQuery.instrStts =instrStts
+                }
+                if(orgName && orgName!=""){
+                    searchQuery.orgName = orgName;
+                }
+                if(type&&type!="0"){
+                    searchQuery.instrCtgr =type
+                }
+                searchJson(searchQuery)
+            }
+
+            const urlParams = new URL(location.href).searchParams;
+            if(urlParams.get('instrStts') == null) {
+                $('#instrSttsA').prop("checked", true);
+                $('#instrSttsY').prop("checked", false);
+                $('#instrSttsN').prop("checked", false);
+            }
+
+            /* <![CDATA[ */
+            // 구분 - 언론인연수강사 : 강의분야 컬럼 노출
+            const radio_btn = document.querySelectorAll('input[type=radio]');
+            const journalist_instructor = document.getElementById('ctg_journalist_instructor');
+            const journalist_instructor_show = document.getElementById('journalist_instructor_show');
+
+            if (journalist_instructor.checked) {
+                journalist_instructor_show.style.display = 'table-row';
+            } else {
+                journalist_instructor_show.style.display = 'none';
+            }
+            
+            radio_btn.forEach((btn, idx) => {
+                if (btn.name == 'instrCtgr') {
+                    btn.addEventListener('click', function () {
+                        journalist_instructor_show.style.display = 'none';
+
+                        if (journalist_instructor.checked) {
+                            journalist_instructor_show.style.display = 'table-row';
+                        }
+                    });
+                }
+            });
+
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+                pagination([[ ${pageable} ]])
+            }
+            /* ]]> */
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

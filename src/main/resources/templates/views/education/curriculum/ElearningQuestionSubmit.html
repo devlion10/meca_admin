@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="edu-1">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>과정 관리</h2>
+        </div>
+
+        <div class="bl_tab2 js_tab">
+            <ul class="bl_tab2_menu">
+                <li>
+                    <a th:href="@{/education/curriculum/e-learning/{curriculumCode}(curriculumCode=${curriculumCode})}">상세</a>
+                </li>
+                <li>
+                    <a th:href="@{/education/curriculum/e-learning/exam/{curriculumCode}(curriculumCode=${curriculumCode})}">시험</a>
+                </li>
+                <li class="is_active">
+                    <a th:href="@{/education/curriculum/e-learning/question/{curriculumCode}(curriculumCode=${curriculumCode})}">문항</a>
+                </li>
+                <li>
+                    <a th:href="@{/education/curriculum/reference-room/{curriculumCode}?educationType=e-learning(curriculumCode=${curriculumCode})}">자료실</a>
+                </li>
+            </ul>
+
+            <div class="bl_tab2_body js_tab_contents">
+                <div class="bl_tab2_item js_tab_item">
+                    <div class="tableLeftResponsive">
+                        <table class="tableLeft">
+                            <colgroup>
+                                <col style="width: 200px">
+                                <col style="width: auto">
+                            </colgroup>
+                            <tbody>
+                                <tr>
+                                    <th scope="row">카테고리명</th>
+                                    <td>카테고리명</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">과정명</th>
+                                    <td>수습기자 기본교육</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <h3 class="subTitle">엑셀파일 등록</h3>
+                    <div class="tableLeftResponsive">
+                        <table class="tableLeft">
+                            <colgroup>
+                                <col style="width: 200px">
+                                <col style="width: auto">
+                            </colgroup>
+                            <tbody>
+                                <tr>
+                                    <th scope="row">주의사항</th>
+                                    <td>
+                                        <p class="mb-2">
+                                            1. 문제등록 샘플양식을 다운로드 받아 작성 한 후 업로드 하십시오.<br/>
+                                            2. 업로드 된 문제정보를 확인 한 후 등록하기 버튼을 클릭하면 문제등록이 완료됩니다.<br/>
+                                            3. 주관식(단답형, 서술형)문제의 문항갯수는 반드시 1 이어야 합니다.<br/>
+                                            4. 난이도/문제유형/사용유무는 코드표를 다운로드 받아 참고하여 작성합니다.
+                                        </p>
+                                        <div class="btn btnDefault">양식다운로드</div>
+                                        <div class="btn btnDefault">코드표</div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">파일 업로드</th>
+                                    <td>
+                                        <div class="bl_uploadGrid">
+                                            <div class="bl_upload js_upload hp_lg_w462">
+                                                <input type="text" class="bl_upload_path js_path" readonly>
+                                                <label class="btn btnDefault bg-secondary text-white bl_upload_btn">파일선택</label>
+                                                <input type="file" name="file" class="bl_upload_file js_file">
+                                            </div>
+                                        </div>
+                                        <p class="bl_uploadNote">※ 업로드 파일은 .xls 파일만 가능합니다. 복수시트는 지원하지 않습니다.</p>    
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="bl_gridBtns">
+                        <div class="bl_gridBtns_rgt">
+                            <a class="btn btnDefault" onclick="move()">목록</a>
+                            <div class="btn btnDefault">등록</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            /* <![CDATA[ */
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+            }
+
+            function move() {
+                var href = window.location.pathname
+                var link = href.replace('/file', '')
+                window.location.replace(link)
+            }
+            /* ]]> */
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

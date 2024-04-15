@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="business-5-3">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>강사료 정산</h2>
+        </div>
+
+        <div class="bl_tab2 js_tab">
+            <ul class="bl_tab2_menu">
+                <li class="is_active">
+                    <a href="/business/instructor/calculate">정산마감일</a>
+                </li>
+                <li>
+                    <a href="/business/instructor/calculate/target">정산요청 목록</a>
+                </li>
+                <li>
+                    <a href="/business/instructor/calculate/list?groupType=instr">정산금액 조회</a>
+                </li>
+                <li>
+                    <a href="/business/instructor/calculate/distance/amount">이동거리 기준단가</a>
+                </li>
+            </ul>
+
+            <div class="tableLeftResponsive">
+                <table class="tableLeft">
+                    <colgroup>
+                        <col style="width: 200px">
+                        <col style="width: auto">
+                    </colgroup>
+                    <tbody>
+                        <tr>
+                            <th scope="row"><span class="el_required">*</span>년월</th>
+                            <td>
+                                <div class="d-flex-2">
+                                    <select id="bizInstrClclnDdlnYr" class="common_select" th:if="${content == null}" data-list="yearList" not_null="true" alert_name="정산(연)"></select>
+                                    <select id="bizInstrClclnDdlnYr" class="common_select" th:unless="${content == null}" data-list="yearList"not_null="true" alert_name="정산(연)"></select>
+                                    <select id="bizInstrClclnDdlnMm" class="common_select" th:if="${content == null}" data-list="monthList" not_null="true" alert_name="정산(월)"></select>
+                                    <select id="bizInstrClclnDdlnMm" class="common_select" th:unless="${content == null}" data-list="monthList" not_null="true" alert_name="정산(월)"></select>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row"><span class="el_required">*</span>정산마감일</th>
+                            <td>
+                                <div class="d-flex-2">
+                                    <input id="bizInstrClclnDdlnValue" type="text" class="el_datePicker hp_w120" style="max-width: 200px" th:if="${content == null}" not_null="true" alert_name="정산마감일"/>
+                                    <input id="bizInstrClclnDdlnValue" type="text" class="el_datePicker hp_w120" style="max-width: 200px" th:unless="${content == null}" not_null="true" alert_name="정산마감일"/>
+                                    <select id="selectHour" class="common_select" data-list="hourList" th:if="${content == null}"  not_null="true" alert_name="정산마감일"></select>
+                                    <select id="selectHour" class="common_select" data-list="hourList" th:unless="${content == null}"  not_null="true" alert_name="정산마감일"></select>
+                                    <select id="selectMinute" class="common_select" data-list="minuteList" th:if="${content == null}"  not_null="true" alert_name="정산마감일"></select>
+                                    <select id="selectMinute" class="common_select" data-list="minuteList" th:unless="${content == null}"  not_null="true" alert_name="정산마감일"></select>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="bl_gridBtns">
+                <div class="bl_gridBtns_rgt">
+                    <a class="btn btnDefault btnList" href="/business/instructor/calculate">목록</a>
+                    <div onclick="create()" th:if="${content == null}" class="btn btnDefault btnRegister">등록</div>
+                    <div onclick="update()" th:unless="${content == null}" class="btn btnDefault">수정</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            function create(){
+                if(nullCheck()){
+                    let params = getFormData();
+                    $.ajax({
+                        type: "post", //http method
+                        url: `/api/business/instructor/calculate/create`, //값을 가져올 경로
+                        headers: {'Content-Type': 'application/json'},
+                        data: JSON.stringify(params),
+                        dataType: "json",
+                        async:false,
+                        success: function(data) {
+                            alert("정산마감일을 등록하였습니다.");
+                            window.location.assign('/business/instructor/calculate')
+                        },
+                        error: function(e) {
+                            alert("정산마감일 등록에 실패했습니다.");
+                        }
+                    })
+                }
+            }
+
+            function update(){
+                if(nullCheck()){
+                    let params = getFormData();
+                    $.ajax({
+                        type: "put", //http method
+                        url: `/api/business/instructor/calculate/update`, //값을 가져올 경로
+                        headers: {'Content-Type': 'application/json'},
+                        data: JSON.stringify(params),
+                        dataType: "json",
+                        async:false,
+                        success: function(data) {
+                            alert("정산마감일을 수정하였습니다.");
+                            window.location.reload();
+                        },
+                        error: function(e) {
+                            alert("정산마감일 수정에 실패했습니다.");
+                        }
+                    })
+                }
+            }
+            /* <![CDATA[ */
+            function getFormData(){
+                let params = {};
+                let CONT = [[ ${content} ]];
+                if(CONT!=null){
+                    params = CONT[0];
+                }else{
+                    params.bizInstrClclnDdlnNo ="0";
+                }
+                $('input:text').each((index, item)=>{
+                    if($(item).attr('id')){
+                        params[$(item).attr('id')] = $(item).val()
+                    }
+                })
+                $('select').each((index, item)=>{
+                    if($(item).attr('id')){
+                        params[$(item).attr('id')] = $(item).val()
+                    }
+                })
+                params.bizInstrClclnDdlnTm = params.selectHour+":"+params.selectMinute+":00";
+                params.bizInstrClclnDdlnMm = parseInt(params.bizInstrClclnDdlnMm);
+                params.bizInstrClclnDdlnYr = parseInt(params.bizInstrClclnDdlnYr);
+                console.log(params);
+                return params;
+            }
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+
+                if(content != null) {
+                    $("#bizInstrClclnDdlnValue").val(content[0].bizInstrClclnDdlnValue)
+                    setSelected(content[0].bizInstrClclnDdlnYr, 'bizInstrClclnDdlnYr');
+                    setSelected(content[0].bizInstrClclnDdlnMm.toString().padStart(2, "0"), 'bizInstrClclnDdlnMm');
+                    setSelected(content[0].bizInstrClclnDdlnTm.substring(0,2), 'selectHour');
+                    if(content[0].bizInstrClclnDdlnTm.substring(3,5) == 0){
+                        setSelected(0, 'selectMinute');
+                    } else {
+                        setSelected(content[0].bizInstrClclnDdlnTm.substring(3,5), 'selectMinute');
+                    }
+                }
+            }
+            
+            let content = [[ ${content} ]];
+            /* ]]> */
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

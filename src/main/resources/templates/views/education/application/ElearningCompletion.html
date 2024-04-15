@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="edu-3-2">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>이러닝교육 수료관리</h2>
+        </div>
+
+        <div class="tableLeftResponsive">
+            <table class="tableLeft">
+                <colgroup>
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                </colgroup>
+                <tbody>
+                    <tr>
+                        <th scope="row">과정명</th>
+                        <td colspan="3">
+                            <input type="text" class="hp_w600" id="curriculumName">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">운영형태</th>
+                        <td>
+                            <div class="radio_box">
+                                <input id="operation_all" type="radio" name="operationType" value="" th:checked="${true}">
+                                <label for="operation_all">
+                                    <span></span>
+                                    전체
+                                </label>
+                            </div>
+                            <th:block th:each="commonCode : ${commonCode}" th:if="${commonCode.code} == 'OPER_TYPE'" >
+                                <th:block th:each="operationType: ${commonCode.subCode}">
+                                    <div class="radio_box">
+                                        <input th:id="${operationType.codeName}" type="radio" name="operationType" th:value="${operationType.code}" th:checked="${false}">
+                                        <label th:for="${operationType.codeName}">
+                                            <span></span>
+                                            <p th:text="${operationType.codeName}"></p>
+                                        </label>
+                                    </div>
+                                </th:block>
+                            </th:block>
+                        </td>
+                        <th scope="row">연도/기수</th>
+                        <td>
+                            <div class="d-flex-start">
+                                <select id="yearOfEducationPlan" class="common_select" data-list="yearList"></select>
+                                <div class="blank">/</div>
+                                <select id="yearOfEducationPlanStep" class="common_select" data-list="numList2"></select>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">지사</th>
+                        <td colspan="3">
+                            <select id="province" class="common_select">
+                                <option value="0">전체</option>
+                                <option value="HEAD">본사</option>
+                                <option value="SEDA">세종대전</option>
+                                <option value="BU">부산</option>
+                                <option value="GW">광주</option>
+                                <option value="DA">대구</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">수료일</th>
+                        <td>
+                            <div class="bl_dateRange">
+                                <input type="text" class="el_datePicker sdate" id="completeBeginDateTime">
+                                <span class="blank">~</span>
+                                <input type="text" class="el_datePicker edate" id="completeEndDateTime">
+                            </div>
+                        </td>
+                        <th scope="row">상태</th>
+                        <td>
+                            <div class="radio_box">
+                                <input id="state_all" type="radio" name="isComplete" value="" checked>
+                                <label for="state_all">
+                                    <span></span>
+                                    전체
+                                </label>
+                            </div>
+                            <div class="radio_box">
+                                <input id="state_1" type="radio" name="isComplete" value="Y">
+                                <label for="state_1">
+                                    <span></span>
+                                    수료
+                                </label>
+                            </div>
+                            <div class="radio_box">
+                                <input id="state_2" type="radio" name="isComplete" value="N">
+                                <label for="state_2">
+                                    <span></span>
+                                    미수료
+                                </label>
+                            </div>
+                            <div class="radio_box">
+                                <input id="state_3" type="radio" name="isComplete" value="W">
+                                <label for="state_3">
+                                    <span></span>
+                                    처리중
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">검색</th>
+                        <td colspan="3">
+                            <div class="d-flex-2">
+                                <select id="containType" class="common_select">
+                                    <option value="1">전체</option>
+                                    <option value="2">이름</option>
+                                    <option value="3">아이디</option>
+                                </select>
+                                <input id="containText" type="text" class="hp_w600">
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- GRID : BUTTON -->
+        <div class="bl_gridBtns">
+            <div class="bl_gridBtns_md">
+                <div class="btn btnDefault btnReset">리셋</div>
+                <a class="btn btnDefault btnSearch" onclick="goSearch()">검색</a>
+                <a class="btn btnDefault download_excel download_search" href="/api/education/application/e-learning/complete/excel">excel 다운로드</a>
+            </div>
+        </div>
+
+        <!-- BOARD : CONTROLLER -->
+        <div class="bl_boardCtrls">
+            <div class="bl_boardCtrls_lft">
+                <p class="bl_boardCtrls_total">총: <strong th:text="${pageable.totalElements}"></strong>건</p>
+            </div>
+            <div class="bl_boardCtrls_rgt">
+                <select class="common_select" data-list="countSortList"></select>
+            </div>
+        </div>
+
+        <div class="tableResponsive overflowMulti">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">
+                            <div class="chk_box">
+                                <input id="list_all" type="checkbox" name="list">
+                                <label for="list_all">
+                                    <span class="me-0"></span>
+                                </label>
+                            </div>
+                        </th>
+                        <th scope="col">번호</th>
+                        <th scope="col">과정</th>
+                        <th scope="col">운영형태</th>
+                        <th scope="col">기수</th>
+                        <th scope="col">사용자(아이디)</th>
+                        <th scope="col">소속명</th>
+                        <th scope="col">부서/직급/직책</th>
+                        <th scope="col">교육기간</th>
+                        <th scope="col">수료일</th>
+                        <th scope="col">총점</th>
+                        <th scope="col">진도율</th>
+                        <th scope="col">시험</th>
+                        <th scope="col">설문</th>
+                        <th scope="col">수료여부</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:if="${content.size > 0}" th:each="item, stat:${content}">
+                        <td>
+                            <div class="chk_box">
+                                <input th:id="|list${stat.index}|" name="checkItem" type="checkbox">
+                                <label th:for="|list${stat.index}|">
+                                    <span class="me-0"></span>
+                                </label>
+                            </div>
+                        </td>
+                        <td style="display: none;" th:if="${item.sequenceNo != null}" th:text="${item.sequenceNo}"></td>
+                        <td th:text="${pageable.totalElements - ((pageable.page * pageable.size) + stat.index)}">1</td>
+                        <td>
+                            <span class="hp_ellipsis" th:if="${item.educationPlan.curriculumMaster.curriculumName != null}" th:text="${item.educationPlan.curriculumMaster.curriculumName}">과정명이 들어갑니다.</span>
+                        </td>
+                        <th:block th:each="commonCode : ${commonCode}" th:if="${commonCode.code != null} and ${commonCode.code} == 'OPER_TYPE'">
+                            <th:block th:if="${commonCode.subCode != null}" th:each="operationType: ${commonCode.subCode}">
+                                <td th:if="${item.educationPlan.operationType != null} and ${operationType.code != null} and ${item.educationPlan.operationType == operationType.code}" th:text="${operationType.codeName}">기수</td> <!-- 기수, 상시 -->
+                            </th:block>
+                        </th:block>
+                        <td>
+                            <span th:if="${item.educationPlan.yearOfEducationPlan != null}" th:text="${item.educationPlan.yearOfEducationPlan}">2022</span>/<span th:if="${item.educationPlan.yearOfEducationPlanStep != null}" th:text="${item.educationPlan.yearOfEducationPlanStep}">01</span>
+                        </td>
+                        <td>
+                            <span th:if="${item.lmsUser.userName != null}" th:text="${item.lmsUser.userName}">홍길동</span>(<span th:if="${item.userId != null}" th:text="${item.userId}">test22</span>)
+                        </td>
+                        <td>
+                            <div th:if="${item.lmsUser.organizationInfo != null}" th:text="${item.lmsUser.organizationInfo.organizationName}"></div>
+                            <div th:if="${item.lmsUser.mediaInfo != null}" th:text="${item.lmsUser.mediaInfo.mediaName}"></div>
+                        </td>
+                        <td>
+                            <div th:if="${item.lmsUser.department != null}" th:text="${item.lmsUser.department}"></div>
+                            <div>
+                                <span th:if="${item.lmsUser.rank != null}" th:text="${item.lmsUser.rank}"></span>
+                                <span th:if="${not #strings.isEmpty(item.lmsUser.rank) && not #strings.isEmpty(item.lmsUser.position)}"> / </span>
+                                <span th:if="${item.lmsUser.position != null}" th:text="${item.lmsUser.position}"></span>
+                            </div>
+                        </td>
+                        <td>
+                            <span th:if="${item.operationBeginDateTime != null}" th:text="${#strings.substring(item.operationBeginDateTime,0,10)}">2022.09.01</span> ~
+                            <span th:if="${item.operationEndDateTime != null}" th:text="${#strings.substring(item.operationEndDateTime,0,10)}">2022.09.30</span>
+                        </td>
+                        <td>
+                            <span th:if="${item.completeDateTime != null}" th:text="${item.completeDateTime}">2022.09.01 14:23:36</span>
+                            <span th:unless="${item.completeDateTime != null}">-</span>
+                        </td>
+                        <td th:if="${item.progressScore != null} and ${item.examScore != null} and ${item.assignmentScore != null}" th:text="|${item.progressScore + item.examScore + item.assignmentScore}점|">100</td>
+                        <td>
+                            <a th:onclick="popupView([[${item}]])" href="#popProgress" data-control="modal" data-handler="popProgress" th:if="${item.progressRate != null}" th:text="|${item.progressRate}%|">100%</a>
+                        </td>
+                        <td>
+                            <span th:if="${item.educationPlan.curriculumMaster.examRateOfEnd != null && item.educationPlan.curriculumMaster.examRateOfEnd == 0}">N</span>
+                            <span th:unless="${item.educationPlan.curriculumMaster.examRateOfEnd != null && item.educationPlan.curriculumMaster.examRateOfEnd == 0}">0/100</span>
+                        </td>
+                        <td>
+                            <span th:if="${item.educationPlan.curriculumMaster.curriculumEvaluateList != null && item.educationPlan.curriculumMaster.curriculumEvaluateList.size > 0}" th:text="${item.curriculumApplicationEvaluateList != null && item.curriculumApplicationEvaluateList.size > 0 ? 'N / Y' : 'Y / Y'}">Y</span>
+                            <span th:unless="${item.educationPlan.curriculumMaster.curriculumEvaluateList != null && item.educationPlan.curriculumMaster.curriculumEvaluateList.size > 0}">N</span>
+                        </td>
+                        <td> <!-- 수료한 학습자만 수료증 출력 가능 -->
+                            <th:block th:if="${item.isComplete != null} and ${item.isComplete == 'Y'}">
+                                <div class="color_blue cursor-pointer" th:onclick="elearning_certi([[${item}]])">수료</div>
+                            </th:block>
+                            <th:block th:if="${item.isComplete != null} and ${item.isComplete == 'W'}">
+                                <span>처리중</span>
+                            </th:block>
+                            <th:block th:if="${item.isComplete != null} and ${item.isComplete == 'N'}">
+                                <span>미수료</span>
+                            </th:block>
+                        </td>
+                    </tr>
+                    <tr th:unless="${content.size > 0}" class="empty_data">
+                        <td colspan="17">등록된 데이터가 없습니다.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- GRID : BUTTON -->
+        <div class="bl_gridBtns">
+            <div class="bl_gridBtns_lft"></div>
+            <div class="bl_gridBtns_rgt" style="flex-basis: auto">
+                <div class="d-flex-1">
+                    선택한 항목의 수료여부를
+                    <select id="isComplete" name="isComplete" class="common_select">
+                        <option value="Y">수료</option>
+                        <option value="N">미수료</option>
+                        <option value="W">처리중</option>
+                    </select>
+                    로
+                    <a onclick="modify()" class="btn btnDefault">변경</a>
+                </div>
+                <div class="d-flex-end-1 mt-2">
+                    선택한 항목의 시험을
+                    <a onclick="examReset()" class="btn btnDefault">재응시 처리</a>
+                </div>
+            </div>
+        </div>
+        <div class="bl_paginate"></div>
+
+        <!-- POPUP : 진도 -->
+        <article class="pop_wrapper ui-modal" id="popProgress">
+            <div class="pop_wrap pop_secondary" style="max-width: 1000px;">
+                <div class="pop_cont">
+                    <div class="tableResponsive overflowMulti">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">카테고리</th>
+                                    <th scope="col">과정명</th>
+                                    <th scope="col">학습자(아이디)</th>
+                                    <th scope="col">최종학습일</th>
+                                    <th scope="col">진도율</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="__category"></td>
+                                    <td class="__eduName"></td>
+                                    <td>
+                                        <span class="__name">홍길동</span>
+                                        (<span class="__userId">test1212</span>)
+                                    </td>
+                                    <td class="__date">2022.08.18</td>
+                                    <td class="__progressRate">20%</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="bl_gridBtns">
+                        <div class="bl_gridBtns_rgt">
+                            <a onclick="changeProgress()" class="btn btnDefault">선택 진도완료</a>
+                        </div>
+                    </div>
+
+                    <div class="tableResponsive overflowMulti">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">번호</th>
+                                    <th scope="col">차시명</th>
+                                    <th scope="col">최초학습일</th>
+                                    <th scope="col">최종학습일</th>
+                                    <th scope="col">진도율</th>
+                                    <th scope="col">완료여부</th>
+                                    <th scope="col">
+                                        <div class="chk_box">
+                                            <input id="progress_list_all" type="checkbox" name="progress_list">
+                                            <label for="progress_list_all">
+                                                <span class="me-0"></span>
+                                            </label>
+                                        </div>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody class="__tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <button type="button" class="pop_close pop-close">닫기</button>
+            </div>
+        </article>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+
+<th:block layout:fragment="script">
+    <script th:inline="javascript">
+
+        function changeProgress(){
+            if (confirm("진도 완료 처리 후 다시 되돌릴 수 없습니다. 진행하시겠습니까?")) {
+                let dataArray = [];
+                $("#popProgress input[type=checkbox]:checked").each((index, item)=>{
+                    //sectionCode랑 applicationNo랑 chapterCode랑 curriculumCode랑 contentsCode
+                    if($(item).attr("id") != "progress_list_all"){
+                        let temp = {}
+                        let i=null, j=null;
+                        if($(item).hasClass("chapter")){
+                            i = Number($(item).attr("id").replace('progress_list', ''));
+                        }else{
+                            i = Number($(item).attr("id").replace('progress_list', '').split('-')[0]);
+                            j = Number($(item).attr("id").replace('progress_list', '').split('-')[1]);
+                            temp.sectionCode =modal_data.curriculumApplicationContentsList[0].contentsApplicationChapterList[i].chapterApplicationSectionList[j].sectionCode
+                        }
+                        temp.applicationNo =modal_data.curriculumApplicationContentsList[0].contentsApplicationChapterList[i].applicationNo;
+                        temp.chapterCode =modal_data.curriculumApplicationContentsList[0].contentsApplicationChapterList[i].chapterCode;
+                        temp.curriculumCode =modal_data.curriculumApplicationContentsList[0].contentsApplicationChapterList[i].curriculumCode;
+                        temp.contentsCode =modal_data.curriculumApplicationContentsList[0].contentsApplicationChapterList[i].contentsCode;
+                        temp.sectionProgressRate = 100;
+                        dataArray.push(temp);
+                    }
+                })
+
+                $.ajax({
+                    type: "put",
+                    url: "/api/education/application/chapter/section/complete",
+                    headers: {'Content-Type': 'application/json'},
+                    data: JSON.stringify(dataArray),
+                    dataType: "json",
+                    async:false,
+                    success:function (data){
+                        alert("선택한 항목의 진도를 완료 상태로 변경했습니다.");
+                        window.location.reload();
+                    },
+                    error: function(e) {
+                        alert("오류가 발생했습니다.");
+                    }
+                })
+            }
+        }
+
+        $("#list_all").bind('click',function (e){
+            if($(this).is(":checked")){
+                $(`input:checkbox[name=checkItem]`).prop("checked", true);
+            }else{
+                $(`input:checkbox[name=checkItem]`).prop("checked", false);
+            }
+        })
+        $("#progress_list_all").bind('click', function (e){
+            if($(this).is(":checked")){
+                $(`input:checkbox[name=progress_list]`).prop("checked", true);
+            }else{
+                $(`input:checkbox[name=progress_list]`).prop("checked", false);
+            }
+        })
+
+        /* <![CDATA[ */
+        const commonCode = [[ ${commonCode}]];
+        const content = [[ ${content} ]];
+        let modal_data;
+
+        function onLoadSubmit() {
+            console.log('commonCode: ', [[ ${commonCode} ]] )
+            console.log('content: ', [[ ${content} ]] )
+            pagination([[ ${pageable} ]], false)
+
+            const params = new URLSearchParams(decodeURIComponent(window.location.search).replace("?", ""));
+            if(params.get("curriculumName")) { document.querySelector("#curriculumName").value = params.get("curriculumName"); }
+            if(params.get("operationType")) { Array.from($("[name=operationType]")).filter(data => data.value == params.get("operationType")).forEach(data => data.setAttribute('checked', true)); }
+            if(params.get("yearOfEducationPlan")) { document.querySelector("#yearOfEducationPlan").value = params.get("yearOfEducationPlan"); }
+            if(params.get("yearOfEducationPlanStep")) { document.querySelector("#yearOfEducationPlanStep").value = params.get("yearOfEducationPlanStep"); }
+            if(params.get("completeBeginDate")) { document.querySelector("#completeBeginDateTime").value = params.get("completeBeginDate"); }
+            if(params.get("completeEndDate")) { document.querySelector("#completeEndDateTime").value = params.get("completeEndDate"); }
+            if(params.get("isComplete")) { Array.from($("[name=isComplete]")).filter(data => data.value == params.get("isComplete")).forEach(data => data.setAttribute('checked', true)); }
+            if(params.get("province")) { document.querySelector("#province").value = params.get("province"); }
+
+            if(params.get("containTextType") == '1') { document.getElementById('containType').value = "1"; document.querySelector('#containText').value = params.get("containText"); }
+            if(params.get("containTextType") == '2') { document.getElementById('containType').value = "2"; document.querySelector('#containText').value = params.get("containText"); }
+            if(params.get("containTextType") == '3') { document.getElementById('containType').value = "3"; document.querySelector('#containText').value = params.get("containText"); }
+        }
+
+        let openWin;
+        function elearning_certi(data){
+            window.name = 'parentForm';
+            openWin = window.open('/education/application/e-learning/complete/certification', 'childForm', 'width=0, height=0')
+
+            if(openWin){
+                let sendData = {
+                    name: data.lmsUser.userName,
+                    eduTitle: data.educationPlan.curriculumMaster.curriculumName,
+                    eduStartDate: data.operationBeginDateTime,
+                    eduEndDate: data.operationEndDateTime,
+                    eduCompleteDate: data.completeDateTime,
+                    eduTime: data.educationPlan.curriculumMaster.educationPerHour
+                }
+                if(data.lmsUser.mediaInfo !== null){
+                    sendData.organName = data.lmsUser.mediaInfo.mediaName;
+                } else {
+                    if(data.lmsUser.organizationInfo === null){
+                        sendData.organName = null;
+                    } else {
+                        sendData.organName = data.lmsUser.organizationInfo.organizationName;
+                    }
+                }
+                openWin.sendData = sendData
+            }
+        }
+
+        function popupView(data){
+            modal_data = data;
+            const category = document.querySelector('#popProgress .__category');
+            if(data.educationPlan.curriculumMaster.curriculumContentsList[0].contentsMaster.categoryCode == '1'){
+                category.innerText = '직무교육(전문 교육)'
+            } else if(data.educationPlan.curriculumMaster.curriculumContentsList[0].contentsMaster.categoryCode == '2'){
+                category.innerText = '자율교육(전문 교육)'
+            } else if(data.educationPlan.curriculumMaster.curriculumContentsList[0].contentsMaster.categoryCode == '3'){
+                category.innerText = '공개교육'
+            }
+            const eduName = document.querySelector('#popProgress .__eduName');
+            eduName.innerText = data.educationPlan.curriculumMaster.curriculumName;
+            const name = document.querySelector('#popProgress .__name');
+            name.innerText = data.lmsUser.userName;
+            const userId = document.querySelector('#popProgress .__userId');
+            userId.innerText = data.userId;
+            const date = document.querySelector('#popProgress .__date');
+            date.innerText = data.updateDateTime.substring(0, 10);
+            const progressRate = document.querySelector('#popProgress .__progressRate');
+            progressRate.innerText = data.progressRate+'%';
+
+            const listView = document.querySelector('#popProgress .__tbody');
+            listView.innerHTML = '';
+
+            for(let i=0; i<data.curriculumApplicationContentsList[0].contentsApplicationChapterList.length; i++){
+                // 챕터리스트 for문 돌리기
+                const TR = document.createElement('tr');
+                const TD1 = document.createElement('td');
+                TD1.setAttribute('colspan','2');
+                TD1.setAttribute('class','text-start font_weight_bold');
+                TD1.innerText = data.curriculumApplicationContentsList[0].contentsApplicationChapterList[i].chapterMaster.chapterTitle;
+                const TD2 = document.createElement('td');
+                const TD3 = document.createElement('td');
+                const TD4 = document.createElement('td');
+                TD4.innerText = '진도율';
+                const TD5 = document.createElement('td');
+                if(data.curriculumApplicationContentsList[0].contentsApplicationChapterList[i].isComplete){
+                    TD5.innerText = 'Y';
+                } else {
+                    TD5.innerText = 'N';
+                }
+                const TD6 = document.createElement('td');
+                TR.append(TD1);
+                TR.append(TD2);
+                TR.append(TD3);
+                TR.append(TD4);
+                TR.append(TD5);
+                TR.append(TD6);
+                listView.append(TR);
+                // 진도율 계산을 위한
+                let chapterRate = 0;
+                let sumSectionRate = 0;
+                for(let j=0; j<data.curriculumApplicationContentsList[0].contentsApplicationChapterList[i].chapterApplicationSectionList.length; j++){
+                    // 섹션리스트 for문 돌리기
+                    const TR = document.createElement('tr');
+                    const TD1 = document.createElement('td');
+                    const TD2 = document.createElement('td');
+                    TD2.setAttribute('class','text-start');
+                    TD2.innerText = data.curriculumApplicationContentsList[0].contentsApplicationChapterList[i].chapterApplicationSectionList[j].sectionMaster.sectionName;
+                    const TD3 = document.createElement('td');
+                    TD3.innerText = data.curriculumApplicationContentsList[0].contentsApplicationChapterList[i].chapterApplicationSectionList[j].beginDateTime?
+                        data.curriculumApplicationContentsList[0].contentsApplicationChapterList[i].chapterApplicationSectionList[j].beginDateTime:'';
+                    const TD4 = document.createElement('td');
+                    TD4.innerText = data.curriculumApplicationContentsList[0].contentsApplicationChapterList[i].chapterApplicationSectionList[j].completeDateTime?
+                        data.curriculumApplicationContentsList[0].contentsApplicationChapterList[i].chapterApplicationSectionList[j].completeDateTime:'';
+                    const TD5 = document.createElement('td');
+                    TD5.innerText = data.curriculumApplicationContentsList[0].contentsApplicationChapterList[i].chapterApplicationSectionList[j].progressRate + '%';
+                    sumSectionRate += data.curriculumApplicationContentsList[0].contentsApplicationChapterList[i].chapterApplicationSectionList[j].progressRate;
+                    const TD6 = document.createElement('td');
+                    if(data.curriculumApplicationContentsList[0].contentsApplicationChapterList[i].chapterApplicationSectionList[j].isComplete){
+                        TD6.innerText = 'Y';
+                    } else {
+                        TD6.innerText = 'N';
+                    }
+                    const TD7 = document.createElement('td');
+                    TD7.innerHTML = `<div class="chk_box"><input id="progress_list${i}-${j}" type="checkbox" name="progress_list"><label for="progress_list${i}-${j}"><span class="me-0"></span></label></div>`;
+                    TR.append(TD1);
+                    TR.append(TD2);
+                    TR.append(TD3);
+                    TR.append(TD4);
+                    TR.append(TD5);
+                    TR.append(TD6);
+                    TR.append(TD7);
+                    listView.append(TR);
+                }
+                chapterRate = sumSectionRate / data.curriculumApplicationContentsList[0].contentsApplicationChapterList[i].chapterApplicationSectionList.length;
+                if(!(chapterRate>0)) chapterRate = 0
+                TD4.innerText = chapterRate + "%"
+            }
+        }
+
+        /** 이러닝 수료 내역 조회 */
+        function goSearch() {
+            const params = {};
+            params.curriculumName = document.querySelector("#curriculumName").value;
+            params.operationType = $("[name=operationType]:checked").val();
+            if(document.querySelector("#yearOfEducationPlan").value && document.querySelector("#yearOfEducationPlan").value != 0) {
+                params.yearOfEducationPlan = document.querySelector("#yearOfEducationPlan").value;
+            }
+            if(document.querySelector("#yearOfEducationPlanStep").value && document.querySelector("#yearOfEducationPlanStep").value != 0) {
+                params.yearOfEducationPlanStep = document.querySelector("#yearOfEducationPlanStep").value;
+            }
+            if(document.querySelector("#province").value && document.querySelector("#province").value != "0") {
+                params.province = document.querySelector("#province").value;
+            }
+            if(document.querySelector("#completeBeginDateTime").value || document.querySelector("#completeEndDateTime").value) {
+                if(document.querySelector("#completeBeginDateTime").value && document.querySelector("#completeEndDateTime").value) {
+                    params.completeBeginDate = document.querySelector("#completeBeginDateTime").value;
+                    params.completeEndDate = document.querySelector("#completeEndDateTime").value;
+                } else {
+                    alert("수료일 검색 시작일과 종료일을 모두 선택해주세요.")
+                }
+            }
+
+            if($("[name=isComplete]:checked").val()) {
+                params.isComplete = $("[name=isComplete]:checked").val();
+            }
+
+            if(document.getElementById('containType').value == "1" && document.querySelector('#containText').value) {
+                //전체
+                params.containTextType = "1";
+                params.containText = document.querySelector('#containText').value;
+            } else if(document.getElementById('containType').value == "2" && document.querySelector('#containText').value) {
+                //이름
+                params.containTextType = "2";
+                params.containText = document.querySelector('#containText').value;
+            } else if(document.getElementById('containType').value == "3" && document.querySelector('#containText').value) {
+                //아이디
+                params.containTextType = "3";
+                params.containText = document.querySelector('#containText').value;
+            }
+
+            const queryParams = Object.entries(params).filter(data => data[1] != null && data[1] !== '').map(data => data.join('=')).join('&')
+            location.href="/education/application/e-learning/complete?" + queryParams;
+        }
+
+        /** 교육 수료 상태 수정 */
+        function modify() {
+            const params = {};
+            params.applicationList = [];
+
+            $("[name=checkItem]:checked").each(function(index, value, list) {
+                const sequenceNo = value.parentElement.parentElement.parentElement.children[1].textContent;
+                if(sequenceNo) {
+                    content.filter(data => String(data.sequenceNo) === String(sequenceNo))
+                        .forEach(data => {
+                            params.applicationList.push({
+                                applicationNo: data.applicationNo,
+                                educationPlanCode: data.educationPlanCode,
+                                curriculumCode: data.curriculumCode,
+                                userId: data.userId,
+                                isComplete: document.querySelector("#isComplete").value
+                            })
+                        });
+                }
+            });
+
+            if(params.applicationList.length > 0) {
+                /** 교육 수료 상태 수정 */
+                $.ajax({ //jquery ajax
+                    type:"put", //http method
+                    url:"/api/education/application/update-education-state", //값을 가져올 경로
+                    headers: {'Content-Type': 'application/json'},
+                    data: JSON.stringify(params),
+                    dataType:"json", //html, xml, text, script, json, jsonp 등 다양하게 쓸 수 있음
+                    success: function(data) {   //요청 성공시 실행될 메서드
+                        alert("교육 수료 상태 수정이 완료되었습니다.");
+                        window.location.reload();
+                    },
+                    error: function(e){		 //요청 실패시 에러 확인을 위함
+                        alert(e.responseJSON.resultMessage);
+                    }
+                });
+            }
+        }
+
+        /** 응시 시험 초기화 */
+        function examReset() {
+            const params = {};
+            params.applicationList = [];
+
+            $("[name=checkItem]:checked").each(function(index, value, list) {
+                const sequenceNo = value.parentElement.parentElement.parentElement.children[1].textContent;
+                if(sequenceNo) {
+                    content.filter(data => String(data.sequenceNo) === String(sequenceNo))
+                        .forEach(data => {
+                            params.applicationList.push({
+                                applicationNo: data.applicationNo,
+                                educationPlanCode: data.educationPlanCode,
+                                curriculumCode: data.curriculumCode,
+                                userId: data.userId,
+                                isComplete: document.querySelector("#isComplete").value
+                            })
+                        });
+                }
+            });
+
+            if(params.applicationList.length > 0) {
+                /** 응시 시험 초기화 */
+                $.ajax({ //jquery ajax
+                    type:"put", //http method
+                    url:"/api/education/application/update-exam-reset", //값을 가져올 경로
+                    headers: {'Content-Type': 'application/json'},
+                    data: JSON.stringify(params),
+                    dataType:"json", //html, xml, text, script, json, jsonp 등 다양하게 쓸 수 있음
+                    success: function(data) {   //요청 성공시 실행될 메서드
+                        alert("응시 시험 초기화에 성공하였습니다.");
+                        window.location.reload();
+                    },
+                    error: function(e){		 //요청 실패시 에러 확인을 위함
+                        alert(e.responseJSON.resultMessage);
+                    }
+                });
+            }
+        }
+        /* ]]> */
+    </script>
+</th:block>
+</div>
+</body>
+</html>

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/pop_layout}">
+<body>
+<div layout:fragment="pop">
+    <!-- POPUP : 사업추가 -->
+    <article class="pop_page">
+        <div class="pop_secondary">
+            <div class="pop_head">
+                <div class="tit">사업추가</div>
+            </div>
+            <div class="pop_cont">
+                <div class="sch_box">
+                    <select id="containTextType" class="common_select">
+                        <option value="1">사업명</option>
+                    </select>
+                    <input id="containText" type="text" class="hp_w400">
+                    <a onclick="searchBusiness()" class="btn btnDefault btnSearch">검색</a>
+                </div>
+
+                <!-- BOARD : CONTROLLER -->
+                <div class="bl_boardCtrls">
+                    <div class="bl_boardCtrls_lft">
+                        <p class="bl_boardCtrls_total">
+                             총: <strong th:text="${pageable.totalElements}"></strong>건
+                        </p>
+                    </div>
+                </div>
+
+                <div class="tableResponsive overflowMulti">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th scope="col">번호</th>
+                                <th scope="col">년도</th>
+                                <th scope="col">사업명</th>
+                                <th scope="col">차수</th>
+                                <th scope="col">사업접수기간</th>
+                                <th scope="col">접수기관</th>
+                                <th scope="col">선정결과공고</th>
+                                <th scope="col">강사모집기간</th>
+                                <th scope="col">선택</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="item, stat:${content}">
+                                <td th:text="${pageable.totalElements - ((pageable.page * pageable.size) + stat.index)}"></td>
+                                <td th:text="${item.bizPbancYr}">2022</td>
+                                <td>
+                                    <a target="_blank" th:href="@{/business/pbanc/list/{type}/{id}(type=${item.bizPbancType} ,id=${item.bizPbancNo})}" th:text="${item.bizPbancNm}">사업명</a>
+                                </td>
+                                <td th:text="${item.bizPbancRnd}">2</td>
+                                <td>
+                                    <span th:text="${item.bizPbancRcptBgng}">2022.07.25</span> ~
+                                    <span th:text="${item.bizPbancRcptEnd}">2022.07.28</span>
+                                </td>
+                                <td>
+                                    총 : <span th:text="${item.bizOrganizationAplyCount + item.bizOrganizationAprvCount}"></span> /
+                                    임시 : <a th:text="${item.bizOrganizationAplyCount}"></a> /
+                                    승인 : <a th:text="${item.bizOrganizationAprvCount}"></a>
+                                </td>
+                                <td>
+                                    <span th:if="${item.bizPbancStts == 0}">미공고</span>
+                                    <span th:if="${item.bizPbancStts == 1}">공고</span>
+                                </td>
+                                <td>
+                                    <span th:text="${item.bizPbancSprtBgng}">2022.07.25</span> ~
+                                    <span th:text="${item.bizPbancSprtEnd}">2022.07.28</span>
+                                </td>
+                                <td>
+                                    <div class="btn btnDefault" th:onclick="sendData( [[${stat.index}]] )">선택</div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="bl_paginate"></div>
+            </div>
+
+            <button type="button" class="pop_close pop-close" onclick="parent.window.closePop()">닫기</button>
+        </div>
+    </article>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            /* <![CDATA[ */
+            function searchBusiness(){
+                let searchQuery = {}
+                if($("#containText").val()){
+                    searchQuery.containText=$("#containText").val();
+                    searchQuery.containTextType=$("#containTextType").val();
+                }
+                searchJson(searchQuery);
+            }
+            const CONT = [[ ${content} ]];
+
+            function sendData(index){
+                window.parent.postMessage(CONT[index],'*')
+                parent.window.closePop()
+            }
+
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+                pagination([[ ${pageable} ]], false)
+            }
+            /* ]]> */
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

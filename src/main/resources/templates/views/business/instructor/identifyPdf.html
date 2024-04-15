@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/pop_layout}">
+<body>
+
+<div layout:fragment="pop">
+  <p>PDF 파일을 다운로드 하고 있습니다. 처리하는데 1분 이상 걸릴 수 있습니다. 이 창을 닫지 말고 잠시 기다려 주세요.</p>
+  <div style="display: none;">
+    <table id="title">
+      <tr>
+        <td>강의확인서</td>
+      </tr>
+    </table>
+
+    <th:block th:each="item, stat :${content}">
+      <table th:id="${'info'+stat.index}">
+        <tr>
+          <td>년월</td>
+          <td colspan="3"><span th:text="${#strings.substring(item.bizInstrIdntyYm, 0,4)}"></span>년
+            <span th:text="${#strings.substring(item.bizInstrIdntyYm, 4,6)}"></span>월</td>
+        </tr>
+        <tr>
+          <td>사업명</td>
+          <td colspan="3" th:text="${item.bizPbancMaster.bizPbancNm}">사업명</td>
+        </tr>
+        <tr>
+          <td>강사명</td>
+          <td th:text="${item.userName}">홍길동</td>
+          <td>제출처</td>
+          <td  th:text="${item.bizOrganizationAply.bizOrgAplyRgn}">서울</td>
+        </tr>
+        <tr>
+          <td>기관/학교</td>
+          <td colspan="3" th:text="${item.organizationName}"> 미디어교육 운영학교 </td>
+        </tr>
+        <tr>
+          <td>담당자</td>
+          <td th:text="${item.bizOrganizationAply.bizOrgAplyPicNm}">010-1234-1234</td>
+          <td>승인상태</td>
+          <td>
+            <span th:if="${item.bizInstrIdntyStts == 1}">승인대기</span>
+            <span th:if="${item.bizInstrIdntyStts == 9}">반려</span>
+            <span th:if="${item.bizInstrIdntyStts == 4}">지출완료</span>
+            <span th:if="${item.bizInstrIdntyStts == 3 || item.bizInstrIdntyStts==2}">승인</span>
+          </td>
+        </tr>
+        <tr>
+          <td>강의시간합계</td>
+          <td colspan="3" th:text="${item.bizInstrIdntyTime}"> 5 </td>
+        </tr>
+      </table>
+      <br>
+      <table  th:id="${'rep'+stat.index}">
+        <tr><td><br></td> </tr>
+        <tr><td class="h5">다음과 같이 강의 일지를 제출합니다.</td></tr>
+        <tr><td><br></td> </tr>
+        <tr><td><br></td> </tr>
+        <tr><td class="h5"> 강사명 : <th:block th:text="${item.userName}"></th:block></td> </tr>
+      </table>
+      <br>
+      <th:block th:each="item2, stat2:${item.bizInstructorIdentifyDtls}">
+        <table th:id="${item2.bizInstrIdntyDtlNo}">
+          <thead>
+          <tr>
+            <td colspan="4">강의일지</td>
+          </tr>
+          </thead>
+          <tbody>
+          <tr>
+            <td>강의일자</td>
+            <td th:text="${item2.bizOrganizationAplyDtl.bizOrgAplyLsnDtlYmd}">홍길동</td>
+            <td>강의시간</td>
+            <td>
+              <span th:text="${item2.bizOrganizationAplyDtl.bizOrgAplyLsnDtlHr}"></span>
+              <span th:if="${item2.vdoLctYn==1}">(언택트)</span>
+            </td>
+          </tr>
+          <tr>
+            <td>강의주제</td>
+            <td colspan="3" th:text="${item2.bizInstrIdntyDtlTpic}">강의주제</td>
+          </tr>
+          <tr>
+            <td>강의내용</td>
+            <td colspan="3" class="bizInstrIdntyDtlCn" th:utext="${item2.bizInstrIdntyDtlCn}">
+            </td>
+          </tr>
+          </tbody>
+        </table>
+      </th:block>
+
+    </th:block>
+
+  </div>
+  <script th:src="@{/app/js/malgunFont.js}"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/1.3.8/FileSaver.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.0.0/jspdf.umd.min.js"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.6/jspdf.plugin.autotable.min.js"></script>
+
+  <th:block layout:fragment="script">
+    <script th:inline="javascript">
+      // 엔터 표시
+      $(".bizInstrIdntyDtlCn").each((idx,item)=>{$(item).html($(item).text().replace(/\n|\\n/g,'<br>'))})
+      /* <![CDATA[ */
+      function onLoadSubmit() {
+        console.log('commonCode: ', [[ ${commonCode}]])
+        let CONT = [[ ${content}]];
+        if(CONT && CONT.length>0){
+          zipFilename = `${toDay}_강의확인서(${CONT.length}).zip`
+          getZip(CONT);
+        }else{
+          alert('검색 결과가 없습니다.');
+          window.close();
+        }
+      }
+
+      let zip = new JSZip();
+      let count =0;
+      let now = new Date();
+      now.setUTCHours(now.getUTCHours()+9);
+      let toDay = now.toJSON().split('T')[0];
+      let zipFilename = `${toDay}_강의확인서.zip`;
+
+      function getZip(CONT){
+        let filename;
+        CONT.forEach(function (item){
+          filename=`${item.bizInstrIdntyYm.substring(0,4)}-${item.bizInstrIdntyYm.substring(4,6)}_${item.userName}_${item.organizationName}_강의확인서.pdf`;
+          zip.file(filename, getPdf(count, item.bizInstructorIdentifyDtls));
+          count+=1;
+          if(count==CONT.length){
+            zip.generateAsync({type: "blob"}).then(function (b){
+              saveAs(b, zipFilename)
+              return setTimeout(function (){window.close()},5000);
+            });
+          }
+        })
+      }
+
+      function getPdf(index, item){
+        let doc = new jsPDF({
+          orientation: "p", // p: 가로(기본), l: 세로
+          unit: "mm", // 단위 : "pt" (points), "mm", "cm", "m", "in" or "px" 등)
+          format: "a4", // 포맷 (페이지 크기).
+        });
+        doc.setProperties({
+          title: '강의확인서',
+        });
+
+        doc.addFileToVFS("malgun.ttf", font);
+        doc.addFont('malgun.ttf', 'malgun', 'normal');
+        doc.setFont('malgun');
+        infoJson.html="#info"+index;
+        repJson.html="#rep"+index;
+        doc.autoTable(titleJson);
+        doc.autoTable(infoJson);
+        doc.autoTable(repJson);
+        let count =0;
+        let data ;
+        item.forEach(function (i){
+          if(count%2==0){
+            doc.addPage(); // 페이지 추가
+          }
+          dtlJson.html="#"+i.bizInstrIdntyDtlNo;
+          doc.autoTable(dtlJson);
+          count+=1;
+          if((count)==item.length){
+             data = doc.output('blob');
+          }
+        })
+        return data;
+      }
+      let font = getMalgunFont();
+      let titleJson ={ html: '#title' ,
+        theme: 'plain',
+        tableLineColor: [0, 0, 0],
+        tableLineWidth: 0.6,
+        styles: { font: "malgun", fontStyle: "normal", cellPadding:5, valign: "middle", halign :"center",fontSize:20, textColor:[0,0,0]} };
+      let repJson ={ html: '#rep1',
+        theme: 'plain',
+        tableLineWidth: 0,
+        useCss : true,
+        styles: { font: "malgun", fontStyle: "normal", cellPadding:5, valign: "middle", halign :"center"} };
+
+      let infoJson ={ html: '#info1' ,
+        theme: 'grid',
+        bodyStyles: {lineColor: [0, 0, 0], lineWidth:0.3},
+        tableLineColor: [0, 0, 0],
+        tableLineWidth: 0.6,
+        styles: { font: "malgun", fontStyle: "normal", cellPadding:3, valign: "middle", textColor:[0,0,0] } };
+      let dtlJson ={ html: '#dtl1' ,
+        theme: 'grid',
+        headStyles : {lineColor: [0, 0, 0], lineWidth:0.3,halign :"center", fillColor:[255,255,255] ,textColor:[0,0,0]},
+        bodyStyles: {lineColor: [0, 0, 0], lineWidth:0.3},
+        tableLineColor: [0, 0, 0],
+        tableLineWidth: 0.6,
+        pageBreak:"avoid",
+        styles: { font: "malgun", fontStyle: "normal", cellPadding:3, valign: "middle", textColor:[0,0,0] } };
+
+      /* ]]> */
+    </script>
+  </th:block>
+</div>
+</body>
+</html>

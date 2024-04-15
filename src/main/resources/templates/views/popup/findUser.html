@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/pop_layout}">
+<body>
+<div layout:fragment="pop">
+    <article class="pop_page">
+        <div class="pop_secondary">
+            <div class="pop_head">
+                <div class="tit">사용자 검색</div>
+            </div>
+            <div class="pop_cont">
+                <div class="sch_box">
+                    <select id="containTextType" class="common_select">
+                        <option value="0">전체</option>
+                        <option value="1">이름</option>
+                        <option value="2">아이디</option>
+                        <option value="3">소속</option>
+                    </select>
+                    <input id="containText" type="text" class="hp_w400">
+                    <a onclick="searchUsers()" class="btn btnDefault btnSearch">검색</a>
+                </div>
+
+                <!-- BOARD : CONTROLLER -->
+                <div class="bl_boardCtrls">
+                    <div class="bl_boardCtrls_lft">
+                        <p class="bl_boardCtrls_total">
+                             총: <strong th:text="${pageable.totalElements}"></strong>건
+                        </p>
+                    </div>
+                </div>
+
+                <div class="tableResponsive overflowMulti">
+                    <table class="table">
+                        <colgroup>
+                            <col width="50px">
+                            <col>
+                            <col>
+                            <col>
+                            <col class="user_find">
+                            <col>
+                            <col>
+                            <col width="50px">
+                        </colgroup>
+                        <thead>
+                            <tr>
+                                <th scope="col">번호</th>
+                                <th scope="col">이름</th>
+                                <th scope="col">아이디</th>
+                                <th scope="col">권한명</th>
+                                <th scope="col" class="user_find">유형</th>
+                                <th scope="col">소속</th>
+                                <th scope="col">상태</th>
+                                <th scope="col">선택</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:if="${!#lists.isEmpty(content)}" th:each="item, stat: ${content}">
+                                <td th:text="${pageable.totalElements - ((pageable.page * pageable.size) + stat.index)}"></td>
+                                <td th:text="${item.userName}">홍길동</td>
+                                <td th:text="${item.userId}">test123</td>
+                                <td class="user_find">
+                                    <span th:if="${commonCode != null}">
+                                        <th:block th:each="commonCode : ${commonCode}" th:if="${commonCode.code} == 'BIZ_AUTH'">
+                                            <span th:each="codes : ${commonCode.subCode}" th:if="${codes.code == item.businessAuthority}" th:text="${codes.codeName}"></span>
+                                        </th:block>
+                                    </span>
+                                    <span th:unless="${commonCode != null}">(미확인 권한)</span>
+                                </td>
+                                <td class="admin_find">
+                                    <span th:if="${roleGroups != null}">
+                                        <th:block th:each="role:${roleGroups}">
+                                            <span th:if="${role.roleGroupCode == item.roleGroup}" th:text="${role.roleGroupName}">신규 관리자</span>
+                                        </th:block>
+                                    </span>
+                                    <span th:unless="${roleGroups != null}">(미확인 권한)</span>
+                                </td>
+                                <td class="user_find">
+                                    <span th:if="${commonCode != null}">
+                                        <th:block th:each="commonCode : ${commonCode}" th:if="${commonCode.code} == 'WEB_USER_ROLE'">
+                                            <span th:each="codes : ${commonCode.subCode}" th:if="${codes.code == item.roleGroup}" th:text="${codes.codeName}"></span>
+                                        </th:block>
+                                    </span>
+                                    <span th:unless="${commonCode != null}">(미확인 권한)</span>
+                                </td>
+                                <td class="user_find" th:if="${!#httpServletRequest.requestURI.contains('admin')}">
+                                    <span th:text="${item.organizationInfo.organizationName}">소속명</span>
+                                </td>
+                                <td class="admin_find" th:if="${#httpServletRequest.requestURI.contains('admin')}">
+                                    <div>
+                                        <th:block th:each="commonCode : ${commonCode}" th:if="${commonCode.code} == 'PROVINCE_CD'">
+                                            <th:block th:each="provinces: ${commonCode.subCode}">
+                                                <span th:if="${provinces.code==item.department}" th:text="${provinces.codeName}">HEAD</span>
+                                            </th:block>
+                                        </th:block>
+                                    </div>
+                                    <div>
+                                        <th:block th:each="commonCode : ${commonCode}" th:if="${commonCode.code} == 'TEAM_CTGR'">
+                                            <th:block th:each="teams: ${commonCode.subCode}">
+                                                <span th:if="${teams.code==item.position}" th:text="${teams.codeName}">HEAD</span>
+                                            </th:block>
+                                        </th:block>
+                                    </div>
+                                </td>
+                                <td class="user_find">
+                                    <div th:if="${item.state == '0'}" class="color_gray">미사용</div>
+                                    <div th:if="${item.state == '1'}" class="color_blue">정상</div>
+                                    <div th:if="${item.state == '2'}" class="color_brown">휴면</div>
+                                    <div th:if="${item.state == '3'}" class="color_gray">정지</div>
+                                    <div th:if="${item.state == '4'}" class="color_red">탈퇴</div>
+                                </td>
+                                <td class="admin_find">
+                                    <div th:if="${item.state == '0'}" class="color_gray">미사용</div>
+                                    <div th:if="${item.state == '1'}" class="color_blue">사용</div>
+                                </td>
+                                <td>
+                                    <div class="btn btnDefault" th:onclick="sendData( [[${stat.index}]] )">선택</div>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(content)}" class="empty_data">
+                                <td colspan="8">조회된 정보가 없습니다.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div th:if="${!#lists.isEmpty(content)}" class="bl_paginate"></div>
+            </div>
+
+            <button type="button" class="pop_close pop-close" onclick="parent.window.closePop()">닫기</button>
+        </div>
+    </article>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            function searchUsers(){
+                let searchQuery = {}
+                let text = $("#containText").val();
+                let type = $("#containTextType").val();
+                let url = window.location.pathname;
+
+                if(text){
+                    if(type =="0"){
+                        searchQuery.containText = text;
+                    } else if(type =="1"){
+                        searchQuery.containText = text;
+                    } else if(type =="2"){
+                        searchQuery.containText = text;
+                    } else if(type =="3"){
+                        if (url.indexOf("admin") > 0) {
+                            searchQuery.containText = text;
+                        } else {
+                            searchQuery.containText = text;
+                        }
+                    }
+                    searchQuery.containTextType=type;
+                }
+                searchJson(searchQuery)
+            }
+            /* <![CDATA[ */
+            const CONT = [[ ${content} ]];
+
+            function sendData(index){
+                window.parent.postMessage(CONT[index],'*')
+                parent.window.closePop()
+            }
+
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+                pagination([[ ${pageable} ]], false);
+                checkShow();
+
+                let searchText = new URLSearchParams(window.location.search);
+                if(searchText.get("containText")){
+                    $("#containText").val(searchText.get("containText"))
+                }else if(searchText.get("containTextType")){
+                    $("#containTextType").val(searchText.get("containTextType"))
+                }
+            }
+
+            function checkShow() {
+                let url = window.location.pathname;
+                if (url.indexOf("admin") > 0) {
+                    $('.admin_find').show();
+                    $('.user_find').hide();
+                } else {
+                    $('.admin_find').hide();
+                    $('.user_find').show();
+                }
+            }
+            /* ]]> */
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

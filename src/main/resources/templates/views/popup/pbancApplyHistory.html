@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/pop_layout}">
+<body>
+<div layout:fragment="pop">
+    <!-- POPUP : 변경이력 -->
+    <article class="pop_page">
+        <div class="pop_secondary">
+            <div class="pop_head">
+                <div class="tit">변경이력</div>
+            </div>
+            <div class="pop_cont">
+                <div class="tableResponsive overflowMulti">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th scope="col">요청일</th>
+                                <th scope="col">내용</th>
+                                <th scope="col">신청자</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:if="${!#lists.isEmpty(content)}" th:each="item: ${content}">
+                                <td class="font_roboto" th:text="${#strings.substring(item.createDateTime,0,10)}">2022-10-09</td>
+                                <td>
+                                    <span class="font_roboto" th:text="${item.bizEditHistBfr}">2022-11-22 13:10 ~ 14:50 (2.0)</span>
+                                    <span class="blank fz-xs">▶︎</span>
+                                    <span class="font_roboto color_blue" th:text="${(item.bizEditHistAftr)?:' '}">2022-11-29 13:10 ~ 14:50 (2.0)</span>
+                                    <span th:if="${item.bizEditHistType==1}" class="font_roboto color_green">[추가]</span>
+                                    <span th:if="${item.bizEditHistType==2}" class="font_roboto color_blue">[수정]</span>
+                                    <span th:if="${item.bizEditHistType==0}" class="font_roboto color_red">[삭제]</span>
+                                </td>
+                                <td th:text="${item.registUserId}">홍길동</td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(content)}" class="empty_data">
+                                <td colspan="4">조회된 변경이력이 없습니다.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div th:if="${!#lists.isEmpty(content)}" class="bl_paginate"></div>
+            </div>
+
+            <button type="button" class="pop_close pop-close" onclick="parent.window.closePop()">닫기</button>
+        </div>
+    </article>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            /* <![CDATA[ */
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+                pagination([[ ${pageable} ]], false)
+            }
+            /* ]]> */
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="edu-1">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>과정 관리</h2>
+        </div>
+
+        <div class="bl_tab2 js_tab">
+            <!-- 이러닝 탭 -->
+            <ul id="tabGroup1" class="bl_tab2_menu">
+                <li>
+                    <a id="tabLink1_1" href="/education/3/">상세</a>
+                </li>
+                <li>
+                    <a id="tabLink1_2" href="/education/exam">시험</a>
+                </li>
+                <li>
+                    <a id="tabLink1_3" href="/education/question">문항</a>
+                </li>
+                <li class="is_active">
+                    <a id="tabLink1_4" href="/education/archive">자료실</a>
+                </li>
+            </ul>
+
+            <!-- 집합/화상 탭 -->
+            <ul id="tabGroup2" class="bl_tab2_menu">
+                <li>
+                    <a id="tabLink2_1" href="/education/1/">상세</a>
+                </li>
+                <li class="is_active">
+                    <a id="tabLink2_2" href="/education/archive">자료실</a>
+                </li>
+            </ul>
+
+            <div class="bl_tab2_rgt">
+                <a class="btn btnDefault btnList" href="/education/curriculum">목록</a>
+            </div>
+
+            <div class="bl_tab2_body js_tab_contents">
+                <div class="bl_tab2_item js_tab_item">
+                    <div class="tableLeftResponsive">
+                        <table class="tableLeft">
+                            <colgroup>
+                                <col style="width: 200px">
+                                <col style="width: auto">
+                            </colgroup>
+                            <tbody>
+                                <tr>
+                                    <th scope="row">카테고리명</th>
+                                    <th:block th:each="commonCode : ${commonCode}"
+                                              th:if="${commonCode.code} == 'EDU_TYPE'">
+                                        <td th:each="categoryCode : ${commonCode.subCode}"
+                                            th:if="${categoryCode.code == educationCategoryCode}"
+                                            th:text="${categoryCode.codeName}"></td>
+                                    </th:block>
+                                </tr>
+                                <tr>
+                                    <th scope="row">과정명</th>
+                                    <td th:text="${curriculumName}">과정명</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="tableLeftResponsive">
+                        <table class="tableLeft">
+                            <colgroup>
+                                <col style="width: 200px">
+                                <col style="width: auto">
+                            </colgroup>
+                            <tbody>
+                                <tr>
+                                    <th scope="row">등록일</th>
+                                    <td>
+                                        <div class="bl_dateRange">
+                                            <input type="text" id="startDate" class="el_datePicker sdate">
+                                            <span class="blank">~</span>
+                                            <input type="text" id="endDate" class="el_datePicker edate">
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">검색</th>
+                                    <td>
+                                        <div class="d-flex-2">
+                                            <select id="select_search" class="common_select" data-list="schList"></select>
+                                            <input id="text_search" type="text" class="hp_w600">
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- GRID : BUTTON -->
+                    <div class="bl_gridBtns">
+                        <div class="bl_gridBtns_md">
+                            <div class="btn btnDefault btnReset">리셋</div>
+                            <button class="btn btnDefault btnSearch" th:onclick="goSearch()">검색</button>
+                            <a class="btn btnDefault download_excel" th:href="@{/api/education/curriculum/reference-room/excel/{curriculumCode}(curriculumCode=${curriculumCode})}">excel 다운로드</a>
+                            <a class="btn btnDefault btnRegister" th:href="@{/education/curriculum/reference-room/regist/{curriculumCode}(curriculumCode=${curriculumCode})}">등록</a>
+                        </div>
+                    </div>
+
+                    <!-- BOARD : CONTROLLER -->
+                    <div class="bl_boardCtrls">
+                        <div class="bl_boardCtrls_lft">
+                            <p class="bl_boardCtrls_total">
+                                총: <strong th:text="${pageable.totalElements}"></strong>건
+                            </p>
+                        </div>
+                        <div class="bl_boardCtrls_rgt">
+                            <select class="common_select" data-list="countSortList"></select>
+                        </div>
+                    </div>
+
+                    <div class="tableResponsive overflowMulti">
+                        <table class="table table_fixed">
+                            <colgroup>
+                                <col style="width: 50px">
+                                <col colspan="2">
+                                <col>
+                                <col>
+                            </colgroup>
+                            <thead>
+                                <tr>
+                                    <th scope="col">번호</th>
+                                    <th scope="col" colspan="2">제목</th>
+                                    <th scope="col">작성자</th>
+                                    <th scope="col">등록일</th>
+                                </tr>
+                            </thead>
+                            <tbody th:if="${content != null && content.size > 0}">
+                                <tr th:if="${content.size > 0}" th:each="item, stat: ${content}">
+                                    <td>
+                                        <span th:text="${pageable.totalElements - ((pageable.page * pageable.size) + stat.index)}"></span>
+                                    </td>
+                                    <td class="hp_ellipsis text-start" colspan="2">
+                                        <a th:href="@{/education/curriculum/reference-room/{curriculumCode}/{sequenceNo}(curriculumCode=${item.curriculumCode},sequenceNo=${item.sequenceNo})}">
+                                            <span class="hp_ellipsis" th:text="${item.title}">제목이 들어갑니다.</span>
+                                        </a>
+                                        <i th:if="${item.filePath != null}" class="el_ico"><img th:src="@{/assets/images/icons/file_icon.png}" alt="첨부파일" width="12px"></i>
+                                    </td>
+                                    <td th:text="${item.registUserId}">홍길동</td>
+                                    <td th:text="${#strings.substring(item.createDateTime,0,10)}">2022.09.01</td>
+                                </tr>
+                                <tr th:unless="${content.size > 0}" class="empty_data">
+                                    <td colspan="5">등록된 데이터가 없습니다.</td>
+                                </tr>
+                            </tbody>
+                            <tbody th:unless="${content != null && content.size > 0}">
+                            <tr class="empty_data"><td colspan="5">조회된 내용이 없습니다.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="bl_paginate"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            /* <![CDATA[ */
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+                pagination([[ ${pageable} ]], false);
+
+                const params = new URLSearchParams(decodeURIComponent(window.location.search).replace("?", ""));
+                if(params.get("startDate")) { document.getElementById('startDate').value = params.get("startDate"); }
+                if(params.get("endDate")) { document.getElementById('endDate').value = params.get("endDate"); }
+                if(params.get("containTextType")) { document.getElementById('select_search').value = params.get("containTextType") }
+                if(params.get("containText")) { document.getElementById('text_search').value = params.get("containText") }
+            }
+
+            const searchParams = new URLSearchParams(location.search);
+            let type = searchParams.get('educationType');
+            let nowId = window.location.pathname.split('/')[window.location.pathname.split('/').length-1];
+
+            if(type == 'e-learning'){
+                document.getElementById('tabGroup2').style.display = 'none';
+                document.getElementById('tabLink1_1').setAttribute('href','/education/curriculum/e-learning/'+nowId);
+                document.getElementById('tabLink1_2').setAttribute('href','/education/curriculum/e-learning/exam/'+nowId);
+                document.getElementById('tabLink1_3').setAttribute('href','/education/curriculum/e-learning/question/'+nowId);
+                document.getElementById('tabLink1_4').setAttribute('href','/education/curriculum/reference-room/'+nowId+'?educationType=e-learning');
+            } else if(type == 'lecture'){
+                document.getElementById('tabGroup1').style.display = 'none';
+                document.getElementById('tabLink2_1').setAttribute('href','/education/curriculum/lecture/'+nowId);
+                document.getElementById('tabLink2_2').setAttribute('href','/education/curriculum/reference-room/'+nowId+'?educationType=lecture');
+            }
+
+            function goSearch() {
+                var link = window.location.pathname;
+                const searchParams = new URLSearchParams(location.search);
+                let type = searchParams.get('educationType');
+
+                const params = {};
+                if(document.querySelector('#startDate').value) {
+                    params.startDate = document.querySelector('#startDate').value.replaceAll('.','-');
+                }
+                if(document.querySelector('#endDate').value) {
+                    params.endDate = document.querySelector('#endDate').value.replaceAll('.','-');
+                }
+                if (document.querySelector('#text_search').value) {
+                    params.containTextType = document.querySelector('#select_search').value;
+                    params.containText = document.querySelector('#text_search').value;
+                }
+
+                const queryParams = '&' + Object.entries(params).filter(data => data[1] != null && data[1] !== '').map(data => data.join('=')).join('&')
+                location.href=link + "?educationType=" + type + queryParams;
+            }
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

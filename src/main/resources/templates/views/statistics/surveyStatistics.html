@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="statistics-4">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>상호평가 통계</h2>
+        </div>
+
+        <div class="tableLeftResponsive">
+            <table class="tableLeft">
+                <colgroup>
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                </colgroup>
+                <tbody>
+                    <tr>
+                        <th scope="row">구분</th>
+                        <td>
+                            <select class="common_select">
+                                <option value="전체">전체</option>
+                                <option value="2">기관평가</option>
+                                <option value="1">강사평가</option>
+                            </select>
+                        </td>
+                        <th scope="row">평점</th>
+                        <td>
+                            <div class="d-flex-1">
+                                <input type="text" class="hp_w200">
+                                <select class="common_select">
+                                    <option value="이상">이상</option>
+                                    <option value="이하">이하</option>
+                                    <option value="일치">일치</option>
+                                </select>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">사업명</th>
+                        <td>
+                            <input type="text">
+                        </td>
+                        <th scope="row">상호평가</th>
+                        <td>
+                            <select class="common_select">
+                                <option value="전체">전체</option>
+                                <option value="작성완료">작성완료</option>
+                                <option value="미완료">미완료</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">검색</th>
+                        <td colspan="3">
+                            <div class="d-flex-1">
+                                <select class="common_select">
+                                    <option value="평가자">평가자</option>
+                                    <option value="평가대상">평가대상</option>
+                                    <option value="교육기간">교육기간</option>
+                                    <option value="코멘트">코멘트</option>
+                                </select>
+                                <input type="text" class="hp_w600">
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="bl_gridBtns">
+            <div class="bl_gridBtns_md">
+                <div class="btn btnDefault btnReset">리셋</div>
+                <div class="btn btnDefault btnSearch">검색</div>
+            </div>
+        </div>
+
+        <!-- BOARD : CONTROLLER -->
+        <div class="bl_boardCtrls">
+            <div class="bl_boardCtrls_lft">
+<!--                <p class="bl_boardCtrls_total">총: <strong th:text="${pageable.totalElements}"></strong>건</p>-->
+                <p class="bl_boardCtrls_total">총: 0"></strong>건</p>
+                <select class="common_select" data-list="countSortList"></select>
+            </div>
+            <div class="bl_boardCtrls_rgt">
+                <a class="btn btnDefault" href="/api/statistics/survey/apply/excel">excel 다운로드</a>
+            </div>
+        </div>
+
+        <div class="tableResponsive overflowMulti">
+            <table class="table">
+                <colgroup>
+                    <col width="50">
+                    <col>
+                    <col>
+                    <col>
+                    <col>
+                    <col>
+                    <col>
+                    <col>
+                    <col>
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th scope="col">번호</th>
+                        <th scope="col">구분</th>
+                        <th scope="col">사업명</th>
+                        <th scope="col">평가자</th>
+                        <th scope="col">평가대상</th>
+                        <th scope="col">교육기간</th>
+                        <th scope="col">평점</th>
+                        <th scope="col">상호평가</th>
+                        <th scope="col">코멘트</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1</td>
+                        <td>기관평가</td>
+                        <td>사업명 입니다.</td>
+                        <td>홍길동</td>
+                        <td></td>
+                        <td>2022</td>
+                        <td>5.0</td>
+                        <td>
+                            <span class="color_blue">작성완료</span>
+                            <span class="color_red">미완료</span>
+                        </td>
+                        <td>코멘트 입니다.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="bl_paginate"></div>        
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            /* <![CDATA[ */
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+                pagination([[ ${pageable} ]], false)
+            }
+            /* ]]> */
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

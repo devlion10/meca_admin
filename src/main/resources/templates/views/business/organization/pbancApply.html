@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="business-2">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>사업신청 관리</h2>
+        </div>
+
+        <div class="sch_box flex-wrap">
+            <select id="bizPbancYr" class="common_select" data-list="yearList"></select>
+            <select id="bizPbancType" class="common_select" data-list="businessTemp"></select>
+            <select id="bizPbancRnd" class="common_select" data-list="numList"></select>
+            <select id="bizOrgAplyStts" class="common_select">
+                <option>처리상태</option>
+                <option value="0">임시저장</option>
+                <option value="1">신청</option>
+                <option value="2">승인</option>
+                <option value="3">반려</option>
+                <option value="9">가승인</option>
+                <option value="7">종료</option>
+            </select>
+            <input id="containText" type="text" class="hp_w400">
+            <div>
+                <a th:onclick="searchPbancApply()" class="btn btnDefault btnSearch">검색</a>
+                <a class="btn btnDefault btnReset">리셋</a>
+            </div>
+            <p>
+                <a id="apply_stts1" class="btn btnDefault state__blue">선택 접수</a>
+                <a id="apply_stts9" class="btn btnDefault state__green">선택 가승인</a>
+                <a id="apply_stts2" class="btn btnDefault state__dark_green">선택 승인</a>
+                <a id="apply_stts7" class="btn btnDefault state__gray">선택 종료</a>
+                <a id="apply_delete" class="btn btnDefault btnDelete icon_none">선택 삭제</a>
+            </p>
+            <p>
+                <a id="apply_chgyn1" class="btn btnDefault state__green">선택 정보변경 가능</a>
+                <a id="apply_chgyn0" class="btn btnDefault state__red">선택 정보변경 불가</a>
+            </p>
+            <div>
+                <a id="pdfDownload" class="btn btnDefault" target="_blank" th:href="@{/business/organization/apply/pdf/{total}(total=${pageable.totalElements})}">PDF 다운로드</a>
+            </div>
+        </div>
+
+        <!-- BOARD : CONTROLLER -->
+        <div class="bl_boardCtrls">
+            <div class="bl_boardCtrls_lft">
+                <p class="bl_boardCtrls_total">총: <strong th:text="${pageable.totalElements}"></strong>건</p>
+            </div>
+            <div class="bl_boardCtrls_rgt">
+                <a href="/api/business/organization/apply/excel" class="btn btnDefault download_excel download_search">excel 다운로드</a>
+                <a href="/api/business/organization/apply/dist/excel" class="btn btnDefault download_excel download_search">excel 다운로드(거리증빙 포함)</a>
+                <select class="common_select" data-list="countSortList"></select>
+            </div>
+        </div>
+
+        <div class="tableResponsive overflowMulti">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th scope="col">
+                        <div class="chk_box">
+                            <input id="all_check" type="checkbox">
+                            <label for="all_check">
+                                <span class="me-0"></span>
+                            </label>
+                        </div>
+                    </th>
+                    <th scope="col">번호</th>
+                    <th scope="col">년도</th>
+                    <th scope="col">사업명</th>
+                    <th scope="col">차수</th>
+                    <th scope="col">등록일시</th>
+                    <th scope="col">교육기간</th>
+                    <th scope="col">신청기관</th>
+                    <th scope="col">정보변경여부</th>
+                    <th scope="col">변경이력</th>
+                    <th scope="col">신청서</th>
+                    <th scope="col">처리상태</th>
+                    <th scope="col">승인변경</th>
+                    <th scope="col">삭제</th>
+                </tr>
+                </thead>
+                <tbody th:if="${content != null && content.size > 0}">
+                <tr th:each="item, stat : ${content}">
+                    <td>
+                        <div class="chk_box item_chk">
+                            <input th:id="'application'+${stat.index}" type="checkbox" name="business_application" th:value="${stat.index}" >
+                            <label th:for="'application'+${stat.index}">
+                                <span class="me-0"></span>
+                            </label>
+                        </div>
+                    </td>
+                    <td th:text="${pageable.totalElements - ((pageable.page * pageable.size) + stat.index)}"></td>
+                    <td th:text="${item.bizPbancMaster.bizPbancYr}">2022</td>
+                    <td>
+                        <a th:href="@{/business/pbanc/list/{type}/{id}(type=${item.bizPbancMaster.bizPbancType}, id=${item.bizPbancMaster.bizPbancNo})}" th:text="${item.bizPbancMaster.bizPbancNm}">사업명</a>
+                    </td>
+                    <td th:text="${item.bizPbancMaster.bizPbancRnd}">3</td>
+                    <td th:text="${item.createDateTime}">2022.08.08 20:52:59</td>
+                    <td><span th:text="${item.bizOrgAplyLsnPlanBgng}">2022.08.08</span> - <span th:text="${item.bizOrgAplyLsnPlanEnd}">2022.09.30</span></td>
+                    <td th:text="${item.organizationInfo.organizationName}">기관명</td>
+                    <td>
+                        <span class="state state__green" th:if="${item.bizOrgAplyChgYn==1}">가능</span>
+                        <span class="state state__red" th:unless="${item.bizOrgAplyChgYn==1}">불가</span>
+                    </td>
+                    <td>
+                        <div class="btn btnDefault" th:id="${item.bizOrgAplyNo}" th:onclick="openPop('', '/popup/organization/apply/history/'+this.id, 'pbancApplyHistory')">보기</div>
+                    </td>
+                    <td>
+                        <a th:href="@{/business/organization/apply/{id}(id=${item.bizOrgAplyNo})}" class="btn btnDefault">보기</a>
+                    </td>
+                    <td>
+                        <span class="state state__gray" th:if="${item.bizOrgAplyStts == 0}">임시저장</span>
+                        <span class="state state__blue" th:if="${item.bizOrgAplyStts == 1}">신청</span>
+                        <span class="state state__dark_green" th:if="${item.bizOrgAplyStts == 2}">승인</span>
+                        <span class="state state__red" th:if="${item.bizOrgAplyStts == 3}">반려</span>
+                        <span class="state state__green" th:if="${item.bizOrgAplyStts == 9}">가승인</span>
+                        <span class="state state__gray" th:if="${item.bizOrgAplyStts == 7}">종료</span>
+                    </td>
+                    <td>
+                        <div th:value="${stat.index}" class="btn btnDefault approval_popup dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">승인변경</div>
+                        <ul class="dropdown-menu dropdown-menu__sm shadow">
+                            <li value="0" class="dropdown-item">임시저장</li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li value="1" class="dropdown-item">신청</li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li value="9" class="dropdown-item">가승인</li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li value="2" class="dropdown-item">승인</li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li value="3" class="dropdown-item" data-handler="popChangeOfApproval" data-control="modal">반려</li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li value="7" class="dropdown-item">종료</li>
+                        </ul>
+                    </td>
+                    <td>
+                        <a th:value="${stat.index}" th:onclick="deleteCheck([[${item.bizOrgAplyNo}]], [[${stat.index}]])" class="btn btnDefault btnDelete icon_none apply_delete">삭제</a>
+                    </td>
+                </tr>
+                </tbody>
+                <tbody th:unless="${content != null && content.size > 0}">
+                <tr class="empty_data"><td colspan="14">조회된 내용이 없습니다.</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="bl_paginate"></div>
+
+        <!-- POPUP : 승인변경 - 반려 -->
+        <article class="pop_wrapper ui-modal" id="popChangeOfApproval">
+            <div class="pop_wrap pop_secondary">
+                <div class="pop_head">
+                    <div class="tit">승인변경</div>
+                </div>
+                <div class="pop_cont">
+                    <p class="mb-20">해당 신청을 반려하시겠습니까?</p>
+
+                    <div class="tableLeftResponsive">
+                        <table class="tableLeft">
+                            <colgroup>
+                                <col style="width: 200px">
+                                <col style="width: auto">
+                            </colgroup>
+                            <tbody>
+                            <tr>
+                                <th scope="row">반려사유</th>
+                                <td>
+                                    <input id="bizOrgAplySttsCmnt" type="text">
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="bl_gridBtns">
+                        <div class="bl_gridBtns_md">
+                            <a class="btn btnDefault" th:onclick="reject()">확인</a>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="button" class="pop_close pop-close">닫기</button>
+            </div>
+        </article>
+
+        <!-- POPUP : 변경이력 -->
+        <div class="iframe_wrap">
+            <iframe id="pbancApplyHistory" src="about:blank" width="800"></iframe>
+        </div>
+
+        <th:block layout:fragment="script">
+            <script th:inline="javascript">
+                function searchPbancApply(){
+                    let searchQuery = {}
+                    let name = $("#containText").val();
+                    let year = $("#bizPbancYr").val();
+                    let rnd = $("#bizPbancRnd").val();
+                    let stt1 = $("#bizOrgAplyStts").val();
+                    let bizPbancType = $("#bizPbancType").val();
+                    if(name){
+                        searchQuery.containText = name
+                    }
+                    if(year && year!=0){
+                        searchQuery.bizPbancYr = year
+                    }
+                    if(rnd && rnd!=0){
+                        searchQuery.bizPbancRnd =rnd
+                    }
+                    if(stt1 && stt1!='처리상태'){
+                        searchQuery.bizOrgAplyStts=stt1;
+                    }
+                    if(bizPbancType){
+                        searchQuery.bizPbancType  = bizPbancType;
+                    }
+                    searchJson(searchQuery)
+                }
+                var dropDownIndex;
+                $(".approval_popup").bind("click", function (e){
+                    dropDownIndex = $(this).attr('value')
+                })
+
+                $("#apply_chgyn1").bind("click", function (e){
+                    $('input:checkbox[name=business_application]:checked').each(function (index){
+                        let dataIndex = $(this).val();
+                        let params = updateData(dataIndex);
+                        params.bizOrgAplyChgYn = 1;
+                        $.ajax({
+                            type: "put", //http method
+                            url: `/api/business/organization/apply/update`, //값을 가져올 경로
+                            headers: {'Content-Type': 'application/json'},
+                            data: JSON.stringify(params),
+                            dataType: "json",
+                            success: function(data) {
+                                if((index+1) == $('input:checkbox[name=business_application]:checked').length){
+                                    alert("수정이 완료되었습니다.");
+                                    window.location.reload();
+                                }
+                            },
+                            error: function(e) { }
+                        })
+
+                    });
+                })
+                $("#apply_chgyn0").bind("click", function (e){
+                    $('input:checkbox[name=business_application]:checked').each(function (index){
+                        let dataIndex = $(this).val();
+                        let params = updateData(dataIndex);
+                        params.bizOrgAplyChgYn = 0;
+                        $.ajax({
+                            type: "put", //http method
+                            url: `/api/business/organization/apply/update`, //값을 가져올 경로
+                            headers: {'Content-Type': 'application/json'},
+                            data: JSON.stringify(params),
+                            dataType: "json",
+                            success: function(data) {
+                                if((index+1) == $('input:checkbox[name=business_application]:checked').length){
+                                    alert("수정이 완료되었습니다.");
+                                    window.location.reload();
+                                }
+                            },
+                            error: function(e) { }
+                        })
+
+                    });
+                })
+                $("li.dropdown-item").bind("click", function (e){
+                    let params = updateData(dropDownIndex);
+                    if(params &&( $(this).attr("value")!=3)){
+                        if ($(this).attr("value") == 7) {
+                            params.bizOrgAplyChgYn = 0;
+                        }
+
+                        params.bizOrgAplyStts = parseInt($(this).attr("value"));
+                        $.ajax({
+                            type: "put", //http method
+                            url: `/api/business/organization/apply/update`, //값을 가져올 경로
+                            headers: {'Content-Type': 'application/json'},
+                            data: JSON.stringify(params),
+                            dataType: "json",
+                            success: function(data) {
+                                alert("수정이 완료되었습니다.");
+                                window.location.reload();
+                            },
+                            error: function(e) { }
+                        })
+                    }
+
+                })
+                function reject(){
+                    let params = updateData(dropDownIndex);
+                    params.bizOrgAplySttsCmnt= $("#bizOrgAplySttsCmnt").val();
+                    params.bizOrgAplyStts = 3;
+                    $.ajax({
+                        type: "put", //http method
+                        url: `/api/business/organization/apply/update`, //값을 가져올 경로
+                        headers: {'Content-Type': 'application/json'},
+                        data: JSON.stringify(params),
+                        dataType: "json",
+                        success: function(data) {
+                            alert("수정이 완료되었습니다.");
+                            window.location.reload();
+                        },
+                        error: function(e) { }
+                    })
+
+                }
+                $("#apply_stts1").bind("click", function (e){
+                    $('input:checkbox[name=business_application]:checked').each(function (index){
+                        let dataIndex = $(this).val();
+                        let params = updateData(dataIndex);
+                        params.bizOrgAplyStts = 1;
+                        $.ajax({
+                            type: "put", //http method
+                            url: `/api/business/organization/apply/update`, //값을 가져올 경로
+                            headers: {'Content-Type': 'application/json'},
+                            data: JSON.stringify(params),
+                            dataType: "json",
+                            success: function(data) {
+                                if((index+1) == $('input:checkbox[name=business_application]:checked').length){
+                                    alert("수정이 완료되었습니다.");
+                                    window.location.reload();
+                                }
+                            },
+                            error: function(e) { }
+                        })
+
+                    });
+                })
+                $("#apply_stts2").bind("click", function (e){
+                    $('input:checkbox[name=business_application]:checked').each(function (index){
+                        let dataIndex = $(this).val();
+                        let params = updateData(dataIndex);
+                        params.bizOrgAplyStts = 2;
+                        $.ajax({
+                            type: "put", //http method
+                            url: `/api/business/organization/apply/update`, //값을 가져올 경로
+                            headers: {'Content-Type': 'application/json'},
+                            data: JSON.stringify(params),
+                            dataType: "json",
+                            success: function(data) {
+                                if((index+1) == $('input:checkbox[name=business_application]:checked').length){
+                                    alert("수정이 완료되었습니다.");
+                                    window.location.reload();
+                                }
+                            },
+                            error: function(e) { }
+                        })
+
+                    });
+                })
+                $("#apply_stts9").bind("click", function (e){
+                    $('input:checkbox[name=business_application]:checked').each(function (index){
+                        let dataIndex = $(this).val();
+                        let params = updateData(dataIndex);
+                        params.bizOrgAplyStts = 9;
+                        $.ajax({
+                            type: "put", //http method
+                            url: `/api/business/organization/apply/update`, //값을 가져올 경로
+                            headers: {'Content-Type': 'application/json'},
+                            data: JSON.stringify(params),
+                            dataType: "json",
+                            success: function(data) {
+                                if((index+1) == $('input:checkbox[name=business_application]:checked').length){
+                                    alert("수정이 완료되었습니다.");
+                                    window.location.reload();
+                                }
+                            },
+                            error: function(e) {
+                                if((index+1) == $('input:checkbox[name=business_application]:checked').length){
+                                    alert("수정하는 과정에서 오류가 발생했습니다.");
+                                }
+                            }
+                        })
+
+                    });
+                })
+                $("#apply_stts7").bind("click", function (e){
+                    $('input:checkbox[name=business_application]:checked').each(function (index){
+                        let dataIndex = $(this).val();
+                        let params = updateData(dataIndex);
+                        params.bizOrgAplyStts = 7;
+                        params.bizOrgAplyChgYn = 0;
+                        $.ajax({
+                            type: "put", //http method
+                            url: `/api/business/organization/apply/update`, //값을 가져올 경로
+                            headers: {'Content-Type': 'application/json'},
+                            data: JSON.stringify(params),
+                            dataType: "json",
+                            success: function(data) {
+                                if((index+1) == $('input:checkbox[name=business_application]:checked').length){
+                                    alert("수정이 완료되었습니다.");
+                                    window.location.reload();
+                                }
+                            },
+                            error: function(e) {
+                                if((index+1) == $('input:checkbox[name=business_application]:checked').length){
+                                    alert("수정하는 과정에서 오류가 발생했습니다.");
+                                }
+                            }
+                        })
+
+                    });
+                })
+                $("#apply_delete").bind("click", function (e){
+                    if(confirm("강사 신청, 배정 데이터가 존재할 경우 강사 페이지에서 데이터 손상이 있을 수 있습니다.")) {
+                        if (confirm("정말로 삭제하시겠습니까?")) {
+                            $('input:checkbox[name=business_application]:checked').each(function (index){
+                                let dataIndex = $(this).val();
+                                let params = updateData(dataIndex);
+                                $.ajax({
+                                    type: "delete", //http method
+                                    url: `/api/business/organization/apply/delete/${params.bizOrgAplyNo}`, //값을 가져올 경로
+                                    headers: {'Content-Type': 'application/json'},
+                                    data: JSON.stringify(params),
+                                    dataType: "json",
+                                    success: function(data) {
+                                        if((index+1) == $('input:checkbox[name=business_application]:checked').length){
+                                            alert("삭제가 완료되었습니다.");
+                                            window.location.reload();
+                                        }
+                                    },
+                                    error: function(daeta) {
+                                        if((index+1) == $('input:checkbox[name=business_application]:checked').length){
+                                            alert("수정하는 과정에서 오류가 발생했습니다.");
+                                        }
+                                    }
+                                })
+
+                            });
+                        }
+                    }
+                })
+
+                function deleteCheck(bizOrgAplyNo, index) {
+                    if(confirm("강사 신청, 배정 데이터가 존재할 경우 강사 페이지에서 데이터 손상이 있을 수 있습니다.")){
+                        if (confirm("정말로 삭제하시겠습니까?")) {
+                            let params = updateData(index);
+                            $.ajax({
+                                type: "delete", //http method
+                                url: '/api/business/organization/apply/delete/'+bizOrgAplyNo, //값을 가져올 경로
+                                headers: {'Content-Type': 'application/json'},
+                                data: JSON.stringify(params),
+                                dataType: "json",
+                                success: function(data) {
+                                    alert("삭제되었습니다.");
+                                    window.location.reload();
+                                },
+                                error: function(data) {
+                                    alert("오류가 발생했습니다.")
+                                    window.location.reload();
+                                }
+                            })
+                        }
+                    }
+                }
+
+                /* <![CDATA[ */
+                function updateData(index){
+                    let CONT = [[ ${content} ]];
+                    return CONT[index]
+                }
+                function onLoadSubmit() {
+                    console.log('commonCode: ', [[ ${commonCode} ]] )
+                    checkBox()
+                    pagination([[ ${pageable} ]])
+                    $("#pdfDownload").attr("href", $("#pdfDownload").attr("href")+window.location.search);
+                }
+                /* ]]> */
+            </script>
+        </th:block>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+</div>
+</body>
+</html>

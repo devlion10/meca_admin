@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="business-4-4">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>거리 증빙</h2>
+        </div>
+
+        <div class="bl_tab2 js_tab">
+            <ul class="bl_tab2_menu">
+                <li>
+                    <a href="/business/instructor/distance?bizDistStts=0">확인전(<span class="color_blue" th:text="${getTotal}">5</span>)</a>
+                </li>
+                <li>
+                    <a href="/business/instructor/distance?bizDistStts=1">확인완료(<span class="color_blue" th:text="${resultTotal}">200</span>)</a>
+                </li>
+            </ul>
+            <div class="bl_tab2_body js_tab_contents">
+                <div class="sch_box justify-content-center">
+                    <div class="sch_box_lft">
+                        <select id="bizPbancYr" class="common_select" data-list="yearList"></select>
+                        <select id="bizPbancType" class="common_select" data-list="businessTemp"></select>
+                        <select id="bizPbancRnd" class="common_select" data-list="numList"></select>
+                        <select id="containTextType" class="common_select">
+                            <option value="all">전체(기관+강사+사업)</option>
+                            <option value="1">기관명</option>
+                            <option value="2">강사명</option>
+                            <option value="3">사업명</option>
+                        </select>
+                        <input id="containText" type="text" class="hp_w200">
+                        <a th:onclick="searchDist()" class="btn btnDefault btnSearch">검색</a>
+                        <a class="btn btnDefault" th:if="${#strings.equals(param.bizDistStts, '1')}" href="/business/instructor/distance?bizDistStts=1">리셋</a>
+                        <a class="btn btnDefault" th:if="${#strings.equals(param.bizDistStts, '0')}" href="/business/instructor/distance?bizDistStts=0s">리셋</a>
+                        <a id="dist_delete" class="btn btnDefault">선택삭제</a>
+                    </div>
+                    <div class="sch_box_rgt">
+                        <a th:if="${#strings.toString(param.bizDistStts)=='0'}" onclick="checkData()" class="btn btnDefault">기본거리 일괄승인</a>
+                        <a href="/api/business/instructor/distance/excel" class="btn btnDefault download_excel download_search">excel 다운로드</a>
+                    </div>
+                </div>
+
+                <!-- BOARD : CONTROLLER -->
+                <div class="bl_boardCtrls">
+                    <div class="bl_boardCtrls_lft">
+                        <p class="bl_boardCtrls_total">
+                             총: <strong th:text="${pageable.totalElements}"></strong>건
+                        </p>
+                    </div>
+                </div>
+
+                <div class="tableResponsive overflowMulti">
+                    <table class="table">
+                        <colgroup>
+                            <col width="50">
+                            <col width="50">
+                            <col width="*">
+                            <col width="200">
+                            <col width="200">
+                            <col width="200">
+                            <col width="200">
+                            <col width="200">
+                            <col width="100">
+                            <col width="100">
+                        </colgroup>
+                        <thead>
+                            <tr>
+                                <th scope="col">
+                                    <div class="chk_box">
+                                        <input id="all_check" type="checkbox" name="distanceList">
+                                        <label for="all_check">
+                                            <span class="me-0"></span>
+                                        </label>
+                                    </div>
+                                </th>
+                                <th scope="col">번호</th>
+                                <th scope="col">년도</th>
+                                <th scope="col">사업명</th>
+                                <th scope="col">차수</th>
+                                <th scope="col">수행기관</th>
+                                <th scope="col">교육기간</th>
+                                <th scope="col">강사명</th>
+                                <th scope="col">출발지</th>
+                                <th scope="col">도착지</th>
+                                <th scope="col">거리</th>
+                                <th scope="col">강의료</th>
+                            </tr>
+                        </thead>
+                        <tbody th:if="${content != null && content.size > 0}">
+                            <tr th:each="item, stat : ${content}">
+                                <td>
+                                    <div class="chk_box item_chk">
+                                        <input th:id="${item.bizInstrDistNo}" type="checkbox" name="distanceList" th:value="${stat.index}">
+                                        <label th:for="${item.bizInstrDistNo}">
+                                            <span class="me-0"></span>
+                                        </label>
+                                    </div>
+                                </td>
+                                <td th:text="${pageable.totalElements - ((pageable.page * pageable.size) + stat.index)}"></td>
+                                <td>
+                                    <span th:text="${item.bizPbancMaster.bizPbancYr}">2023</span>
+                                </td>
+                                <td>
+                                    <a th:href="@{/business/instructor/distance/{id}(id=${item.bizInstrDistNo})}" th:text="${item.bizPbancMaster.bizPbancNm}">사업명</a>
+                                </td>
+                                <td>
+                                    <span th:text="${item.bizPbancMaster.bizPbancRnd}">2023</span>
+                                </td>
+                                <td th:text="${item.bizOrganizationAply.organizationInfo.organizationName}">기관명</td>
+                                <td>
+                                    <span th:text="${item.bizPbancMaster.bizPbancRcptBgng}">2022-07-12</span> ~ <span th:text="${item.bizPbancMaster.bizPbancRcptEnd}">2022-07-22</span></td>
+                                <td th:text="${item.instrNm}">신소영</td>
+                                <td>
+                                    <span class="address_detail" th:if="${item.bizDistBgngAddr != null}" th:text="${item.bizDistBgngAddr}">경기 의정부시</span>
+                                </td>
+                                <td>
+                                    <span class="address_title" th:if="${item.bizDistEndNm != null}" th:text="${item.bizDistEndNm}"></span>
+                                    <span class="address_detail" th:if="${item.bizDistEndAddr != null}" th:text="${item.bizDistEndAddr}">경기도 군포시</span>
+                                </td>
+                                <td class="distance" th:text="${item.bizDistValue}">0.0</td>
+                                <td th:text="${item.bizDistAmt}">0</td>
+                            </tr>
+                        </tbody>
+                        <tbody th:unless="${content != null && content.size > 0}">
+                        <tr class="empty_data"><td colspan="12">조회된 내용이 없습니다.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="bl_paginate"></div>
+            </div>
+        </div>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            function reset(){
+                let searchQuery = {}
+                let searchParams = new URLSearchParams(window.location.search);
+                let distStts = searchParams.get("bizDistStts");
+                if(parseInt(distStts)>=0){
+                    searchQuery.bizDistStts = distStts
+                    searchJson(searchQuery)
+                }else{
+                    window.location.assign("/business/instructor/distance?bizDistStts=0")
+                }
+            }
+            function searchDist(){
+                let searchQuery = {}
+                let name = $("#containText").val();
+                let type = $("#containTextType").val();
+                let pbanc =$("#bizPbancType").val();
+                let year = $("#bizPbancYr").val();
+                let rnd = $("#bizPbancRnd").val();
+                if(name){
+                    searchQuery.containText = name
+                    searchQuery.containTextType = type
+                }
+                if(pbanc){
+                    searchQuery.bizPbancType=pbanc;
+                }
+                if(year && year!=0){
+                    searchQuery.bizPbancYr = year
+                }
+                if(rnd && rnd!=0){
+                    searchQuery.bizPbancRnd =rnd
+                }
+                let searchParams = new URLSearchParams(window.location.search);
+                let distStts = searchParams.get("bizDistStts");
+                if(distStts){
+                    searchQuery.bizDistStts = distStts
+                    searchJson(searchQuery)
+                }else{
+                    searchJson(searchQuery)
+
+                }
+            }
+            $("#dist_delete").bind("click", function (e){
+                if (confirm("정말로 삭제하시겠습니까? 거리증빙 기록이 존재하지 않으면 강사료 정산 시에 오류가 발생합니다.")) {
+                    $('.item_chk input:checkbox[name=distanceList]:checked').each(function (index){
+                        let dataIndex = $(this).attr('value');
+                        let params = updateData(dataIndex);
+                        $.ajax({
+                            type: "delete", //http method
+                            url: `/api/business/instructor/distance/delete/${params.bizInstrDistNo}`, //값을 가져올 경로
+                            headers: {'Content-Type': 'application/json'},
+                            data: JSON.stringify(params),
+                            dataType: "json",
+                            success: function(data) {
+                                if((index+1) == $('.item_chk input:checkbox[name=distanceList]:checked').length){
+                                    alert("삭제가 완료되었습니다.");
+                                    reset();
+                                }
+                            },
+                            error: function(e) { }
+                        })
+
+                    });
+                }
+            })
+            function checkData(){
+                if (confirm("정말로 일괄 승인하시겠습니까?")) {
+                    if($('.item_chk input:checkbox[name=distanceList]:checked').length>0){
+                        $('.item_chk input:checkbox[name=distanceList]:checked').each(function (index){
+                            let dataIndex = $(this).attr('value');
+                            let params = updateData(dataIndex);
+                            if(params.bizDistValue<40){
+                                params.bizDistStts = 1;
+                                $.ajax({
+                                    type: "put", //http method
+                                    url: `/api/business/instructor/distance/update`, //값을 가져올 경로
+                                    headers: {'Content-Type': 'application/json'},
+                                    data: JSON.stringify(params),
+                                    dataType: "json",
+                                    success: function(data) {
+                                        if((index+1)  == $('.item_chk input:checkbox[name=distanceList]:checked').length){
+                                            alert("기본거리 일괄승인이 완료되었습니다.");
+                                            reset();
+                                        }
+                                    },
+                                    error: function(e) { }
+                                })
+                            }else{
+                                if((index+1)  == $('.item_chk input:checkbox[name=distanceList]:checked').length){
+                                    alert("기본거리 일괄승인이 완료되었습니다.");
+                                    reset();
+                                }
+                            }
+
+                        });
+                    }else{
+                        let itemLength = $('.item_chk input:checkbox[name=distanceList]').length;
+                        for(let i=0; i<itemLength; i++){
+                            let params = updateData(i);
+                            if(params.bizDistValue<40){
+                                params.bizDistStts = 1;
+                                $.ajax({
+                                    type: "put", //http method
+                                    url: `/api/business/instructor/distance/update`, //값을 가져올 경로
+                                    headers: {'Content-Type': 'application/json'},
+                                    data: JSON.stringify(params),
+                                    dataType: "json",
+                                    success: function(data) {
+                                        if((i+1) == itemLength){
+                                            alert("기본거리 일괄승인이 완료되었습니다.");
+                                            window.location.assign('/business/instructor/distance?bizDistStts=1');
+                                        }
+                                    },
+                                    error: function(data) {
+                                        alert("기본거리 일괄승인하는 과정에서 오류가 발생하였습니다.");
+                                    }
+                                })
+                            }else{
+                                if((i+1) == itemLength){
+                                    alert("기본거리 일괄승인이 완료되었습니다.");
+                                    reset();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            /* <![CDATA[ */
+            function updateData(index){
+                let CONT = [[ ${content} ]];
+                return CONT[index]
+            }
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+                pagination([[ ${pageable} ]], false)
+                checkBox();
+            }
+
+            // 탭 메뉴 is_active
+            $(function(){
+                const url = new URL(window.location.href);
+
+                // URLSearchParams 객체
+                const urlParams = url.searchParams;
+
+                $('.tab1_active').css('display', 'none');
+
+                if (urlParams.get('bizDistStts') == 0) {
+                    // 확인전
+                    $('.bl_tab2_menu li').eq(0).addClass('is_active');
+                } else if (urlParams.get('bizDistStts') == 1) {
+                    // 확인완료
+                    $('.bl_tab2_menu li').eq(1).addClass('is_active');
+                    $("#dist_delete").remove()
+                }
+            });
+
+            // 기본 거리 40km 이내 분홍색 표시
+            $('.distance').each((idx, item) => {
+                if (item.innerText <= 40) {
+                    const td = item.parentElement.children;
+                    for (let i = 0; i < item.parentElement.children.length; i++) {
+                        td[i].style.backgroundColor = '#ffd9f8';
+                    }
+                }
+            });
+            /* ]]> */
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

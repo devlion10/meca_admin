@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="user-6-2">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>수강 이력(언론인교육센터)</h2>
+        </div>
+
+        <div class="tableLeftResponsive">
+            <table class="tableLeft">
+                <colgroup>
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                </colgroup>
+                <tbody class="search">
+                <tr>
+                    <th scope="row">강의명</th>
+                    <td>
+                        <input id="crsNm" name="crsNm" type="text">
+                    </td>
+                    <th scope="row">강의대분류/강의소분류</th>
+                    <td>
+                        <input class="hp_w200" id="crsCls1Nm" name="crsCls1Nm" type="text" style="width: calc(50% - 20px);margin-right:5px;">
+                        /
+                        <input class="hp_w200" id="crsCls2Nm" name="crsCls2Nm" type="text" style="width: calc(50% - 20px);margin-left:5px;">
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">신청자 이름</th>
+                    <td>
+                        <input id="userNm" name="userNm" type="text">
+                    </td>
+                    <th scope="row">매체사명</th>
+                    <td>
+                        <input id="mdiaNm" name="mdiaNm" type="text">
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">
+                        매체명
+                    </th>
+                    <td>
+                        <input id="mdiaDNm" name="mdiaDNm" type="text">
+                    </td>
+                    <th scope="row">
+                        수료일자
+                    </th>
+                    <td>
+                        <div class="bl_dateRange">
+                            <input type="text" id="startDate" class="el_datePicker sdate">
+                            <span class="blank">~</span>
+                            <input type="text" id="endDate" class="el_datePicker edate">
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- GRID : BUTTON -->
+        <div class="bl_gridBtns">
+            <div class="bl_gridBtns_md">
+                <div class="btn btnDefault btnReset">리셋</div>
+                <a class="btn btnDefault bg-secondary text-white btnSearch" onclick="searchUser()">검색</a>
+            </div>
+        </div>
+
+        <th:block layout:fragment="style">
+            <style>
+                #forme_lec_history_pop .transcolor.odd td{background:#fff;}
+                #forme_lec_history_pop .transcolor.even td{background:#f9f9f9;}
+                #forme_lechistory_list_wrap tr.active td{ background: #b4daff !important;}
+            </style>
+        </th:block>
+        <!-- BOARD : CONTROLLER -->
+        <div class="bl_boardCtrls">
+            <div class="bl_boardCtrls_lft">
+                <p class="bl_boardCtrls_total">총: <strong th:text="${pageable.totalElements}"></strong>건</p>
+            </div>
+            <div class="bl_boardCtrls_rgt">
+                <select class="common_select" data-list="countSortList"></select>
+            </div>
+        </div>
+
+        <div class="tableResponsive overflowMulti">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th rowspan="2" scope="col">신청번호</th>  <!--crsRqstSeq-->
+                    <th rowspan="2" scope="col">강의대분류</th> <!--crsCls1Nm-->
+                    <th rowspan="2" scope="col">강의소분류</th> <!--crsCls2Nm-->
+                    <th rowspan="2" scope="col">강의명</th> <!--crsNm-->
+                    <th rowspan="2" scope="col">강의기간</th> <!--crsFrmtoDt-->
+                    <th rowspan="2" scope="col">상태</th> <!--crsRqstStatNm-->
+                    <th rowspan="2" scope="col">수료일자</th> <!--cmpltDt2-->
+                    <th colspan="6" scope="col">신청자정보</th> <!--cmpltDt2-->
+                </tr>
+                <tr>
+                    <th scope="col">이름</th> <!--userNm-->
+                    <th scope="col">성별</th><!-genderNm--->
+                    <th scope="col">매체사명</th><!--mdiaNm-->
+                    <th scope="col">매체명</th><!--mdiaDNm-->
+                    <th scope="col">부서</th><!--deptNm-->
+                    <th scope="col">직급</th><!--mdiaDNm-->
+                </tr>
+                </thead>
+                <tbody id="forme_lechistory_list_wrap">
+                <tr>
+                    <td>번호</td>
+                    <td>작성자</td>
+                    <td>제출처</td>
+                    <td>년도</td>
+                    <td>사업명</td>
+                    <td>차수</td>
+                    <td>수행기관</td>
+                    <td>강의기간</td>
+                    <td>강의시간</td>
+                    <td>언택트 강의 포함유무</td>
+                    <td>년월</td>
+                    <td>승인</td>
+                    <td>작성일</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="bl_paginate"></div>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+
+
+            function searchUser(){
+                let searchQuery = {}
+                $("tbody.search input[type=text]").each((index, item)=>{
+                    if(item.value !=""){
+                        searchQuery[$(item).attr("id")] = item.value;
+                    }
+                })
+
+                searchJson(searchQuery)
+
+            }
+
+            /* <![CDATA[ */
+            let CONT =  [[ ${content} ]];
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+                pagination([[ ${pageable} ]]);
+                initialEdu2020()
+            }
+            /* ]]> */
+            function initialEdu2020() {
+                function getFormeEdu2020HistoryList() {
+                    if (CONT) formeLecHistoryListMakeItem(CONT);
+                }
+
+                function formeLecHistoryListMakeItem(list) {
+                    let frag = $(document.createDocumentFragment());
+                    list.forEach(function (item) {
+                        let wrDate = moment(item.blciRegDttm).format("YYYY-MM-DD");
+                        let YYYYMM = moment(item.blciYymm + "01").format("YYYY년 MM월");
+                        let tr = $(`
+                    <tr>
+                        <td>${ctsUtil.checkNull(item.crsNo, '')}</td>
+                        <td>${ctsUtil.checkNull(item.crsCls1Nm, '')}</td>
+                        <td>${ctsUtil.checkNull(item.crsCls2Nm, '')}</td>
+                        <td>${ctsUtil.checkNull(item.crsNm, '')}</td>
+                        <td>${ctsUtil.checkNull(item.crsFrmtoDt, '')}</td>
+                        <td>${ctsUtil.checkNull(item.crsRqstStatNm, '')}</td>
+                        <td>${ctsUtil.checkNull(item.cmpltDt2, '')}</td>
+                        <td>${ctsUtil.checkNull(item.userNm, '')}</td>
+                        <td>${ctsUtil.checkNull(item.genderNm, '')}</td>
+                        <td>${ctsUtil.checkNull(item.mdiaNm,'')}</td>
+                        <td>${ctsUtil.checkNull(item.mdiaDNm,'')}</td>
+                        <td>${ctsUtil.checkNull(item.deptNm,'')}</td>
+                        <td>${ctsUtil.checkNull(item.dutyNm,'')}</td>
+                    </tr>
+                    `);
+                        tr.click(function (e) {
+                            tr.addClass("active").siblings().removeClass("active");
+                        });
+                        frag.append(tr);
+                    });
+                    if( !list.length ){
+                        let tr = $(`<tr><td class="text-center" colspan="13">수강이력이 없습니다.</td></tr>`);
+                        frag.html(tr);
+                    }
+                    $('#forme_lechistory_list_wrap').empty().append(frag);
+                }
+
+                getFormeEdu2020HistoryList();
+            }
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

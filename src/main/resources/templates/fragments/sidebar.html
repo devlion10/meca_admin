@@ -1,0 +1,48 @@
+<div th:fragment="sidebar" class="col-lg-2 d-md-block sidebar collapse flex-shrink-0 bg-light">
+    <div class="position-sticky pt-3 sidebar-sticky list-unstyled ps-0">
+        <ul class="gnb-sidebar px-2">
+
+
+            <th:block th:each="item, stat:${#authentication.principal.accessMenuList}">
+                <li class="mb-1" th:if="${item.isUsable} == true" th:attr="data-seqmenu=${item.sequenceNo}">
+                    <th:block th:if="${item.subAdminMenu.size > 0}">
+                        <button th:text="${item.menuName}" th:attr="data-bs-target=${'#menu_'+item.sequenceNo}" class="btn btn-toggle d-inline-flex align-items-center rounded border-0 collapsed" data-bs-toggle="collapse" aria-expanded="false"></button>
+                        <div class="collapse" th:id="${'menu_'+item.sequenceNo}" th:attr="data-menuwrap=${item.sequenceNo}">
+                            <ul class="btn-toggle-nav list-unstyled fw-normal pb-1">
+                                <th:block th:each="subItem, stat:${item.subAdminMenu}">
+                                    <li th:if="${subItem.isUsable == true && subItem.uri != '/Contents'}" th:attr="data-seqmenu=${subItem.sequenceNo}">
+                                        <th:block th:if="${subItem.subAdminMenu.size > 0}">
+                                            <a
+                                                    th:attr="data-bs-target=${'#menu_'+subItem.sequenceNo}, data-parentseq=${subItem.topSequenceNo}"
+                                                    th:text="${subItem.menuName}"
+                                                    href="#"
+                                                    class="d-inline-flex text-decoration-none rounded btn-toggle d-inline-flex align-items-center rounded border-0" data-bs-toggle="collapse" data-bs-target="#user-sub1-collapse" aria-expanded="false" style="margin-left: 2.5px">
+                                            </a>
+                                            <ul th:id="${'menu_'+subItem.sequenceNo}" th:if="${subItem.subAdminMenu.size > 0}" class="btn-toggle-nav list-unstyled fw-normal pb-1 collapse ps-3">
+                                                <th:block th:each="thirdItem, stat:${subItem.subAdminMenu}">
+                                                    <li>
+                                                        <a
+                                                            th:href="${thirdItem.uri}"
+                                                            th:text="${thirdItem.menuName}"
+                                                            th:attr="data-seq=${thirdItem.sequenceNo}, data-parentseq=${thirdItem.topSequenceNo}"
+                                                            class="d-inline-flex text-decoration-none rounded ms-3 small"></a>
+                                                    </li>
+                                                </th:block>
+                                            </ul>
+                                        </th:block>
+                                        <th:block th:unless="${subItem.subAdminMenu.size > 0}">
+                                            <a th:attr="data-parentseq=${subItem.topSequenceNo}" th:href="${subItem.uri}" th:text="${subItem.menuName}" class="d-inline-flex text-decoration-none rounded"></a>
+                                        </th:block>
+                                    </li>
+                                </th:block>
+                            </ul>
+                        </div>
+                    </th:block>
+                    <th:block th:unless="${item.subAdminMenu.size > 0}">
+                        <a th:text="${item.menuName}" th:href="${item.uri}" class="btn btn-toggle d-inline-flex align-items-center rounded border-0 collapsed"></a>
+                    </th:block>
+                </li>
+            </th:block>
+        </ul>
+    </div>
+</div>

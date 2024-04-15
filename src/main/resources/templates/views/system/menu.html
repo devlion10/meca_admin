@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="system-1">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>메뉴 관리</h2>
+        </div>
+
+        <div class="d-flex justify-content-between">
+            <!-- 메뉴 구조 트리 -->
+            <div class="contents_lft">
+                <div id="jsTree"></div>
+            </div>
+
+            <div class="contents_rgt">
+                <div class="tableLeftResponsive">
+                    <table class="tableLeft">
+                        <colgroup>
+                            <col style="width: 200px">
+                            <col style="width: auto">
+                        </colgroup>
+                        <tbody>
+                            <tr>
+                                <th scope="row">메뉴코드</th>
+                                <td>
+                                    <input type="hidden" id="depth">
+                                    <input type="hidden" id="topSequenceNo">
+                                    <input type="hidden" id="menuFullName">
+                                    <input type="text" id="sequenceNo" class="hp_w600" disabled>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row">상위메뉴</th>
+                                <td>
+                                    <input type="text" id="parentMenu" class="hp_w600" value="-" disabled>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row">메뉴명</th>
+                                <td>
+                                    <input type="text" id="menuName" class="hp_w600">
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row">URL</th>
+                                <td>
+                                    <input type="text" id="uri" class="hp_w600">
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row">순서</th>
+                                <td>
+                                    <input type="text" id="sort" class="hp_w600">
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row">상태</th>
+                                <td>
+                                    <select id="isUsable" class="common_select">
+                                        <option>선택</option>
+                                        <option value="true">Y</option>
+                                        <option value="false">N</option>
+                                    </select>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="bl_gridBtns">
+                    <div class="bl_gridBtns_lft">
+                        <div class="btn btnDefault btnDelete" onclick="del($('#sequenceNo').val())" disabled>삭제</div>
+                    </div>
+                    <div class="bl_gridBtns_rgt">
+                        <div id="subRegisterBtn" class="btn btnDefault" onclick="dataReset($('#depth').val(), $('#sequenceNo').val(), $('#menuFullName').val(), $('#menuName').val())">하위등록</div>
+                        <div id="updateBtn" class="btn btnDefault" onclick="update()" disabled>저장</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            /* <![CDATA[ */
+            const CONT = [[ ${content} ]];
+            let resData = [];
+
+            function makeData(){
+                for(let i=0; i<CONT.length; i++){
+                    let tempObj = {};
+                    tempObj.sequenceNo = CONT[i].sequenceNo; //메뉴코드
+                    tempObj.menuFullName = CONT[i].menuFullName; //상위메뉴
+                    tempObj.text = CONT[i].menuName; //메뉴명
+                    tempObj.uri = CONT[i].uri; //url
+                    tempObj.sort = CONT[i].sort; //순서
+                    tempObj.isUsable = CONT[i].isUsable; //상태
+                    tempObj.depth = CONT[i].depth; //depth
+
+                    //children
+                    function makeChildren(PARENT, PARENTOBJ) {
+                        if(PARENT.subAdminMenu.length > 0) {
+                            PARENTOBJ.children = [];
+                            
+                            for (let j = 0; j < PARENT.subAdminMenu.length; j++) {
+                                let tempObjChildren = {};
+                                tempObjChildren.topSequenceNo = PARENT.subAdminMenu[j].topSequenceNo;
+                                tempObjChildren.sequenceNo = PARENT.subAdminMenu[j].sequenceNo;
+                                tempObjChildren.menuFullName = PARENT.subAdminMenu[j].menuFullName;
+                                tempObjChildren.text = PARENT.subAdminMenu[j].menuName;
+                                tempObjChildren.uri = PARENT.subAdminMenu[j].uri;
+                                tempObjChildren.sort = PARENT.subAdminMenu[j].sort;
+                                tempObjChildren.isUsable = PARENT.subAdminMenu[j].isUsable;
+                                tempObjChildren.depth = PARENT.subAdminMenu[j].codeDepth;
+                                if (PARENT.subAdminMenu[j].subAdminMenu.length > 0) {
+                                    makeChildren(PARENT.subAdminMenu[j], tempObjChildren);
+                                }
+                                PARENTOBJ.children.push(tempObjChildren);
+                            }
+                        }
+                    }
+                    makeChildren(CONT[i], tempObj)
+                    resData.push(tempObj);
+                }
+            }
+            makeData();
+
+            //상위메뉴 데이터 filter
+            const filterNested = (data, key, value) => {
+                let result = [];
+                data.forEach(obj => {
+                    if (obj[key] === value) {
+                        result.push(obj);
+                    } else if (typeof obj === 'object' && obj !== null) {
+                        for (let nestedKey in obj) {
+                            if (obj.hasOwnProperty(nestedKey)) {
+                                if (typeof obj[nestedKey] === 'object' && obj[nestedKey] !== null) {
+                                    const nestedResult = filterNested(obj[nestedKey], key, value);
+                                    if (nestedResult.length > 0) {
+                                        result = result.concat(nestedResult);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+                return result;
+            };
+
+            //menuFullName 생성 - 선택한 노드에서 루트 노드까지 트리를 순회하는 재귀 함수
+            function getMenuFullName(instance, node, menuName) {
+                if (node.parent == "#") {
+                    return menuName;
+                } else {
+                    var parentMenuName = node.original.text;
+                    return getMenuFullName(instance, instance.get_node(instance.get_parent(node)), parentMenuName + ' > ' + menuName);
+                }
+            }
+
+            let $tree1 = $('#jsTree');
+            // 클릭 이벤트(렌더링)
+            $tree1.bind('select_node.jstree', function(event, data){
+                if (data.instance.get_node(data.selected).parent != "#") {
+                    var topSequenceNo = data.instance.get_node(data.selected).original.topSequenceNo;
+                    var sequenceNo = data.instance.get_node(data.selected).original.sequenceNo;
+                    var menuFullName = data.instance.get_node(data.selected).original.menuFullName;
+                    var menuName = data.instance.get_node(data.selected).original.text;
+                    var uri = data.instance.get_node(data.selected).original.uri;
+                    var sort = data.instance.get_node(data.selected).original.sort;
+                    var isUsable = data.instance.get_node(data.selected).original.isUsable;
+                    var depth = data.instance.get_node(data.selected).original.depth;
+                    var parentNode = data.instance.get_node(data.instance.get_parent(data.selected));
+
+                    if (depth == undefined) {
+                        $('#depth').val(parentNode.original.depth + 1);
+                    } else {
+                        $('#depth').val(depth);
+                    }
+                    $('#topSequenceNo').val(topSequenceNo);
+                    var fullMenuName = getMenuFullName(data.instance, parentNode, menuName);
+                    $('#menuFullName').val(fullMenuName);
+                    
+                    $('#sequenceNo').val(sequenceNo);
+                    if (depth == 0) { //1 depth
+                        $('#parentMenu').val('-');
+                    } else { //2 depth ~
+                        const filteredData = filterNested(CONT, 'sequenceNo', parentNode.original.sequenceNo)[0];
+                        $('#parentMenu').val(filteredData.menuName);
+                    }
+                    $('#menuName').val(menuName);
+                    $('#uri').val(uri);
+                    $('#sort').val(sort);
+                    $('#isUsable').val(isUsable.toString());
+
+                    $('.btnDelete').attr('disabled', false); //삭제 버튼 활성화
+                    $('#updateBtn').attr('disabled', false); //저장 버튼 활성화
+                } else {
+                    //hidden
+                    $('#depth').val('');
+                    $('#topSequenceNo').val('');
+                    $('#menuFullName').val('');
+                    
+                    $('#sequenceNo').val('');
+                    $('#parentMenu').val('-');
+                    $('#menuName').val('메뉴 관리');
+                    $('#uri').val('');
+                    $('#sort').val('');
+                    $('#isUsable').val('선택');
+
+                    $('.btnDelete').attr('disabled', true); //삭제 버튼 비활성화
+                    $('#updateBtn').attr('disabled', true); //저장 버튼 비활성화
+                }
+
+                $('#subRegisterBtn').attr('disabled', false); //하위등록 버튼 활성화
+                $('#uri').attr('disabled', false); //url 활성화
+
+                // 초기화
+                createFlag = false;
+            })
+
+            .jstree({
+                "json_data": {},
+                "plugins": ["json_data", "dnd"],
+                "core": {
+                    "themes": {"icons": true, "dots": true, "stripes" : true},
+                    "check_callback": true, "multiple": true,
+                    "data": [
+                        {
+                            'text': '메뉴 관리',
+                            'state': {
+                                'opened': true,
+                                'selected': true
+                            },
+                            'children': resData
+                        }
+                    ]
+                },
+                "dnd": {
+                    check_while_dragging: true
+                }
+            });
+
+            // 생성/업데이트
+            let createFlag = false;
+            function update() {
+                let params = getFormData();
+                if (createFlag) { // 생성
+                    $.ajax({
+                        type: "post", //http method
+                        url: "/api/system/menu/create", //값을 가져올 경로
+                        headers: {'Content-Type': 'application/json'},
+                        data: JSON.stringify(params),
+                        dataType: "json",
+                        success: function(data) {
+                            window.location.reload();
+                            createFlag = false;
+                            alert("생성이 완료되었습니다. 관리시스템 권한을 확인해주세요.")
+                        },
+                        error: function(data) {
+                            if(data && data.responseJSON && data.responseJSON.resultMessage){
+                                if (data.responseJSON.verboseMessage) {
+                                    alert(data.responseJSON.verboseMessage);
+                                } else {
+                                    alert(data.responseJSON.resultMessage);
+                                }
+                            }
+                        }
+                    })
+                } else { //업데이트
+                    $.ajax({
+                        type: "put", //http method
+                        url: "/api/system/menu/update", //값을 가져올 경로
+                        headers: {'Content-Type': 'application/json'},
+                        data: JSON.stringify(params),
+                        dataType: "json",
+                        success: function(data) {
+                            window.location.reload();
+                            alert("수정이 완료되었습니다. 관리시스템 권한을 확인해주세요.")
+                        },
+                        error: function(data) {
+                            if(data && data.responseJSON && data.responseJSON.resultMessage){
+                                if (data.responseJSON.verboseMessage) {
+                                    alert(data.responseJSON.verboseMessage);
+                                } else {
+                                    alert(data.responseJSON.resultMessage);
+                                }
+                            }
+                        }
+                    })
+                }
+            }
+
+            // 삭제
+            function del(seqNo) {
+                $.ajax({
+                    type: "post", //http method
+                    url: "/api/system/menu/delete/"+seqNo, //값을 가져올 경로
+                    headers: {'Content-Type': 'application/json'},
+                    success: function(data) {
+                        window.location.reload();
+                    },
+                    error: function(e) { }
+                })
+            }
+
+            // 하위등록 버튼 클릭시 데이터 리셋
+            function dataReset(depth, sequenceNo, menuFullName, menuName) {
+                $('#depth').val(Number(depth)+1);
+                $('#topSequenceNo').val(Number(sequenceNo));
+                $('#menuFullName').val(menuFullName);
+                $('#sequenceNo').val('');
+                $('#parentMenu').val(menuName);
+                $('#menuName').val('');
+                $('#uri').val('');
+                $('#sort').val('');
+                $('#isUsable').val('선택');
+
+                $('#subRegisterBtn').attr('disabled', true); //하위등록 버튼 비활성화
+                $('.btnDelete').attr('disabled', true); //삭제 버튼 비활성화
+                $('#updateBtn').attr('disabled', false); //저장 버튼 활성화
+                //최상위 메뉴일 때 - url 비활성화
+                if (depth == '') {
+                    $('#uri').attr('disabled', true);
+                } else {
+                    $('#uri').attr('disabled', false);
+                }
+
+                createFlag = true;
+            }
+
+            function getFormData() {
+                let params = {};
+                
+                if ($('#isUsable').val() == '선택') {
+                    alert('상태값을 선택해주세요.');
+                    return;
+                }
+
+                if ($('#parentMenu').val() == '메뉴 관리') {
+                    // 1. 최상위 메뉴
+                    params.depth = 0;
+                    params.isUsable = $('#isUsable').val() === "true";
+                    params.menuName = $('#menuName').val();
+                    params.sort = Number($('#sort').val());
+                } else {
+                    // 2. 하위 메뉴
+                    if ($('#sequenceNo').val() != '') {
+                        params.sequenceNo = Number($('#sequenceNo').val());
+                    }
+                    params.depth = Number($('#depth').val());
+                    params.isUsable = $('#isUsable').val() === "true";
+                    params.menuFullName = $('#menuFullName').val() + ' > ' + $('#menuName').val();
+                    params.menuName = $('#menuName').val();
+                    params.sort = Number($('#sort').val());
+                    params.topSequenceNo = Number($('#topSequenceNo').val());
+                    params.uri = $('#uri').val();
+                }
+                return params;
+            }
+
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+            }
+            /* ]]> */
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

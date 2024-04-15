@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="user-4">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>기관 관리</h2>
+        </div>
+
+        <div class="tableLeftResponsive">
+            <table class="tableLeft">
+                <colgroup>
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                </colgroup>
+                <tbody>
+                    <tr>
+                        <th scope="row">구분</th>
+                        <td colspan="3">
+                            <select id="organizationType" class="common_select">
+                                <option value="0">전체</option>
+                                <option value="1">매체사</option>
+                                <option value="2">기관</option>
+                                <option value="3">학교</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">기관</th>
+                        <td>
+                            <input id="organizationName" type="text">
+                        </td>
+                        <th scope="row">사업자등록번호</th>
+                        <td>
+                            <input id="bizLicenseNumber"  type="text">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">상태</th>
+                        <td colspan="3">
+                            <div class="radio_box">
+                                <input id="state_all" type="radio" name="isUsable" checked="">
+                                <label for="state_all">
+                                    <span></span>
+                                    전체
+                                </label>
+                            </div>
+                            <div class="radio_box">
+                                <input id="state_use" type="radio" name="isUsable" value="true">
+                                <label for="state_use">
+                                    <span></span>
+                                    사용
+                                </label>
+                            </div>
+                            <div class="radio_box">
+                                <input id="state_n_use" type="radio" name="isUsable" value="false">
+                                <label for="state_n_use">
+                                    <span></span>
+                                    사용안함
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- GRID : BUTTON -->
+        <div class="bl_gridBtns">
+            <div class="bl_gridBtns_md">
+                <div class="btn btnDefault btnReset">리셋</div>
+                <a class="btn btnDefault btnSearch" th:onclick="searchOrg()">검색</a>
+                <a class="btn btnDefault download_excel download_search" href="/api/user/organization/excel">excel 다운로드</a>
+                <a class="btn btnDefault btnRegister" href="/user/organization/">등록</a>
+            </div>
+        </div>
+
+        <!-- BOARD : CONTROLLER -->
+        <div class="bl_boardCtrls">
+            <div class="bl_boardCtrls_lft">
+                <p class="bl_boardCtrls_total">
+                     총: <strong th:text="${pageable.totalElements}"></strong>건
+                </p>
+            </div>
+            <div class="bl_boardCtrls_rgt">
+                <select class="common_select" data-list="countSortList"></select>
+            </div>
+        </div>
+
+        <div class="tableResponsive overflowMulti">
+            <table class="table">
+                <colgroup>
+                    <col style="width: 50px">
+                    <col>
+                    <col>
+                    <col>
+                    <col>
+                    <col>
+                    <col>
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th scope="col">번호</th>
+                        <th scope="col">구분</th>
+                        <th scope="col">기관명</th>
+                        <th scope="col">사업자번호</th>
+                        <th scope="col">대표번호</th>
+                        <th scope="col">주소</th>
+                        <th scope="col">상태</th>
+                    </tr>
+                </thead>
+                <tbody th:if="${content != null && content.size > 0}">
+                    <tr th:each="item,stat:${content}">
+                        <td th:text="${pageable.totalElements - ((pageable.page * pageable.size) + stat.index)}"></td>
+                        <td>
+                            <span th:if="${item.organizationType == '1'}">매체사</span>
+                            <span th:if="${item.organizationType == '2'}">기관</span>
+                            <span th:if="${item.organizationType == '3'}">학교</span>
+                        </td>
+                        <td>
+                            <a th:href="@{/user/organization/{id}(id=${item.organizationCode})}" th:text="${item.organizationName}">기관명</a>
+                        </td>
+                        <td th:text="${item.bizLicenseNumber}">000-00-0000</td>
+                        <td th:text="${item.organizationTelNumber}">070-0000-0000</td>
+                        <td><span th:text="${item.organizationAddress1}"></span><span th:text="${item.organizationAddress2}"></span></td>
+                        <td>
+                            <span class="color_blue" th:if="${item.isUsable}">사용</span>
+                            <span class="color_red" th:unless="${item.isUsable}">사용안함</span>
+                        </td>
+                    </tr>
+                </tbody>
+                <tbody th:unless="${content != null && content.size > 0}">
+                <tr class="empty_data"><td colspan="7">조회된 내용이 없습니다.</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="bl_paginate"></div>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+
+            function searchOrg(){
+                let searchQuery = {}
+                let code = $("#bizLicenseNumber").val();
+                let name = $("#organizationName").val();
+                let type = $("#organizationType option:selected").val();
+                let state = $('input:radio[name=isUsable]:checked').attr("value")=="true"?'true':$('input:radio[name=isUsable]:checked').attr("value")=="false"?'false':null;
+                if(code){
+                    searchQuery.bizLicenseNumber = code
+                }
+                if(name){
+                    searchQuery.organizationName = name
+                }
+                if(type && type!="0"){
+                    searchQuery.organizationType = type
+                }
+                if(state){
+                    searchQuery.isUsable = state
+                }
+                searchJson(searchQuery)
+            }
+            /* <![CDATA[ */
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+                pagination([[ ${pageable} ]])
+            }
+            /* ]]> */
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

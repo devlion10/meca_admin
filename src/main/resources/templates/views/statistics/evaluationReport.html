@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="statistics-7" style="padding:0px !important;">
+    <div sec:authorize="isAuthenticated()" class="px-md-4">
+        <script th:src="@{/app/jspreadsheet/jsuites.js}"></script>
+        <script th:src="@{/app/jspreadsheet/jexcel.js}"></script>
+        <link rel="stylesheet" th:href="@{/app/jspreadsheet/jexcel.css}" type="text/css" />
+        <link rel="stylesheet" th:href="@{/app/jspreadsheet/jsuites.css}" type="text/css" />
+        <style>
+            .bl_tab2.js_tab.fullscreen{
+                position: fixed;
+                z-index: 9999;
+                top: 0px;
+                right: 0px;
+                left: 0px;
+                bottom: 0px;
+                background: #fff;
+                padding: 20px 20px;
+            }
+
+            .bl_tab2.js_tab.fullscreen .exec-table{
+                min-height: calc(100vh - 130px) !important;
+            }
+            .bl_tab2.js_tab.fullscreen .exec-table .jexcel_content{
+                height: calc(100vh - 135px) !important;
+                max-height: calc(100vh - 135px) !important;
+            }
+
+            .exec-table{
+                width:100%;
+                min-height: calc(100vh - 355px) !important;
+            }
+            .exec-table .jexcel{font-size:13px; font-family: initial;}
+            .exec-table .jexcel_content{padding:0px;}
+            .exec-table .jexcel_filter{
+                margin-bottom: 0px;
+                border-bottom: 2px solid #ccc;
+            }
+            .exec-table .jexcel_filter > div{
+                padding:2px;
+                display: flex;
+                justify-content: center;
+            }
+            .exec-table .jexcel_filter > div .jexcel_pagination_dropdown{
+                margin: 0 5px;
+                text-align: center;
+                padding: 0 5px;
+            }
+            .exec-table .jexcel_content{
+                width:100%;
+                height: calc(100vh - 345px) !important;
+                max-height: calc(100vh - 345px) !important;
+            }
+            .exec-table .jexcel_content > table thead{position: sticky;top: 0;z-index: 2;}
+            .exec-table .jexcel_content > table thead > tr td{position: static;}
+            .exec-table .jexcel > tbody > tr > td.readonly{color:inherit;}
+            .exec-table thead.resizable td{ background-color: #e8f2fc; font-weight: bold; color: var(--bs-table-color);}
+
+            .exec-table.isloading{
+                border: 1px solid #eaeaea;
+            }
+            .exec-table.isloading:before{
+                content: '데이터를 불러오고 있습니다.\A데이터양이 많아 최대 5분이 걸릴 수 있습니다.';
+                white-space:pre;
+                text-align: center;
+                box-sizing: border-box;
+                position: absolute;
+                top: calc(50% + 50px);
+                left: 50%;
+                transform : translate(-50%, -50%);
+            }
+            .exec-table.isloading:after{
+                content: '';
+                box-sizing: border-box;
+                position: absolute;
+                top: calc(50% - 80px);
+                left: calc(50% - 50px);
+                width: 100px;
+                height: 100px;
+                border-radius: 50%;
+                border: 4px solid #ccc;
+                border-top-color: #07d;
+                animation: exec-table-spinner .6s linear infinite;
+            }
+
+            @keyframes exec-table-spinner {
+                to {transform: rotate(360deg);}
+            }
+        </style>
+        <div class="title">
+            <h2>경영평가 보고서</h2>
+        </div>
+
+        <div class="tableLeftResponsive">
+            <table class="tableLeft">
+                <colgroup>
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                </colgroup>
+                <tbody>
+                    <tr>
+                        <th scope="row">조회연도</th>
+                        <td>
+                            <select class="common_select" data-list="yearList" id="year" onchange="changePeriod(this.value)"></select>
+                        </td>
+                        <th scope="row">조회기간</th>
+                        <td>
+                            <div class="bl_dateRange">
+                                <input type="text" class="el_datePicker sdate" id="startDate">
+                                <span class="blank">~</span>
+                                <input type="text" class="el_datePicker edate" id="endDate">
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">지사</th>
+                        <td>
+                            <select id="province" class="common_select">
+                                <option value="" th:selected="${true}">전체</option>
+                                <th:block th:each="commonCode : ${commonCode}" th:if="${commonCode.code} == 'PROVINCE_CD'" >
+                                    <option th:each="provinces : ${commonCode.subCode}" th:value="${provinces.code}"
+                                            th:text="${provinces.codeName}" th:selected="${false}"></option>
+                                </th:block>
+                            </select>
+                        </td>
+                        <th scope="row">구분/유형</th>
+                        <td>
+                            <select id="category" class="common_select">
+                                <option value="" th:selected="${true}">교육 구분</option>
+                                <th:block th:each="commonCode : ${commonCode}" th:if="${commonCode.code} == 'CTS_CTGR'" >
+                                    <option th:each="categories : ${commonCode.subCode}" th:value="${categories.code}"
+                                            th:text="${categories.codeName}" th:selected="${false}"></option>
+                                </th:block>
+                            </select>
+                            <select id="eduType" class="common_select">
+                                <option value="" th:selected="${true}">교육 유형</option>
+                                <th:block th:each="commonCode : ${commonCode}" th:if="${commonCode.code} == 'EDU_TYPE'" >
+                                    <option th:each="types : ${commonCode.subCode}" th:value="${types.code}"
+                                            th:text="${types.codeName}" th:selected="${false}" th:if="${types.code != '4'}"></option>
+                                </th:block>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr class="userInfo">
+                        <th scope="row">이름</th>
+                        <td>
+                            <input type="text" class="hp_w200" id="userName">
+                        </td>
+                        <th scope="row">매체명</th>
+                        <td>
+                            <input type="text" class="hp_w200" id="orgName">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">과정명</th>
+                        <td>
+                            <input type="text" class="hp_w600" id="cName">
+                        </td>
+                        <th scope="row">담당자</th>
+                        <td>
+                            <input type="text" class="hp_w600" id="managerName">
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="bl_gridBtns">
+            <div class="bl_gridBtns_md">
+                <div class="btn btnDefault btnReset">리셋</div>
+                <a onclick="searchContent()" class="btn btnDefault btnSearch">검색</a>
+            </div>
+        </div>
+
+        <div id="content-wrapper" class="bl_tab2 js_tab">
+            <span class="guide_text">확인이 필요한 탭 클릭 혹은 검색을 진행해주세요</span>
+            <ul class="bl_tab2_menu js_tab_menu" style="margin-bottom:15px;">
+                <li>
+                    <a href="#none" data-education="education">총괄표</a>
+                </li>
+                <li>
+                    <a href="#none" data-education="schedule">과정별</a>
+                </li>
+                <li>
+                    <a href="#none" data-education="user">교육명단</a>
+                </li>
+            </ul>
+    
+            <div class="bl_tab2_body js_tab_contents">
+                <div class="bl_tab2_item js_tab_item">
+                    <div class="bl_boardCtrls">
+                        <div class="bl_boardCtrls_lft"></div>
+                        <div class="bl_boardCtrls_rgt">
+                            <div class="btn btnDefault download_search" onclick="ctsReportController.educationService.call()">새로고침</div>
+                            <div class="btn btnDefault download_excel download_search" onclick="ctsReportController.common.exportToCsv('education')">excel 다운로드</div>
+                        </div>
+                    </div>
+                    <div id="exec-table-education" class="exec-table education"></div>
+                </div>
+    
+                <!-- 차시별 -->
+                <div class="bl_tab2_item js_tab_item">
+                    <div class="bl_boardCtrls">
+                        <div class="bl_boardCtrls_lft"></div>
+                        <div class="bl_boardCtrls_rgt">
+                            <div class="btn btnDefault download_search" onclick="ctsReportController.scheduleService.call()">새로고침</div>
+                            <div class="btn btnDefault download_excel download_search" onclick="ctsReportController.common.exportToCsv('schedule')">excel 다운로드</div>
+                        </div>
+                    </div>
+                    <div id="exec-table-schedule" class="exec-table schedule"></div>
+                </div>
+    
+                <!-- 사용자별 -->
+                <div class="bl_tab2_item js_tab_item">
+                    <div class="bl_boardCtrls">
+                        <div class="bl_boardCtrls_lft"></div>
+                        <div class="bl_boardCtrls_rgt">
+                            <div class="btn btnDefault download_search" onclick="ctsReportController.userService.call()">새로고침</div>
+                            <div class="btn btnDefault download_excel download_search" onclick="ctsReportController.common.exportToCsv('user')">excel 다운로드</div>
+                        </div>
+                    </div>
+                    <div id="exec-table-user" class="exec-table user"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            function searchContent() {
+                let searchQuery = {}
+                let year = $("#year").val();
+                let startDate = $("#startDate").val();
+                let endDate = $("#endDate").val();
+                let province = $("#province").val();
+                let category = $("#category").val();
+                let type = $("#eduType").val();
+                let userName = $("#userName").val();
+                let orgName = $("#orgName").val();
+                let cName = $("#cName").val();
+                let mName = $("#managerName").val();
+
+                if (startDate && endDate) {
+                    searchQuery.startDate = startDate;
+                    searchQuery.endDate = endDate;
+                }
+                if(province){
+                    searchQuery.province = province;
+                }
+                if(category){
+                    searchQuery.category = category;
+                }
+                if(type){
+                    searchQuery.type = type;
+                }
+                if(userName){
+                    searchQuery.userName = userName;
+                }
+                if(orgName){
+                    searchQuery.orgName = orgName;
+                }
+                if(cName){
+                    searchQuery.cName = cName;
+                }
+                if(mName){
+                    searchQuery.mName = mName;
+                }
+
+                searchQuery.year = year;
+                if(Object.keys(searchQuery).length > 0){
+                    let query = Object.entries(searchQuery).map(e => e.join('=')).join('&');
+
+                    let val = ctsReportController.mode
+                    if (val == 'schedule') {
+                        var parent = document.getElementById(ctsReportController.scheduleService.elm.id)
+                        parent.innerHTML = "";
+                        return ctsReportController.scheduleService.loadData(query)
+                    } else if (val == 'user') {
+                        var parent = document.getElementById(ctsReportController.userService.elm.id)
+                        parent.innerHTML = "";
+                        return ctsReportController.userService.loadData(query)
+                    } else {
+                        $("[data-education=education]").parent().addClass("is_active");
+                        var parent = document.getElementById(ctsReportController.educationService.elm.id)
+                        parent.innerHTML = "";
+                        return ctsReportController.educationService.loadData(query)
+                    }
+                } else {
+                    let val = ctsReportController.mode
+                    if (val == 'schedule') {
+                        var parent = document.getElementById(ctsReportController.scheduleService.elm.id)
+                        parent.innerHTML = "";
+                        return ctsReportController.scheduleService.loadData('year='+year)
+                    } else if (val == 'user') {
+                        var parent = document.getElementById(ctsReportController.userService.elm.id)
+                        parent.innerHTML = "";
+                        return ctsReportController.userService.loadData('year='+year)
+                    } else {
+                        $("[data-education=education]").parent().addClass("is_active");
+                        var parent = document.getElementById(ctsReportController.educationService.elm.id)
+                        parent.innerHTML = "";
+                        return ctsReportController.educationService.loadData('year='+year)
+                    }
+                }
+            }
+
+            let ctsReportController = (function(){
+                function setBindingEvent(){
+                    $("[data-education]").click(function(e){
+                        let val = $(this).data("education");
+                        // 초기데이터 상태이면 무조건 호출
+                        if( val && !ctsReportController[val+'Service'].dataset.length ) {
+                            ctsReportController[val+'Service'].call();
+                        }
+                        ctsReportController.mode = val;
+
+                        if (val == "user") {
+                            $('.userInfo').show();
+                        } else {
+                            $('.userInfo').hide();
+                        }
+                    });
+                }
+
+                return {
+                    instance : {
+                        education : null,
+                        user : null,
+                        schedule : null,
+                    },
+                    mode : '',
+                    setBindingEvent : setBindingEvent
+                }
+            })();
+
+
+            /**
+             * 공통 타입
+             * @type {{}}
+             */
+            ctsReportController.common = {};
+            ctsReportController.common.fullscrennToggle = function(){
+                $target = $("#content-wrapper");
+                if( $target.hasClass("fullscreen") ){
+                    $target.removeClass("fullscreen")
+                }else{
+                    $target.addClass("fullscreen")
+                }
+            }
+            ctsReportController.common.setSheetOption = function(obj){
+                return Object.assign({
+                    width : '100%',
+                    filters: true,
+                    tableOverflow: true,
+                    columnSorting: true,
+                    contextMenu: false,
+                },obj)
+            }
+            ctsReportController.common.exportToCsv = function(mode){
+                ctsReportController.instance[mode]?.download(true);
+            }
+            ctsReportController.common.setProvince = function(value){
+                let v = _.find( commonCode[0].subCode, {code : value});
+                return v ? v.codeName : '';
+            }
+            ctsReportController.common.setCategoryCode = function(value){
+                let v = _.find( commonCode[3].subCode, {code : value});
+                return v ? v.codeName : '';
+            }
+            ctsReportController.common.setEnforcementType = function(value){
+                return value == '1' ? '법인' : value == '2' ? '지발' : '';
+            }
+            ctsReportController.common.setGender = function(value){
+                return value == '1' ? '남' : value == '1' ? '여' : '';
+            }
+            ctsReportController.common.setEducationType = function(value){
+                return value == '1' ? '화상' : value == '2' ? '집합' : value == '3' ? '이러닝' : value == '4' ? '병행' : '-';
+            }
+            ctsReportController.common.loading = {
+                start : function(el){
+                    $(el).addClass("isloading");
+                },
+                stop : function(el){
+                    $(el).removeClass("isloading");
+                }
+            }
+
+            // 총괄표 Service
+            ctsReportController.educationService = {};
+            ctsReportController.educationService.prefix = 'education';
+            ctsReportController.educationService.elm = document.getElementById("exec-table-education");
+            ctsReportController.educationService.dataset = [];
+            ctsReportController.educationService.loadData = async function(query){
+                let param = ''
+                if (query && query.indexOf('=') >= 0) {
+                    param = '?'+query
+                } else {
+                    let year = $('#year').val()
+                    param = '?year='+year
+                }
+
+                let _self = this;
+                ctsReportController.common.loading.start(_self.elm);
+                await $.ajax({ //jquery ajax
+                    type:"get", //http method
+                    url:"/api/statistics/report/"+_self.prefix+param, //값을 가져올 경로
+                    dataType:"json", //html, xml, text, script, json, jsonp 등 다양하게 쓸 수 있음
+                    success: function(data) {   //요청 성공시 실행될 메서드
+                        _self.dataset = data;
+                        _self.generalData(data);
+                        _self.render();
+                        ctsReportController.common.loading.stop(_self.elm);
+                    },
+                    error: function(e){		 //요청 실패시 에러 확인을 위함
+                        ctsReportController.common.loading.stop(_self.elm);
+                    }
+                });
+            };
+            ctsReportController.educationService.generalData = function(origindata){
+                let _self = this;
+                let dataset = origindata.map(function(data) {
+                    let item = {};
+                    item.categoryNm = ctsReportController.common.setCategoryCode(data.categoryCode);
+                    item.educationType = ctsReportController.common.setEducationType(data.educationType);
+                    item.enforcementType = ctsReportController.common.setEnforcementType(data.enforcementType);
+                    item.managerDepartment = ctsReportController.common.setProvince(data.province);
+                    item.countEndUser = data.countEndUser;
+                    item.countUser = data.countUser;
+                    item.managerName = data.managerName;
+                    item.operationBeginDateTime = moment(data.operationBeginDateTime).format('YYYY-MM-DD');
+                    item.operationEndDateTime = moment(data.operationEndDateTime).format('YYYY-MM-DD');
+                    item.curriculumName = data.curriculumName;
+                    item.educationPlanCode = data.educationPlanCode;
+                    return item;
+                });
+                _self.dataset = dataset;
+                return dataset;
+            };
+            ctsReportController.educationService.render = function(dataset){
+                let _self = this;
+                let column = [
+                    {
+                        width:120,
+                        title: '유형',
+                        name : 'categoryNm',
+                        readOnly:true,
+                    },{
+                        width:120,
+                        title: '본/지사',
+                        name : 'managerDepartment',
+                        readOnly:true,
+                    },{
+                        width:70,
+                        title: '회계구분',
+                        name : 'enforcementType',
+                        readOnly:true,
+                    },{
+                        width:80,
+                        title: '담당자',
+                        name : 'managerName',
+                        readOnly:true,
+                    },{
+                        width: 300,
+                        title: '과정명',
+                        name : 'curriculumName',
+                        readOnly:true,
+                    },{
+                        width:100,
+                        title : '교육코드',
+                        name : 'educationPlanCode',
+                        readOnly:true,
+                    },{
+                        width:85,
+                        title : '강의형태',
+                        name : 'educationType',
+                        readOnly:true,
+                    },{
+                        width:85,
+                        title : '교육시작일',
+                        name : 'operationBeginDateTime',
+                        readOnly:true,
+                    },{
+                        width:85,
+                        title : '교육종료일',
+                        name : 'operationEndDateTime',
+                        readOnly:true,
+                    },{
+                        width:80,
+                        title: '수료인원',
+                        name : 'countEndUser',
+                        readOnly:true,
+                    },{
+                        width:80,
+                        title: '수강인원',
+                        name : 'countUser',
+                        readOnly:true,
+                    }
+                ];
+                ctsReportController.instance[_self.prefix] = jspreadsheet(_self.elm,ctsReportController.common.setSheetOption({
+                        data :  _self.dataset,
+                        columns : column,
+                    })
+                );
+            }
+            ctsReportController.educationService.call = function(){
+                let _self = this;
+                ctsReportController.instance[_self.prefix] && ctsReportController.instance[_self.prefix].destroy();
+                _self.elm = (_self.elm) ? _self.elm : document.getElementById("exec-table-"+_self.prefix);
+                _self.loadData();
+            }
+
+
+            // 과정별 Service
+            ctsReportController.scheduleService = {};
+            ctsReportController.scheduleService.prefix = 'schedule';
+            ctsReportController.scheduleService.elm = document.getElementById("exec-table-schedule");
+            ctsReportController.scheduleService.dataset = [];
+            ctsReportController.scheduleService.loadData = async function(query){
+                let param = ''
+                if (query && query.indexOf('=') >= 0) {
+                    param = '?'+query
+                } else {
+                    let year = $('#year').val()
+                    param = '?year='+year
+                }
+
+                let _self = this;
+                ctsReportController.common.loading.start(_self.elm);
+                await $.ajax({ //jquery ajax
+                    type:"get", //http method
+                    url:"/api/statistics/report/"+_self.prefix+param, //값을 가져올 경로
+                    dataType:"json", //html, xml, text, script, json, jsonp 등 다양하게 쓸 수 있음
+                    success: function(data) {   //요청 성공시 실행될 메서드
+                        _self.dataset = data;
+                        _self.generalData(data);
+                        _self.render();
+                        ctsReportController.common.loading.stop(_self.elm);
+                    },
+                    error: function(e){		 //요청 실패시 에러 확인을 위함
+                        ctsReportController.common.loading.stop(_self.elm);
+                    }
+                });
+            };
+            ctsReportController.scheduleService.generalData = function(origindata){
+                let _self = this;
+                let dataset = origindata.map(function(data){
+                    let item = {};
+                    item.categoryNm = ctsReportController.common.setCategoryCode(data.categoryCode);
+                    item.educationType = ctsReportController.common.setEducationType(data.educationType);
+
+                    item.countUser = data.countUser;
+                    item.curriculumName = data.curriculumName;
+                    item.managerName = data.managerName;
+                    item.eachTime = data.eachTime;
+
+                    item.eduType1Counter = data.educationType == '1' ? item.countUser : 0;
+                    item.eduType2Counter = data.educationType == '2' ? item.countUser : 0;
+                    item.lectureDate = data.lectureDate;
+                    item.lectureTime = data.lectureTime;
+                    item.lectureTitle = data.lectureTitle;
+                    item.operationBeginDateTime = moment(data.operationBeginDateTime).format('YYYY-MM-DD');
+                    item.operationEndDateTime = moment(data.operationEndDateTime).format('YYYY-MM-DD');
+                    item.totalTime = data.totalTime;
+                    item.instrNm = data.instrNm;
+                    item.orgName = data.orgName;
+                    return item;
+                });
+                _self.dataset = dataset;
+                return dataset;
+            };
+            ctsReportController.scheduleService.render = function(dataset){
+                let _self = this;
+                let column = [
+                    {
+                        width:120,
+                        title: '유형',
+                        name : 'categoryNm',
+                        readOnly:true,
+                    },{
+                        width:250,
+                        title: '교육과정명',
+                        name: 'curriculumName',
+                        filter: true,
+                        readOnly:true,
+                    },{
+                        width:85,
+                        title: '담당자',
+                        name: 'managerName',
+                        readOnly:true,
+                    },{
+                        width:85,
+                        title: '교육시작일',
+                        name: 'operationBeginDateTime',
+                        readOnly:true,
+                    },{
+                        width:85,
+                        title: '교육종료일',
+                        name: 'operationEndDateTime',
+                        readOnly:true,
+                    },{
+                        width:70,
+                        title: '합계(전체)',
+                        name: 'countUser',
+                        readOnly:true,
+                    },{
+                        width:70,
+                        title: '집합 인원수',
+                        name: 'eduType2Counter',
+                        readOnly:true,
+                    },{
+                        width:70,
+                        title: '화상 인원수',
+                        name: 'eduType1Counter',
+                        readOnly:true,
+                    },{
+                        width:80,
+                        title: '강의형태',
+                        name: 'educationType',
+                        readOnly:true,
+                    },{
+                        width:70,
+                        title: '총 시수',
+                        name: 'totalTime',
+                    },{
+                        width:85,
+                        title: '교육일자',
+                        name: 'lectureDate',
+                    },{
+                        width:85,
+                        title: '교육시간',
+                        name: 'lectureTime',
+                    },{
+                        width:70,
+                        title: '시수',
+                        name: 'eachTime',
+                    },{
+                        width:250,
+                        title: '강의명',
+                        name: 'lectureTitle',
+                    },{
+                        width:80,
+                        title: '강사',
+                        name: 'instrNm',
+                    },{
+                        width:120,
+                        title: '강사소속',
+                        name: 'orgName',
+                    }
+                ];
+                ctsReportController.instance[_self.prefix] = jspreadsheet(_self.elm,ctsReportController.common.setSheetOption({
+                        data :  _self.dataset,
+                        columns : column,
+                    })
+                );
+            }
+            ctsReportController.scheduleService.call = function(){
+                let _self = this;
+                ctsReportController.instance[_self.prefix] && ctsReportController.instance[_self.prefix].destroy();
+                _self.elm = (_self.elm) ? _self.elm : document.getElementById("exec-table-"+_self.prefix);
+                _self.loadData();
+            }
+
+
+            // 교육명단 Service
+            ctsReportController.userService = {};
+            ctsReportController.userService.prefix = 'user';
+            ctsReportController.userService.elm = document.getElementById("exec-table-user");
+            ctsReportController.userService.dataset = [];
+            ctsReportController.userService.loadData = async function(query){
+                let param = ''
+                if (query && query.indexOf('=') >= 0) {
+                    param = '?'+query
+                } else {
+                    let year = $('#year').val()
+                    param = '?year='+year
+                }
+
+                let _self = this;
+                ctsReportController.common.loading.start(_self.elm);
+                await $.ajax({ //jquery ajax
+                    type:"get", //http method
+                    url:"/api/statistics/report/"+_self.prefix+param, //값을 가져올 경로
+                    dataType:"json", //html, xml, text, script, json, jsonp 등 다양하게 쓸 수 있음
+                    success: function(data) {   //요청 성공시 실행될 메서드
+                        _self.dataset = data;
+                        _self.generalData(data);
+                        _self.render();
+                        ctsReportController.common.loading.stop(_self.elm);
+                    },
+                    error: function(e){		 //요청 실패시 에러 확인을 위함
+                        ctsReportController.common.loading.stop(_self.elm);
+                    }
+                });
+            };
+            ctsReportController.userService.generalData = function(origindata){
+                let _self = this;
+                let dataset = origindata.map(function(data){
+                    let item = {};
+                    item.gender = ctsReportController.common.setGender(data.gender);
+                    item.categoryNm = ctsReportController.common.setCategoryCode(data.categoryCode);
+                    item.enforcementType = ctsReportController.common.setEnforcementType(data.enforcementType);
+                    item.educationType = ctsReportController.common.setEducationType(data.educationType);
+                    item.operationBeginDateTime = moment(data.operationBeginDateTime).format('YYYY-MM-DD');
+                    item.operationEndDateTime = moment(data.operationEndDateTime).format('YYYY-MM-DD');
+                    item.managerDepartment = ctsReportController.common.setProvince(data.province);
+                    item.curriculumName = data.curriculumName;
+                    item.managerName = data.managerName;
+                    item.mediaName = data.mediaName;
+                    item.mediaClsName1 = data.mediaClsName1;
+                    item.mediaClsName2 = data.mediaClsName2;
+                    item.userName = data.userName;
+                    item.phone = data.phone;
+                    item.email = data.email;
+                    item.department = data.department;
+                    item.rank = data.rank;
+                    item.birthDay = moment(data.birthDay).format('YYYY-MM-DD');
+
+                    return item;
+                });
+                _self.dataset = dataset;
+                return dataset;
+            };
+            ctsReportController.userService.render = function(dataset){
+                let _self = this;
+                let column = [
+                    {
+                        width:100,
+                        title : '유형',
+                        name : 'categoryNm',
+                        readOnly:true
+                    },{
+                        width:70,
+                        title : '회계구분',
+                        name : 'enforcementType',
+                        readOnly:true
+                    },{
+                        width:120,
+                        title : '본/지사',
+                        name : 'managerDepartment',
+                        readOnly:true
+                    },
+                    {
+                        width:250,
+                        title : '과정명',
+                        name : 'curriculumName',
+                        readOnly:true
+                    },
+                    {
+                        width:85,
+                        title : '담당자',
+                        name : 'managerName',
+                        readOnly:true
+                    },{
+                        width:85,
+                        title : '교육시작일',
+                        name : 'operationBeginDateTime',
+                        readOnly:true,
+                        customRender : function(val){ return moment(val).format('YYYY-MM-DD') }
+                    },{
+                        width:85,
+                        title : '교육종료일',
+                        name : 'operationEndDateTime',
+                        readOnly:true,
+                        customRender : function(val){ return moment(val).format('YYYY-MM-DD') }
+                    },{
+                        width:130,
+                        title : '매체명',
+                        name : 'mediaName',
+                        readOnly:true, filter: true
+                    },{
+                        width:100,
+                        title : '매체구분1',
+                        name : 'mediaClsName1',
+                        readOnly:true, filter: true
+                    },{
+                        width:100,
+                        title : '매체구분2',
+                        name : 'mediaClsName2',
+                        readOnly:true, filter: true
+                    },{
+                        width:80,
+                        title : '성명',
+                        name : 'userName',
+                        readOnly:true
+                    },{
+                        width:70,
+                        title : '수강형태',
+                        name : 'educationType',
+                        readOnly:true, filter: true
+                    },{
+                        width:100,
+                        title : '핸드폰',
+                        name : 'phone',
+                        readOnly:true
+                    },{
+                        width:150,
+                        title : 'e-메일',
+                        name : 'email',
+                        readOnly:true
+                    },{
+                        width:100,
+                        title : '부서명',
+                        name : 'department',
+                        readOnly:true
+                    },{
+                        width:100,
+                        title : '직위',
+                        name : 'rank',
+                        readOnly:true
+                    },{
+                        width:100,
+                        title : '생년월일',
+                        name : 'birthDay',
+                        readOnly:true
+                    },{
+                        width:100,
+                        title : '성별',
+                        name : 'gender',
+                        readOnly:true, filter: true
+                    }
+                ];
+                ctsReportController.instance[_self.prefix] = jspreadsheet(_self.elm,ctsReportController.common.setSheetOption({
+                        data : _self.dataset,
+                        columns : column,
+                    })
+                );
+            }
+            ctsReportController.userService.call = function(){
+                let _self = this;
+                ctsReportController.instance[_self.prefix] && ctsReportController.instance[_self.prefix].destroy();
+                _self.elm = (_self.elm) ? _self.elm : document.getElementById("exec-table-"+_self.prefix);
+                _self.loadData();
+            }
+
+
+
+            let commonCode = [];
+            function onLoadSubmit() {
+                commonCode = [[ ${commonCode} ]];
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+
+                $("[data-education=education]").parent().removeClass("is_active");
+                $('.userInfo').hide();
+                let startDate = $("#startDate").val();
+                let endDate = $("#endDate").val();
+                if (endDate) {
+                    if (startDate) {
+
+                    } else {
+                        alert("조회 기간은 시작, 종료 모두 입력해야 합니다.");
+                    }
+                }
+
+                // 조회연도/조회기간 세팅
+                let today = new Date();
+                let year = today.getFullYear()
+
+                $("#year").val(year).prop("selected", true)
+                $('#startDate').datepicker("option", "minDate", `${year}-01-01`)
+                $('#endDate').datepicker("option", "minDate", `${year}-01-01`)
+                $('#startDate').datepicker("option", "maxDate", `${year}-12-31`)
+                $('#endDate').datepicker("option", "maxDate", `${year}-12-31`)
+            }
+
+            function changePeriod(data) {
+                $('#startDate').datepicker("option", "minDate", `${data}-01-01`)
+                $('#endDate').datepicker("option", "minDate", `${data}-01-01`)
+                $('#startDate').datepicker("option", "maxDate", `${data}-12-31`)
+                $('#endDate').datepicker("option", "maxDate", `${data}-12-31`)
+            }
+
+
+            // 총괄표
+            function callData() {
+                // 언론인연수실적 - 전체과정(연수팀/지사)
+                $.ajax({ //jquery ajax
+                    type:"get", //http method
+                    url:"/api/statistics/report/schedule", //값을 가져올 경로
+                    dataType:"json", //html, xml, text, script, json, jsonp 등 다양하게 쓸 수 있음
+                    success: function(data) {   //요청 성공시 실행될 메서드
+                        generalSchedule(data);
+                    },
+                    error: function(e){ } //요청 실패시 에러 확인을 위함
+                })
+
+
+                // 명단표 - 집합교육명단 양식
+                $.ajax({ //jquery ajax
+                    type:"get", //http method
+                    url:"/api/statistics/report/user", //값을 가져올 경로
+                    dataType:"json", //html, xml, text, script, json, jsonp 등 다양하게 쓸 수 있음
+                    success: function(data) { },  //요청 성공시 실행될 메서드
+                    error: function(e){ } //요청 실패시 에러 확인을 위함
+                })
+            }
+
+            ctsReportController.setBindingEvent();
+            /* ]]> */
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

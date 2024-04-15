@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="edu-1">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>과정 관리</h2>
+        </div>
+
+        <div class="bl_tab2 js_tab">
+            <ul class="bl_tab2_menu">
+                <li>
+                    <a th:href="@{/education/curriculum/e-learning/{curriculumCode}(curriculumCode=${curriculumCode})}">상세</a>
+                </li>
+                <li class="is_active">
+                    <a th:href="@{/education/curriculum/e-learning/exam/{curriculumCode}(curriculumCode=${curriculumCode})}">시험</a>
+                </li>
+                <li>
+                    <a th:href="@{/education/curriculum/e-learning/question/{curriculumCode}(curriculumCode=${curriculumCode})}">문항</a>
+                </li>
+                <li>
+                    <a th:href="@{/education/curriculum/reference-room/{curriculumCode}?educationType=e-learning(curriculumCode=${curriculumCode})}">자료실</a>
+                </li>
+            </ul>
+
+            <div class="bl_tab2_rgt">
+                <a class="btn btnDefault btnList" href="/education/curriculum">목록</a>
+            </div>
+
+            <div class="bl_tab2_body js_tab_contents">
+                <div class="bl_tab2_item js_tab_item">
+                    <div class="tableLeftResponsive">
+                        <table class="tableLeft">
+                            <colgroup>
+                                <col style="width: 200px">
+                                <col style="width: auto">
+                            </colgroup>
+                            <tbody>
+                                <tr>
+                                    <th scope="row">카테고리명</th>
+                                    <th:block th:each="commonCode : ${commonCode}"
+                                              th:if="${commonCode.code} == 'CTS_CTGR'">
+                                        <td th:each="categoryCode : ${commonCode.subCode}"
+                                            th:if="${categoryCode.code == educationCategoryCode}"
+                                            th:text="${categoryCode.codeName}"></td>
+                                    </th:block>
+                                </tr>
+                                <tr>
+                                    <th scope="row">과정명</th>
+                                    <td th:text="${curriculumName}">과정명</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">시험명</th>
+                                    <td>
+                                        <input type="text" class="hp_w600" id="examName">
+                                    </td>
+                                </tr>
+
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="bl_gridBtns">
+                        <div class="bl_gridBtns_md">
+                            <div class="btn btnDefault btnSearch" onclick="goSearch()">검색</div>
+                            <div class="btn btnDefault btnDownload">excel 다운로드</div>
+                            <a th:href="@{/education/curriculum/e-learning/exam/{curriculumCode}/regist(curriculumCode=${curriculumCode})}" class="btn btnDefault btnRegister">등록</a>
+                        </div>
+                    </div>
+
+                    <!-- BOARD : CONTROLLER -->
+                    <div class="bl_boardCtrls">
+                        <div class="bl_boardCtrls_lft">
+                            <p class="bl_boardCtrls_total">
+                                총: <strong th:text="${pageable.totalElements}"></strong>건
+                            </p>
+                        </div>
+                        <div class="bl_boardCtrls_rgt">
+                            <select class="common_select" data-list="countSortList"></select>
+                        </div>
+                    </div>
+
+                    <div class="tableResponsive overflowMulti">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">번호</th>
+                                    <th scope="col">시험명</th>
+                                    <th scope="col">문항수</th>
+                                    <th scope="col">시험시간</th>
+                                    <th scope="col">사용여부</th>
+                                    <th scope="col">등록일</th>
+                                </tr>
+                            </thead>
+                            <tbody th:if="${content != null && content.size > 0}">
+                                <tr th:if="${content.size > 0}" th:each="item, stat : ${content}">
+                                    <td th:text="${pageable.totalElements - ((pageable.page * pageable.size) + stat.index)}"></td>
+                                    <td>
+                                        <a th:href="@{/education/curriculum/e-learning/exam/{curriculumCode}/{examSerialNo}(curriculumCode=${curriculumCode}, examSerialNo=${item.examMaster.examSerialNo})}" class="d-flex">
+                                            <span class="hp_ellipsis" th:text="${item.examMaster.examName}">시험명이 들어갑니다.</span>
+                                        </a>
+                                    </td>
+                                    <td th:text="${item.examMaster.questionTotalCount}">10</td>
+                                    <td th:text="|${item.examMaster.examMinute}분|">60분</td>
+                                    <td>
+                                        <span class="color_blue" th:if="${item.examMaster.isUsable == true}">사용</span>
+                                        <span class="color_red" th:unless="${item.examMaster.isUsable == true}">미사용</span>
+                                    </td>
+                                    <td th:text="${#strings.substring(item.examMaster.createDateTime, 0, 10)}">2022.10.01</td>
+                                </tr>
+                                <tr th:unless="${content.size > 0}" class="empty_data">
+                                    <td colspan="7">등록된 데이터가 없습니다.</td>
+                                </tr>
+                            </tbody>
+                            <tbody th:unless="${content != null && content.size > 0}">
+                            <tr class="empty_data"><td colspan="7">조회된 내용이 없습니다.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- POPUP : 미리보기 -->
+        <div class="iframe_wrap">
+            <iframe id="popExamPreview" src="about:blank" width="100%" height="100%"></iframe>
+        </div>
+
+        <div class="bl_paginate"></div>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            /* <![CDATA[ */
+            const commonCode = [[ ${commonCode} ]];
+            const content = [[ ${content} ]][0];
+            const params = {};
+
+            /** 초기 셋팅 */
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+                pagination([[ ${pageable} ]]);
+
+                const params = new URLSearchParams(decodeURIComponent(window.location.search).replace("?", ""));
+                if(params.get("examName")) { document.getElementById('examName').value = params.get("examName"); }
+            }
+
+            /** 조회 */
+            function goSearch() {
+                params.examName = document.querySelector('#examName').value;
+
+                const queryParams = Object.entries(params).filter(data => data[1] != null && data[1] !== '').map(data => data.join('=')).join('&')
+                location.href="/education/curriculum/e-learning/exam/"+ [[ ${curriculumCode} ]] +"?" + queryParams;
+            }
+            /* ]]> */
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

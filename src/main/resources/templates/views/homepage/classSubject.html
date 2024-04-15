@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="homepage-8">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>수업지도안 과목 관리</h2>
+        </div>
+
+        <div class="d-flex justify-content-between">
+            <!-- 공통코드 트리 -->
+            <div class="contents_lft">
+                <div id="jsTree"></div>
+            </div>
+
+            <div class="contents_rgt">
+                <div class="tableLeftResponsive">
+                    <table class="tableLeft">
+                        <colgroup>
+                            <col style="width: 200px">
+                            <col style="width: auto">
+                        </colgroup>
+                        <tbody>
+                            <tr>
+                                <th scope="row">코드</th>
+                                <td>
+                                    <input type="text" class="hp_w600" id="code" disabled>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row">상위코드</th>
+                                <td>
+                                    <input type="text" class="hp_w600" id="upCode" disabled>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row">내용</th>
+                                <td>
+                                    <input type="text" class="hp_w600" id="content">
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row">설명</th>
+                                <td>
+                                    <input type="text" class="hp_w600" id="description">
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row">순서</th>
+                                <td>
+                                    <input type="text" class="hp_w600" id="order" disabled>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="bl_gridBtns">
+                    <div class="bl_gridBtns_lft">
+                        <div class="btn btnDefault btnDelete" onclick="deleteItem()" id="delBtn" style="display: none">삭제</div>
+                    </div>
+                    <div class="bl_gridBtns_rgt">
+                        <div class="btn btnDefault" data-control="modal" data-handler="pop" id="addBtn" style="display: none">하위등록</div>
+                        <div class="btn btnDefault" onclick="saveItem()" id="saveBtn" style="display: none">저장</div>
+                        <a href="/homepage/archive/class-guide" class="btn btnDefault">목록</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- POPUP : 하위 등록-->
+    <article class="pop_wrapper ui-modal" id="pop">
+        <div class="pop_wrap pop_secondary hp_mw500">
+            <div class="pop_cont">
+                <div style="margin-bottom: 10px; font-size: 15px">하위등록</div>
+                <div class="tableLeftResponsive">
+                    <table class="tableLeft">
+                        <colgroup>
+                            <col style="width: 100px">
+                            <col style="width: auto">
+                        </colgroup>
+                        <tbody>
+                            <tr>
+                                <th scope="row">상위코드</th>
+                                <td>
+                                    <input type="text" id="upCodePop" disabled>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row">내용</th>
+                                <td>
+                                    <input type="text" id="contentPop">
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row">설명</th>
+                                <td>
+                                    <input type="text" id="descriptionPop">
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="bl_gridBtns">
+                    <div class="bl_gridBtns_md">
+                        <div class="btn btnDefault pop-close" onclick="addItem()">등록</div>
+                    </div>
+                </div>
+            </div>
+
+            <button type="button" class="pop_close pop-close" onclick="clearPop()">닫기</button>
+        </div>
+    </article>
+    <div sec:authorize="!isAuthenticated()"></div>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            /* <![CDATA[ */
+            const CONT = [[ ${content} ]];
+            let selectItem;
+            let resData = [];
+            function makeData(){
+                for(let i=0; i<CONT.length; i++){
+                    let tempObj = {};
+                    tempObj.id = CONT[i].individualCode;
+                    if(i == 0){
+                        tempObj.parent = '#';
+                    } else {
+                        tempObj.parent = CONT[i].upIndividualCode;
+                    }
+                    tempObj.text = CONT[i].content;
+                    tempObj.description = CONT[i].description;
+                    tempObj.order = CONT[i].order;
+                    tempObj.depth = CONT[i].depth;
+                    resData.push(tempObj);
+                }
+            }
+            makeData();
+
+            function deleteItem(){
+
+                params = {};
+                params.content = selectItem.original.text;
+                params.description = selectItem.original.description;
+                params.upIndividualCode = selectItem.original.parent;
+                params.individualCode = selectItem.original.id;
+                params.order = selectItem.original.order;
+                params.depth = selectItem.original.depth;
+
+                $.ajax({
+                    type: "delete",
+                    headers: {'Content-Type' : 'application/json'},
+                    url: "/api/homepage/class-guide/class-subject/delete/"+selectItem.id,
+                    data: JSON.stringify(params),
+                    dataType: "json",
+                    success: function (data){
+                        alert('삭제가 완료되었습니다.');
+                        location.reload();
+                    },
+                    error: function (e){
+                        alert('삭제 중 에러가 발생했습니다.');
+                    }
+                })
+            }
+
+            function saveItem(){
+                params = {};
+                params.content = $('#content').val();
+                params.description = $('#description').val();
+                params.upIndividualCode = selectItem.original.parent;
+                params.individualCode = selectItem.original.id;
+                params.order = selectItem.original.order;
+                params.depth = selectItem.original.depth;
+
+                $.ajax({
+                    type: "put",
+                    headers: {'Content-Type' : 'application/json'},
+                    url: "/api/homepage/class-guide/class-subject/update",
+                    data: JSON.stringify(params),
+                    dataType: "json",
+                    success: function (data){
+                        alert('수정이 완료되었습니다.');
+                        window.location.reload();
+                    },
+                    error: function (e){
+                        alert('수정 중 에러가 발생했습니다.');
+                    }
+                })
+            }
+
+            function addItem(){
+                params = {};
+                params.content = $('#contentPop').val();
+                params.description = $('#descriptionPop').val();
+                params.upIndividualCode = $('#upCodePop').val();
+                params.order = 0;
+                params.depth = 0;
+
+                $.ajax({
+                    type: "post",
+                    headers: {'Content-Type' : 'application/json'},
+                    url: "/api/homepage/class-guide/class-subject/create",
+                    data: JSON.stringify(params),
+                    dataType: "json",
+                    success: function (data){
+                        alert('하위과목 등록이 완료되었습니다.');
+                        location.reload();
+                    },
+                    error: function (e){
+                        alert('하위과목 등록 중 에러가 발생했습니다.')
+                    }
+                })
+            }
+
+            function clearPop(){
+                $('#contentPop').val('');
+                $('#descriptionPop').val('');
+            }
+
+            $(document)
+                .on('defaultReadyAfter',function(e){
+                    $('#jsTree')
+                        // 클릭 이벤트
+                        .on('changed.jstree', function (e, data) {
+                            var i, j, r = [];
+                            for(i = 0, j = data.selected.length; i < j; i++) {
+                                r.push(data.instance.get_node(data.selected[i]));
+                            }
+                            $('#event_result').html('Selected: ' + r.join(', '));
+                            selectItem = r[0];
+                            // 우측 컨텐츠
+                            $('#code').val(selectItem.original.id)
+                            $('#upCode').val(selectItem.original.parent)
+                            $('#content').val(selectItem.original.text)
+                            $('#description').val(selectItem.original.description)
+                            $('#order').val(selectItem.original.order)
+                            // 팝업 컨텐츠
+                            $('#upCodePop').val(selectItem.original.id)
+                            // 첫 클릭 안 하면 기능제한
+                            $('#delBtn').css('display','inline-flex');
+                            $('#addBtn').css('display','inline-flex');
+                            $('#saveBtn').css('display','inline-flex');
+                        })
+                        // 드래그 앤 드롭 이벤트
+                        .bind("move_node.jstree", function(ev, node) {
+                            console.log(node)
+                            params = {};
+                            params.content = node.node.original.text;
+                            params.description = node.node.original.description;
+                            params.upIndividualCode = node.node.original.parent;
+                            params.individualCode = node.node.original.id;
+                            params.order = node.position;
+                            params.depth = node.node.original.depth;
+
+                            $.ajax({
+                                type: "put",
+                                headers: {'Content-Type' : 'application/json'},
+                                url: "/api/homepage/class-guide/class-subject/order",
+                                data: JSON.stringify(params),
+                                dataType: "json",
+                                success: function (data){ },
+                                error: function (e){
+                                    alert('순서 변경 중 에러가 발생했습니다.');
+                                }
+                            })
+
+                        })
+                        .jstree({
+                            "json_data": {},
+                            "plugins": ["json_data", 'dnd', 'changed'],
+                            "core": {
+                                "themes": {"icons": true, "dots": true,"stripes" : true},
+                                "check_callback": function (op, node, par, pos, more){
+                                    if(op === 'move_node'){
+                                        if(node.parent === par.id){
+                                            return true;
+                                        } else {
+                                            return false;
+                                        }
+                                    }
+                                },
+                                "multiple": false,
+                                "data": resData
+                            },
+                            "dnd": {
+                                check_while_dragging: true
+                            }
+                        });
+                });
+
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+            }
+            /* ]]> */
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

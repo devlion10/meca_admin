@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="statistics-1">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>이용통계</h2>
+        </div>
+
+        <div class="tableLeftResponsive">
+            <table class="tableLeft">
+                <colgroup>
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                </colgroup>
+                <tbody>
+                    <tr>
+                        <th scope="row">구분</th>
+                        <td>
+                            <div class="radio_box">
+                                <input id="period" type="radio" value="period" name="usedStatisticsCtg" checked>
+                                <label for="period">
+                                    <span></span>
+                                    기간
+                                </label>
+                            </div>
+                            <div class="radio_box">
+                                <input id="monthly" type="radio" value="monthly" name="usedStatisticsCtg">
+                                <label for="monthly">
+                                    <span></span>
+                                    월간
+                                </label>
+                            </div>
+                            <div class="radio_box">
+                                <input id="yearly" type="radio" value="yearly" name="usedStatisticsCtg">
+                                <label for="yearly">
+                                    <span></span>
+                                    연간
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">기간</th>
+                        <td>
+                            <!-- 기간 선택시 노출 -->
+                            <div class="bl_dateRange">
+                                <input type="text" class="el_datePicker sdate">
+                                <span class="blank">~</span>
+                                <input type="text" class="el_datePicker edate">
+                            </div>
+
+                            <!-- 월간, 연간 선택시 노출 -->
+                            <div class="d-flex-2 monthly_and_yearly">
+                                <div class="d-flex-start">
+                                    <select class="common_select me-1 yearly_select" data-list="yearList"></select>
+                                </div>
+                                <div class="d-flex-start monthly">
+                                    <select class="common_select me-1 monthly_select" data-list="monthList"></select>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="bl_gridBtns">
+            <div class="bl_gridBtns_md">
+                <div class="btn btnDefault btnReset">리셋</div>
+                <a onclick="searchUserStatistics()" class="btn btnDefault btnSearch">검색</a>
+                <a href="/api/statistics/web-user/excel" class="btn btnDefault download_excel download_search">excel 다운로드</a>
+            </div>
+        </div>
+
+        <div class="tableResponsive overflowMulti mb-5">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">회원가입자수</th>
+                        <th scope="col">회원탈퇴자수</th>
+                        <th scope="col">접속자수</th>
+                        <th scope="col">휴면전환수</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td th:text="${countUser}">500</td> <!-- 일일 요약이면 변경 필요 -->
+                        <td th:text="${countWithdrawalUser}">2</td> <!-- 일일 요약이면 변경 필요 -->
+                        <td th:if="${content != null && content.size > 0}" th:text="${content[0].loginCount}">1,000</td>
+                        <td th:unless="${content != null && content.size > 0}">-</td>
+                        <td th:text="${countDormancyUser}">30</td> <!-- 일일 요약이면 변경 필요 -->
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- BOARD : CONTROLLER -->
+        <div class="bl_boardCtrls">
+            <div class="bl_boardCtrls_lft">
+                <p class="bl_boardCtrls_total">
+                     총: <strong th:text="${pageable.totalElements}"></strong>건
+                </p>
+            </div>
+            <div class="bl_boardCtrls_rgt">
+                <select class="common_select" data-list="countSortList"></select>
+            </div>
+        </div>
+
+        <div class="tableResponsive overflowMulti">
+            <table class="table">
+                <colgroup>
+                    <col style="width: 50px">
+                    <col>
+                    <col>
+                    <col>
+                    <col>
+                    <col>
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th scope="col">번호</th>
+                        <th scope="col">기준일</th>
+                        <th scope="col">회원가입자수</th>
+                        <th scope="col">회원탈퇴자수</th>
+                        <th scope="col">접속자수</th>
+                        <th scope="col">휴면전환수</th>
+                    </tr>
+                </thead>
+                <tbody th:if="${content != null && content.size > 0}">
+                    <tr th:each="item,stat:${content}">
+                        <td th:text="${pageable.totalElements - ((pageable.page * pageable.size) + stat.index)}">1</td>
+                        <td th:text="${#strings.substring(item.summaryDate,0,4)+'.'+#strings.substring(item.summaryDate,4,6)+'.'+#strings.substring(item.summaryDate,6,8)}">1</td>
+                        <td th:text="${item.joinCount}">3</td>
+                        <td th:text="${item.withDrawalCount}">0</td>
+                        <td th:text="${item.loginCount}">75</td>
+                        <td th:text="${item.dormancyCount}">0</td>
+                    </tr>
+                </tbody>
+                <tbody th:unless="${content != null && content.size > 0}">
+                    <tr class="empty_data"><td colspan="6">조회된 내용이 없습니다.</td></tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="bl_paginate"></div>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            /* <![CDATA[ */
+            // 기간, 월간, 연간 체크
+            function usedStatisticsCtgChk() {
+                let checked = $('input[name="usedStatisticsCtg"]:checked')[0].id
+                if (checked == 'period') {
+                    // 기간
+                    $('.bl_dateRange').show();
+                    $('.monthly_and_yearly').css('display', 'none');
+                } else if (checked == 'monthly') {
+                    // 월간
+                    $('.bl_dateRange').hide();
+                    $('.monthly_and_yearly').css('display', 'flex');
+                    $('.monthly').css('display', 'flex');
+                } else {
+                    // 연간
+                    $('.bl_dateRange').hide();
+                    $('.monthly_and_yearly').css('display', 'flex');
+                    $('.monthly').css('display', 'none');
+                }
+            }
+            usedStatisticsCtgChk();
+            $('input[name="usedStatisticsCtg"]').change(usedStatisticsCtgChk);
+
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+                pagination([[ ${pageable} ]], false)
+
+                const params = new URLSearchParams(decodeURIComponent(window.location.search).replace("?", ""));
+                if(params.get("searchYear")) {
+                    document.querySelector(".yearly_select").value = params.get("searchYear");
+                    if (params.get("searchMonth")) {
+                        document.querySelector(".monthly_select").value = params.get("searchMonth");
+                        $("input:radio[name='usedStatisticsCtg']:radio[value='period']").prop('checked', false); // 선택하기
+                        $("input:radio[name='usedStatisticsCtg']:radio[value='monthly']").prop('checked', true); // 해제하기
+                        $("input:radio[name='usedStatisticsCtg']:radio[value='yearly']").prop('checked', false); // 해제하기
+                    } else {
+                        // $('input[name="usedStatisticsCtg"]')[0].id="yearly"; // 연간에 체크
+                        $("input:radio[name='usedStatisticsCtg']:radio[value='period']").prop('checked', false); // 선택하기
+                        $("input:radio[name='usedStatisticsCtg']:radio[value='monthly']").prop('checked', false); // 해제하기
+                        $("input:radio[name='usedStatisticsCtg']:radio[value='yearly']").prop('checked', true); // 해제하기
+                    }
+                    usedStatisticsCtgChk();
+                }
+                if(params.get("startDate")) {
+                    document.querySelector(".sdate").value = params.get("startDate");
+                    document.querySelector(".edate").value = params.get("endDate");
+                }
+            }
+
+            function searchUserStatistics(){
+                let searchQuery = {}
+                let checked = $('input[name="usedStatisticsCtg"]:checked')[0].id
+                if (checked == 'period') {
+                    // 기간
+                    var startDate = $('.sdate').val();
+                    var endDate = $('.edate').val();
+
+                    if(startDate){
+                        searchQuery.startDate = startDate
+                        searchQuery.endDate = endDate
+                    }
+                } else if (checked == 'monthly') {
+                    // 월간
+                    var searchYear = $('.yearly_select').val();
+                    var searchMonth = $('.monthly_select').val();
+
+                    if(searchYear){
+                        searchQuery.searchYear = searchYear
+                    }
+                    if(searchMonth){
+                        searchQuery.searchMonth = searchMonth
+                    }
+                } else {
+                    // 연간
+                    var searchYear = $('.yearly_select').val();
+                    if(searchYear){
+                        searchQuery.searchYear = searchYear
+                    }
+                }
+                searchJson(searchQuery)
+            }
+            /* ]]> */
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

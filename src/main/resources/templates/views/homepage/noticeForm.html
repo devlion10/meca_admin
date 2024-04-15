@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="homepage-1">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>공지사항 관리</h2>
+        </div>
+
+        <div class="tableLeftResponsive">
+            <table class="tableLeft">
+                <colgroup>
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                </colgroup>
+                <tbody>
+                    <tr>
+                        <th scope="row">구분</th>
+                        <td>
+                            <select id="noticeType" class="common_select" not_null="true" alert_name="공지사항 구분" th:if="${content == null}">
+                                <option value="0">일반</option>
+                                <option value="1">미디어교육</option>
+                                <option value="2">언론인연수</option>
+                            </select>
+                            <select id="noticeType" class="common_select" not_null="true" alert_name="공지사항 구분" th:unless="${content == null}">
+                                <option value="0" th:selected="${content[0].noticeType=='0'}">일반</option>
+                                <option value="1" th:selected="${content[0].noticeType=='1'}">미디어교육</option>
+                                <option value="2" th:selected="${content[0].noticeType=='2'}">언론인연수</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">제목</th>
+                        <td>
+                            <input id="title" type="text" class="hp_w600" not_null="true" alert_name="공지사항 제목" th:if="${content == null}">
+                            <input id="title" type="text" class="hp_w600" not_null="true" alert_name="공지사항 제목"  th:unless="${content == null}" th:value="${content[0].title}">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">내용</th>
+                        <td>
+                            <textarea id="contents" name="contents" class="ckeditor" style="width:100%; height:200px" th:if="${content == null}"></textarea>
+                            <textarea id="contents" name="contents" class="ckeditor" style="width:100%; height:200px"  th:unless="${content == null}" th:utext="${content[0].contents}"></textarea>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">상단공지 사용여부</th>
+                        <td>
+                            <div class="radio_box">
+                                <input id="NoticeTopY" type="radio" name="NoticeTop" checked th:if="${content == null}">
+                                <input id="NoticeTopY" type="radio" name="NoticeTop" checked th:unless="${content == null}" th:checked="${content[0].isTop}">
+                                <label for="NoticeTopY">
+                                    <span></span>
+                                    사용
+                                </label>
+                            </div>
+                            <div class="radio_box">
+                                <input id="NoticeTopN" type="radio" name="NoticeTop" th:if="${content == null}">
+                                <input id="NoticeTopN" type="radio" name="NoticeTop" th:unless="${content == null}" th:checked="${!content[0].isTop}">
+                                <label for="NoticeTopN">
+                                    <span></span>
+                                    사용안함
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <tr> <!-- 파일첨부 API 5 -->
+                        <th scope="row">파일첨부</th>
+                        <td>
+                            <div class="bl_uploadList__scroll hp_w600">
+                                <ul class="bl_uploadList" th:if="${(content != null) && (content[0].fileMasters != null)}">
+                                    <li th:each="item, index: ${content[0].fileMasters}">
+                                        <a th:href="@{/api/common/upload/download(attachFilePath=${item.filePath})}" class="download_ajax" th:text="${item.originalFileName}"></a>
+                                        <div class="bl_uploadList_rgt">
+                                            <span class="file_size" th:text="${item.fileSize}"></span>
+                                            <a class="file_delete" th:href="@{/api/common/upload/delete/{sn}(sn=${item.fileSn})}" th:value="${index.index}">
+                                                <i class="fas fa-times color_red"></i>
+                                            </a>
+                                        </div>
+                                    </li>
+                                </ul>
+                                <ul class="bl_uploadList" th:unless="${(content != null) && (content[0].fileMasters != null)}">
+
+                                </ul>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mt-2 hp_w600">
+                                <div class="d-flex gap-2 align-items-center">
+                                    <div class="bl_uploadGrid">
+                                        <div class="bl_upload js_upload me-0">
+                                            <label for="formFile" class="btn btnDefault bg-secondary text-white bl_upload_btn">파일찾기</label>
+                                            <input id="formFile" type="file" name="file" class="bl_upload_file js_file" accept=".gif, .jpg, .png, .pdf, .hwp, .hwpx, .doc, .docx, .ppt, .pptx, .xls, .xlsx, .zip">
+                                        </div>
+                                    </div>
+                                    <p class="bl_uploadNote">※ 파일형식 gif, jpg, png, pdf, hwp, doc, docx, ppt, pptx, xls, xlsx, zip / 5MB 미만</p>
+                                </div>
+                                <p id="fileSize" class="bl_uploadNote">총용량: <span id="fileMB">0</span>MB</p>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="bl_gridBtns">
+            <div class="bl_gridBtns_rgt">
+                <a href="/homepage/notice" class="btn btnDefault btnList">목록</a>
+                <a onclick="create()" class="btn btnDefault btnRegister" th:if="${content == null}">등록</a>
+                <a onclick="update()" class="btn btnDefault btnRegister" th:unless="${content == null}">수정</a>
+            </div>
+        </div>
+    </div>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            //파일첨부API1
+            let fileSize = $(".file_size");
+
+            for (var item of fileSize) {
+                if(Math.floor(item.innerText / 1024)>1024){
+                    let temp = Math.floor(item.innerText / 1024);
+                    temp = parseFloat(temp);
+                    temp = parseFloat(temp / 1024);
+                    temp = temp.toFixed(2);
+                    $(item).text(temp+"MB")
+                }else{
+                    $(item).text(Math.floor(item.innerText / 1024)+"KB")
+                }
+            };
+
+            var fileList=[];
+
+            $("#formFile").bind("change", function (e){
+                if(this.files[0]){
+                    fileList.push(this.files[0])
+
+                    //총용량 추가
+                    let text = this.files[0].size;
+                    text = parseFloat(text) / 1024;
+                    text = parseFloat(text) / 1024;
+                    text = text.toFixed(2);
+                    let now = $('#fileMB').text();
+                    now = parseFloat(now)+parseFloat(text);
+                    now = parseFloat(now).toFixed(2);
+                    $('#fileMB').text(now);
+                }
+            })
+            //파일첨부API2
+            $(".file_delete").bind("click", function (e){
+                e.preventDefault();
+                if(confirm("정말로 파일을 삭제하시겠습니까?")){
+                    let index = $(this).attr("value")*1 ? $(this).attr("value")*1:0;
+                    let url = $(this).attr("href")
+                    $.ajax({
+                        type: "delete", //http method
+                        url: url, //값을 가져올 경로
+                        headers: {'Content-Type': 'application/json'},
+                        data: JSON.stringify(CONT[0].fileMasters[index]),
+                        dataType: "json",
+                        success: function(data) {
+                            alert("삭제되었습니다.")
+                        },
+                        error: function(e) {
+                            alert("오류가 발생했습니다.")
+                        }
+                    })
+                    //총용량 계산
+                    let text= $(this).parent().find('.file_size').text()
+                    text = text.replace("KB", "");
+                    text =  parseInt(text) / 1024;
+                    text = text.toFixed(2);
+                    let now = $('#fileMB').text();
+                    now = parseFloat(now)-parseFloat(text);
+                    now = parseFloat(now).toFixed(2);
+                    $('#fileMB').text(now);
+                    $(this).parent().parent().remove();
+                }
+            })
+
+
+            /* <![CDATA[ */
+            function update(){
+                if(nullCheck()){
+                    let params = getFormData()
+                    $.ajax({
+                        type: "put",
+                        headers: {'Content-Type' : 'application/json'},
+                        url: "/api/homepage/notice/update",
+                        data: JSON.stringify(params),
+                        dataType: "json",
+                        success: function (data){
+                            if(fileList.length>0){
+                                for (f of fileList){
+                                    if(f != null){
+                                        let form = new FormData();
+                                        form.append( "attachFile", f );
+                                        $.ajax({
+                                            type:"put", //http method
+                                            url:`/api/common/upload/attach/${data.noticeSerialNo}?attachType=NOTICE`, //값을 가져올 경로
+                                            processData : false,
+                                            contentType : false,
+                                            async:false,
+                                            data: form,
+                                            success: function(data) { },  //요청 성공시 실행될 메서드
+                                             error: function(e) {
+                                                alert(e.responseJSON.resultMessage);
+                                            }
+                                        })
+                                    }
+                                    if(f == fileList[fileList.length-1]){
+                                        alert('공지사항이 수정되었습니다.');
+                                        window.location.reload(); // 새로고침
+                                    }
+                                }
+                            }else{
+                                alert('공지사항이 수정되었습니다.')
+                                window.location.reload(); // 새로고침
+                            }
+                        },
+                        error: function (e){
+                            alert(e.responseJSON.resultMessage);
+                        }
+                    })
+                }
+            }
+            function create(){
+                if(nullCheck()){
+                   let params = getFormData()
+                    $.ajax({
+                        type: "post",
+                        headers: {'Content-Type' : 'application/json'},
+                        url: "/api/homepage/notice/create",
+                        data: JSON.stringify(params),
+                        dataType: "json",
+                        success: function (data){
+                            if(fileList.length>0){
+                                fileList.forEach((f) => {
+                                    if(f != null){
+                                        let form = new FormData();
+                                        form.append( "attachFile", f );
+                                        $.ajax({
+                                            type:"put", //http method
+                                            url:`/api/common/upload/attach/${data.noticeSerialNo}?attachType=NOTICE`, //값을 가져올 경로
+                                            processData : false,
+                                            contentType : false,
+                                            async:false,
+                                            data: form,
+                                            success: function(data) { },  //요청 성공시 실행될 메서드
+                                            error: function(e) {
+                                                alert(e.responseJSON.resultMessage);
+                                            }
+                                        })
+                                    }
+                                    if(f == fileList[fileList.length-1]){
+                                        alert('공지사항이 등록되었습니다.')
+                                        window.location.replace('/homepage/notice')
+                                    }
+                                })
+                            }else{
+                                alert('공지사항이 등록되었습니다.')
+                                window.location.replace('/homepage/notice')
+                            }
+                        },
+                        error: function (e){
+                            alert(e.responseJSON.resultMessage);
+                        }
+                    })
+                }
+            }
+
+            let CONT = null;
+
+            function getFormData(){
+                let params = {};
+                params.contents =CKEDITOR.instances.contents.getData();
+                params.noticeSerialNo='0'
+                if(CONT!=null){
+                    params.noticeSerialNo = CONT[0].noticeSerialNo
+                }
+
+                params.noticeType=$("#noticeType").val();
+                params.title=$("#title").val()
+                params.isTop=$("#NoticeTopY").is(":checked")?true:false;
+                return params;
+            }
+
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+                CONT =  [[ ${content} ]]
+
+                //총용량 계산1
+                $(".file_size").each((index, item)=>{
+                    let text = $(item).text();
+                    if(text.indexOf('KB')==-1){
+                        text = text.replace("MB", "");
+                        text = parseFloat(text)
+                    }else{
+                        text = text.replace("KB", "");
+                        text = parseFloat(text) / 1024;
+                        text = text.toFixed(2);
+                    }
+                    let now = $('#fileMB').text();
+                    now = parseFloat(now)+parseFloat(text);
+                    now = parseFloat(now).toFixed(2);
+                    $('#fileMB').text(now);
+                })
+            }
+            /* ]]> */
+        </script>
+    </th:block>
+    <div sec:authorize="!isAuthenticated()"></div>
+</div>
+</body>
+</html>

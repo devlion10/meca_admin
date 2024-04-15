@@ -1,0 +1,118 @@
+
+<div th:fragment="calculateTargetForm">
+    <div class="tableLeftResponsive">
+        <table class="tableLeft">
+            <colgroup>
+                <col style="width: 200px">
+                <col style="width: auto">
+            </colgroup>
+            <tbody>
+                <tr>
+                    <th scope="row">작성자</th>
+                    <td>
+                        <input type="text" class="hp_w200">
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">제출처</th>
+                    <td>
+                        <input type="text" class="hp_w600">
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">년도</th>
+                    <td>
+                        <select class="common_select" data-list="yearList"></select>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">사업명</th>
+                    <td>
+                        <input type="text" class="hp_w600">
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">차수</th>
+                    <td>
+                        <input type="text" class="hp_w200">
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">수행기관</th>
+                    <td>
+                        <input type="text" class="hp_w600">
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">강의기간</th>
+                    <td>
+                        <div class="bl_dateRange">
+                            <input type="text" class="el_datePicker sdate">
+                            <span class="blank">~</span>
+                            <input type="text" class="el_datePicker edate">
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">강의시간</th>
+                    <td>
+                        <input type="text" class="hp_w200">
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">년월</th>
+                    <td>
+                        <select class="common_select" data-list="yearList"></select>
+                        <select class="common_select" data-list="monthList"></select>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">승인</th>
+                    <td>
+                        <div class="radio_box">
+                            <input id="" type="radio" name="" checked>
+                            <label for="">
+                                <span></span>
+                                승인
+                            </label>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">지출상태</th>
+                    <td>
+                        <div class="radio_box">
+                            <input id="" type="radio" name="" checked>
+                            <label for="">
+                                <span></span>
+                                지출접수
+                            </label>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">작성일</th>
+                    <td>
+                        <input type="text" class="hp_w200">
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="bl_gridBtns">
+        <div class="bl_gridBtns_rgt">
+            <a href="" class="btn btnDefault btnList">목록</a>
+            <a href="" class="btn btnDefault btnRegister">등록</a>
+        </div>
+    </div>
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            /* <![CDATA[ */
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+            }
+            /* ]]> */
+        </script>
+    </th:block>
+</div>

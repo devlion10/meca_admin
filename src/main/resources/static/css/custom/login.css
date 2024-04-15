@@ -1,0 +1,71 @@
+html {
+    height: 100%;
+}
+
+body {
+    display: flex;
+    align-items: center;
+    padding-top: 40px;
+    padding-bottom: 40px;
+    background-color: #f5f5f5;
+}
+
+.form-signin {
+    max-width: 400px;
+    padding: 15px;
+}
+
+/* .form-signin .form-floating:focus-within {
+    z-index: 2;
+} */
+
+.form-signin .form-floating>.form-control:focus,
+.form-floating>.form-control:not(:placeholder-shown) {
+    padding: 1rem .75rem;
+}
+
+.form-signin input:focus {
+    border-color: #86b7fe;
+}
+
+.form-signin input[type="password"] {
+    margin-bottom: 10px;
+}
+
+.form-signin .btn:hover,
+.form-signin .btn:focus {
+    color: #fff;
+    background-color: var(--color-main);
+    border-color: transparent;
+}
+
+.form-signin .btn:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+.form-signin .auth_btn {
+    height: 32px;
+    line-height: 30px;
+    background: var(--color-blue);
+}
+
+.form-signin .auth_btn:hover {
+    background: var(--color-blue);
+}
+
+.form-signin .auth {
+    display: none;
+}
+
+.form-signin .auth_time {
+    margin: 15px 0 5px;
+}
+
+.form-signin .login_btn {
+    height: 50px;
+    line-height: 48px;
+    font-weight: 500;
+    font-size: 16px;
+    margin-top: 10px;
+}

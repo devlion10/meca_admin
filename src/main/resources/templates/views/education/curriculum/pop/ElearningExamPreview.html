@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/pop_layout}">
+<body>
+<div layout:fragment="pop">
+    <!-- POPUP : 미리보기 -->
+    <article class="pop_wrapper ui-modal">
+        <div class="pop_wrap pop_secondary" style="max-width: 1000px">
+            <div class="pop_head">
+                <div class="tit">시험 미리보기</div>
+            </div>
+            <div class="pop_cont">
+                <div class="tableLeftResponsive">
+                    <table class="tableLeft">
+                        <colgroup>
+                            <col style="width: 200px">
+                            <col style="width: auto">
+                        </colgroup>
+                        <tbody>
+                            <tr>
+                                <th scope="row">시험명</th>
+                                <td>
+                                    시험명이 들어갑니다.
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row">시험내용</th>
+                                <td>
+                                    시험 내용이 들어갑니다.<br/>
+                                    시험 내용이 들어갑니다.<br/>
+                                    시험 내용이 들어갑니다.<br/>
+                                    시험 내용이 들어갑니다.<br/>
+                                    시험 내용이 들어갑니다.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="exam_questions">
+                    <div class="exam_questions__item">
+                        <div class="d-flex-between">
+                            <div class="exam_questions__num">문제 1번</div>
+                            <div class="exam_questions__info">
+                                유형 : <span>단일선택</span>
+                                배점 : <span>5</span>
+                                난이도 : <span>중</span>
+                            </div>
+                        </div>
+                        <div class="exam_questions__title">문제가 이곳에 출력됩니다.</div>
+                        <div class="exam_questions__cont">
+                            <div class="radio_box">
+                                <input id="q1" type="radio" name="questions">
+                                <label for="q1">
+                                    <span></span>
+                                    선택항목 1번
+                                </label>
+                            </div>
+                            <div class="radio_box">
+                                <input id="q2" type="radio" name="questions">
+                                <label for="q2">
+                                    <span></span>
+                                    선택항목 2번
+                                </label>
+                            </div>
+                            <div class="radio_box">
+                                <input id="q3" type="radio" name="questions">
+                                <label for="q3">
+                                    <span></span>
+                                    선택항목 3번
+                                </label>
+                            </div>
+                            <div class="radio_box">
+                                <input id="q4" type="radio" name="questions">
+                                <label for="q4">
+                                    <span></span>
+                                    선택항목 4번
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="exam_questions__answer">
+                            정답 : <span>4</span>
+                        </div>
+                    </div>
+
+                    <!-- 단답형 예시 -->
+                    <div class="exam_questions__item">
+                        <div class="d-flex-between">
+                            <div class="exam_questions__num">문제 2번</div>
+                            <div class="exam_questions__info">
+                                유형 : <span>단답형</span>
+                                배점 : <span>5</span>
+                                난이도 : <span>중</span>
+                            </div>
+                        </div>
+                        <div class="exam_questions__title">문제가 이곳에 출력됩니다.</div>
+                        <div class="exam_questions__cont">
+                            <input type="text" class="hp_w100p">
+                        </div>
+
+                        <div class="exam_questions__answer">
+                            정답 : <span>냉각소화</span>
+                        </div>
+                    </div>
+
+                    <!-- 서술형 예시 -->
+                    <div class="exam_questions__item">
+                        <div class="d-flex-between">
+                            <div class="exam_questions__num">문제 3번</div>
+                            <div class="exam_questions__info">
+                                유형 : <span>서술형</span>
+                                배점 : <span>5</span>
+                                난이도 : <span>중</span>
+                            </div>
+                        </div>
+                        <div class="exam_questions__title">문제가 이곳에 출력됩니다.</div>
+                        <div class="exam_questions__cont">
+                            <textarea name="" id="" cols="30" rows="10"></textarea>
+                        </div>
+
+                        <div class="exam_questions__answer">
+                            정답 : <span>정답이 이곳에 출력됩니다. 정답이 이곳에 출력됩니다. 정답이 이곳에 출력됩니다. 정답이 이곳에 출력됩니다. 정답이 이곳에 출력됩니다. 정답이 이곳에 출력됩니다. 정답이 이곳에 출력됩니다. 정답이 이곳에 출력됩니다. 정답이 이곳에 출력됩니다.</span>
+                        </div>
+                    </div>
+
+                    <div class="bl_gridBtns">
+                        <div class="bl_gridBtns_rgt">
+                            <div class="btn btnDefault" onclick="parent.window.closePop()">확인</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <button type="button" class="pop_close pop-close" onclick="parent.window.closePop()">닫기</button>
+        </div>
+    </article>
+</div>
+</body>
+</html>

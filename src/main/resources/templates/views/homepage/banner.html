@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="homepage-15">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>배너 관리</h2>
+        </div>
+
+        <div class="tableLeftResponsive">
+            <table class="tableLeft">
+                <colgroup>
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                </colgroup>
+                <tbody>
+                    <tr>
+                        <th scope="row">제목</th>
+                        <td>
+                            <input id="containText" type="text" class="hp_w600">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">사용여부</th>
+                        <td>
+                            <div class="radio_box">
+                                <input id="useAll" type="radio" name="bannerUse" checked>
+                                <label for="useAll">
+                                    <span></span>
+                                    전체
+                                </label>
+                            </div>
+                            <div class="radio_box">
+                                <input id="use" type="radio" name="bannerUse" value="1">
+                                <label for="use">
+                                    <span></span>
+                                    사용
+                                </label>
+                            </div>
+                            <div class="radio_box">
+                                <input id="notUse" type="radio" name="bannerUse" value="0">
+                                <label for="notUse">
+                                    <span></span>
+                                    미사용
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="bl_gridBtns">
+            <div class="bl_gridBtns_md">
+                <div class="btn btnDefault btnReset">리셋</div>
+                <div class="btn btnDefault btnSearch">검색</div>
+                <a class="btn btnDefault btnRegister" href="/homepage/banner/">등록</a>
+            </div>
+        </div>
+
+        <!-- BOARD : CONTROLLER -->
+        <div class="bl_boardCtrls">
+            <div class="bl_boardCtrls_lft">
+                <p class="bl_boardCtrls_total">총: <strong th:text="${pageable.totalElements}">1</strong>건</p>
+                <select class="common_select" data-list="countSortList"></select>
+            </div>
+        </div>
+
+        <div class="tableResponsive overflowMulti">
+            <table class="table">
+                <colgroup>
+                    <col style="width: 50px">
+                    <col>
+                    <col>
+                    <col>
+                    <col>
+                    <col>
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th scope="col">번호</th>
+                        <th scope="col">제목</th>
+                        <th scope="col">사용기간</th>
+                        <th scope="col">등록일</th>
+                        <th scope="col">상태</th>
+                    </tr>
+                </thead>
+                <tbody th:if="${content != null && content.size > 0}">
+                    <tr th:each="item, stat : ${content}">
+                        <td th:text="${pageable.totalElements - ((pageable.page * pageable.size) + stat.index)}">1</td>
+                        <td>
+                            <a th:href="@{/homepage/banner/{id}(id=${item.bannerSn})}" class="d-flex">
+                                <span class="hp_ellipsis" th:text="${item.title}">제목입니다.</span>
+                            </a>
+                        </td>
+                        <td>
+                            <span th:text="${#strings.substring(item.bannerStartYmd, 0, 10)}">2022.10.01</span> ~
+                            <span th:text="${#strings.substring(item.bannerEndYmd, 0, 10)}">2022.11.01</span>
+                        </td>
+                        <td th:text="${#strings.substring(item.createDateTime, 0, 10)}">2022.10.01</td>
+                        <td>
+                            <span th:if="${item.bannerStts==1}" class="state state__blue">사용</span>
+                            <span th:if="${item.bannerStts==0}" class="state state__red">미사용</span>
+                        </td>
+                    </tr>
+                </tbody>
+                <tbody th:unless="${content != null && content.size > 0}">
+                    <tr class="empty_data"><td colspan="5">조회된 내용이 없습니다.</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="bl_paginate"></div>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            /* <![CDATA[ */
+
+            $(".btnSearch").bind('click',function (){
+                let searchQuery = {}
+                let name = $("#containText").val();
+                let state = $("input:radio[name=bannerUse]:checked").attr('value');
+                if(name){
+                    searchQuery.containText = name;
+                    searchQuery.containTextType = 1;
+                }
+                if(state){
+                    searchQuery.status = state;
+                }
+                searchJson(searchQuery)
+            })
+
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+                pagination([[ ${pageable} ]], false)
+                
+                let searchParams = new URLSearchParams(window.location.search);
+                if (searchParams.has('containText')){
+                    $("#containText").val(searchParams.get('containText'));
+                }
+                if (searchParams.has('status')) {
+                    if (searchParams.get('status') == 1) {
+                        $("input:radio[name=bannerUse]#use").prop("checked", true);
+                    } else {
+                        $("input:radio[name=bannerUse]#notUse").prop("checked", true);
+                    }
+                }
+            }
+            /* ]]> */
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

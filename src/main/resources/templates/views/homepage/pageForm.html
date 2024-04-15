@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="homepage-17">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>페이지 관리</h2>
+        </div>
+
+        <div class="tableLeftResponsive">
+            <table class="tableLeft">
+                <colgroup>
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                </colgroup>
+                <tbody>
+                    <tr>
+                        <th scope="row">구분</th>
+                        <td>
+                            <th:block th:each="commonCode : ${commonCode}" th:if="${commonCode.code} == 'DCMNT_TYPE'" >
+                                <th:block th:each="documentType: ${commonCode.subCode}">
+                                    <div class="radio_box">
+                                        <input th:id="${documentType.codeName}" type="radio" name="type" th:value="${documentType.code}" th:checked="${content != null ? documentType.code == content[0].documentType : documentType.code == '0'}">
+                                        <label th:for="${documentType.codeName}">
+                                            <span></span>
+                                            <p th:text="${documentType.codeName}"></p>
+                                        </label>
+                                    </div>
+                                </th:block>
+                            </th:block>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">내용</th>
+                        <td id="contents_area">
+                            <textarea id="contents" name="contents" class="ckeditor" style="width:100%; height:200px" th:text="${content == null ? '' : content[0].documentContent}"></textarea>
+                        </td>
+                    </tr>
+                    <tr id="documentChangeRow">
+                        <th scope="row">변경내용</th>
+                        <td>
+                            <input id="documentChange" type="text" name="documentChange" th:value="${content == null ? '' : content[0].documentChange}">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">상태</th>
+                        <td>
+                            <div class="radio_box">
+                                <input th:if="${content ==null}" id="state_use" type="radio" name="state" value="1" checked >
+                                <input th:unless="${content == null}" id="state_use" type="radio" name="state" value="1" th:checked="${content[0].documentStatus=='1'}" >
+                                <label for="state_use">
+                                    <span></span>
+                                    사용
+                                </label>
+                            </div>
+                            <div class="radio_box">
+                                <input th:if="${content== null}" id="state_unused" type="radio" name="state" value="0">
+                                <input th:unless="${content== null}" id="state_unused" type="radio" name="state" value="0" th:checked="${content[0].documentStatus=='0'}" >
+                                <label for="state_unused">
+                                    <span></span>
+                                    미사용
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="bl_gridBtns">
+            <div class="bl_gridBtns_rgt">
+                <a href="/homepage/page" class="btn btnDefault btnList">목록</a>
+                <div id="create_btn" type="button" onclick="create()" class="btn btnDefault btnRegister" th:if="${content== null}">등록</div>
+                <div id="update_btn" type="button" onclick="update()" class="btn btnDefault btnRegister" th:unless="${content== null}"> 수정</div>
+            </div>
+        </div>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            let view = window.location.search;
+            if(view == '?view'){
+                $("#update_btn").hide();
+                $("#documentChangeRow").hide();
+            }
+            function update(){
+                let params = getFormData();
+                if(params.update.documentContent!=params.documentContent) {
+                    $.ajax({
+                        type: "post", //http method
+                        url: "/api/homepage/page/create", //값을 가져올 경로
+                        headers: {'Content-Type': 'application/json'},
+                        data: JSON.stringify(params),
+                        dataType: "json",
+                        async:false,
+                        success: function (data) {
+                            alert("등록되었습니다.");
+                            window.location.assign('/homepage/page')
+                        },
+                        error: function (e) {
+                            alert(e.responseJSON.resultMessage);
+                        }
+                    })
+                } else {
+                    params.update.documentType = params.documentType
+                    params.update.documentContent = params.documentContent
+                    params.update.documentChange = params.documentChange
+                    params.update.documentStatus  = params.documentStatus
+                    $.ajax({
+                        type: "put", //http method
+                        url: "/api/homepage/page/update", //값을 가져올 경로
+                        headers: {'Content-Type': 'application/json'},
+                        data: JSON.stringify(params.update),
+                        dataType: "json",
+                        success: function(data) {
+                            alert("수정되었습니다.");
+                            location.reload();
+                        },
+                        error: function(e) {
+                            alert(e.responseJSON.resultMessage);
+                        }
+                    })
+                }
+            }
+
+            function create(){
+                let params = getFormData();
+                $.ajax({
+                    type: "post", //http method
+                    url: "/api/homepage/page/create", //값을 가져올 경로
+                    headers: {'Content-Type': 'application/json'},
+                    data: JSON.stringify(params),
+                    dataType: "json",
+                    success: function(data) {
+                        alert("등록되었습니다.");
+                        window.location.assign('/homepage/page')
+                    },
+                    error: function(e) {
+                        alert(e.responseJSON.resultMessage);
+                    }
+                })
+            }
+
+            /* <![CDATA[ */
+            function getFormData(){
+                let CONT = [[ ${content} ]];
+                let params ={};
+                params.sequenceNo = 0;
+                params.update =CONT ? CONT[0]: false;
+                params.documentType = $('input:radio[name=type]:checked').val();
+                let contents = CKEDITOR.instances.contents.getData();
+                params.documentContent = contents? contents:"";
+                params.documentChange = $("#documentChange").val();
+                params.documentStatus  = $('input:radio[name=state]:checked').val();
+                console.log(params);
+                return params;
+            }
+
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+            }
+            /* ]]> */
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

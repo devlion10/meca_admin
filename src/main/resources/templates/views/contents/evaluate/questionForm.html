@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="contents-2-2">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>평가지 관리</h2>
+        </div>
+
+        <div class="tableLeftResponsive">
+            <table class="tableLeft">
+                <colgroup>
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                </colgroup>
+                <tbody>
+                    <tr>
+                        <th scope="row"><span class="el_required">*</span>평가지명</th>
+                        <td><input type="text" id="evaluateTitle" th:value="${content.size > 0 ? content[0].evaluateTitle : null}"></td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><span class="el_required">*</span>구분</th>
+                        <td>
+                            <select class="common_select" id="evaluateType">
+                                <th:block th:each="commonCode : ${commonCode}"
+                                          th:if="${commonCode.code} == 'EVAL_TYPE'">
+                                    <option th:each="evaluateType : ${commonCode.subCode}"
+                                            th:value="${evaluateType.code}"
+                                            th:text="${evaluateType.codeName}"
+                                            th:selected="${content.size > 0 ? content[0].evaluateType == evaluateType.code : false}"></option>
+                                </th:block>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">평가지 설명</th>
+                        <td>
+                            <textarea name="contents" class="ckeditor" style="width:100%; height:200px"
+                                      id="evaluateContents"
+                                      th:text="${content.size > 0 ? content[0].evaluateContents : null}"></textarea>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><span class="el_required">*</span>기타항목</th>
+                        <td>
+                            <select id="isUsableOtherComments" class="common_select">
+                                <option value="1" th:selected="${content.size > 0 ? content[0].isUsableOtherComments == true : false}">있음</option>
+                                <option value="0" th:selected="${content.size > 0 ? content[0].isUsableOtherComments == false : false}">없음</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><span class="el_required">*</span>문항</th>
+                        <td>
+                            <div class="tableResponsive mb-0">
+                                <table id="targetTable" class="table" style="border: 1px solid #ddd">
+                                    <colgroup>
+                                        <col style="width: auto"/>
+                                        <col style="width: 120px"/>
+                                        <col style="width: 120px"/>
+                                    </colgroup>
+                                    <tbody id="questionBody">
+                                    <th:block th:if="${content.size > 0}">
+                                        <tr id="target" th:each="item, stat: ${content[0].evaluateQuestionList}">
+                                            <th:block th:each="commonCode1 : ${commonCode}"
+                                                      th:if="${commonCode1.code} == 'QUES_TYPE'">
+                                                <th:block th:each="commonCode2 : ${commonCode}"
+                                                          th:if="${commonCode2.code} == 'EVAL_QUES_CTGR'">
+                                                    <th:block th:if="${item.evaluateQuestionMaster.questionType!='0'}">
+                                                        <th:block th:each="questionType : ${commonCode1.subCode}"
+                                                                  th:if="${item.evaluateQuestionMaster.questionType == questionType.code}">
+                                                            <td>
+                                                            <span class="q_ctg"
+                                                                  th:each="questionCategory : ${commonCode2.subCode}" th:if="${item.evaluateQuestionMaster.questionCategory == questionCategory.code}"
+                                                                  th:text="|[${questionCategory.codeName}] ${questionType.codeName}|">[카테고리명] 단답형</span>
+                                                                <span class="q_text" th:text="${item.evaluateQuestionMaster.questionTitle}">문항의 질문내용이 이곳에 들어갑니다.</span>
+                                                            </td>
+                                                        </th:block>
+                                                    </th:block>
+                                                    <th:block th:unless="${item.evaluateQuestionMaster.questionType!='0'}">
+                                                        <td>
+                                                            <span class="q_ctg"
+                                                                  th:each="questionCategory : ${commonCode2.subCode}" th:if="${item.evaluateQuestionMaster.questionCategory == questionCategory.code}"
+                                                                  th:text="|[${questionCategory.codeName}] 제목 및 내용|">[카테고리명] 단답형</span>
+                                                            <span class="q_text" th:text="${item.evaluateQuestionMaster.questionTitle}">문항의 질문내용이 이곳에 들어갑니다.</span>
+                                                        </td>
+                                                    </th:block>
+                                                </th:block>
+                                            </th:block>
+                                            <td class="text-center">
+                                                <span class="orderBtn" name="up" onclick="moveRow(this)">▲</span>
+                                                <input style="width: 0px; visibility: hidden" th:value="${item.evaluateQuestionMaster.questionSerialNo}">
+                                                <span class="orderBtn" name="down" onclick="moveRow(this)">▼</span>
+                                            </td>
+                                            <td class="text-center">
+                                                <a class="btn btnDefault btn_del" onclick="deleteRow(this)">삭제</a>
+                                            </td>
+                                        </tr>
+                                    </th:block>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="text-end">
+                                <a href="#popQuestion" data-control="modal" data-handler="popQuestion" class="btn btnDefault btn_add mt-2" onclick="goSearch(true)">문항 추가</a>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- GRID : BUTTON -->
+        <div class="bl_gridBtns">
+            <div class="bl_gridBtns_rgt">
+                <a class="btn btnDefault btnList" href="/contents/evaluate">목록</a>
+                <a th:if="${content.size > 0}" class="btn btnDefault btnRegister" onclick="modify()">수정</a>
+                <a th:unless="${content.size > 0}" class="btn btnDefault btnRegister" onclick="regist()">등록</a>
+            </div>
+        </div>
+
+        <!-- POPUP : 문항추가 -->
+        <article class="pop_wrapper ui-modal" id="popQuestion">
+            <div class="pop_wrap pop_secondary">
+                <div class="pop_cont hp_h715">
+                    <div class="sch_box">
+                        <select class="common_select" id="questionCategory">
+                            <option value="">전체</option>
+                            <th:block th:each="commonCode : ${commonCode}"
+                                      th:if="${commonCode.code} == 'EVAL_QUES_CTGR'">
+                                <option th:each="questionCategory : ${commonCode.subCode}"
+                                        th:value="${questionCategory.code}"
+                                        th:text="${questionCategory.codeName}"></option>
+                            </th:block>
+                        </select>
+                        <input type="text" id="questionTitle"/>
+                        <button type="submit" class="btn btnDefault btnSearch" onclick="goSearch(false)">검색</button>
+                    </div>
+
+                    <div class="tableResponsive mb-0">
+                        <table class="table" style="border: 1px solid #ddd">
+                            <colgroup>
+                                <col style="width: 50px"/>
+                                <col style="width: auto"/>
+                                <col style="width: 120px"/>
+                            </colgroup>
+                            <tbody id="popBody">
+                                <tr>
+                                    <td>
+                                        1
+                                    </td>
+                                    <td class="text-start">
+                                        <span class="q_ctg">[카테고리명] 단답형</span>
+                                        <span class="q_text">문항의 질문내용이 이곳에 들어갑니다.</span>
+                                    </td>
+                                    <td>
+                                        <a href="" class="btn btnDefault btnSelect">선택</a>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="bl_paginate"></div>
+                </div>
+                <button type="button" class="pop_close pop-close">닫기</button>
+            </div>
+        </article>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            /* <![CDATA[ */
+            const content = [[ ${content} ]][0];
+            const commonCode = [[ ${commonCode} ]];
+            const params = {};
+
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+            }
+
+            function goSearch(hidden) {
+                if(hidden) {
+                    document.querySelector('#popQuestion > div').setAttribute('style', 'visibility: hidden');
+                }
+                const subParams = {};
+                subParams.questionCategory = document.querySelector("#questionCategory").value;
+                subParams.questionTitle = document.querySelector("#questionTitle").value;
+                const queryParams = Object.entries(subParams).filter(data => data[1] != null && data[1] !== '').map(data => data.join('=')).join('&');
+                /** 파일 조회 */
+                $.ajax({ //jquery ajax
+                    type:"get", //http method
+                    url:"/api/contents/question?" + queryParams + '&size=100', //값을 가져올 경로
+                    dataType:"json", //html, xml, text, script, json, jsonp 등 다양하게 쓸 수 있음
+                    success: function(data) {   //요청 성공시 실행될 메서드
+                        document.querySelector("#popBody").innerHTML = "";
+                        document.querySelector('#popQuestion .bl_paginate').innerHTML = "";
+                        data.content.forEach(function (eduInfo, index, list) {
+                            if (eduInfo.questionType != "0") {
+                                document.querySelector("#popBody").innerHTML += "<tr>" +
+                                    "<td>" + (index + 1) + "</td>" +
+                                    "<td class='text-start'>" +
+                                    "<span class='q_ctg'>[" + commonCode.filter(code => code.code == "EVAL_QUES_CTGR").map(imsiCode => imsiCode.subCode.filter(code2 => code2.code == eduInfo.questionCategory) )[0][0].codeName + "] " +
+                                    "" + commonCode.filter(code => code.code == "QUES_TYPE").map(imsiCode => imsiCode.subCode.filter(code2 => code2.code == eduInfo.questionType) )[0][0].codeName + "</span>" +
+                                    "<span class='q_text'>" + eduInfo.questionTitle + "</span>" +
+                                    "</td>" +
+                                    `<td>
+                                        <div class="chk_box">
+                                            <input id="q_chk${index + 1}" type="checkbox" name="q_chk" onchange='eduInfoDataMake(` + false + `,` + JSON.stringify(eduInfo) + `)'>
+                                            <label for="q_chk${index + 1}">
+                                                <span class="me-0"></span>
+                                            </label>
+                                        </div>
+                                    </td>` +
+                                    "</tr>"
+                            } else {
+                                document.querySelector("#popBody").innerHTML += "<tr>" +
+                                    "<td>" + (index + 1) + "</td>" +
+                                    "<td class='text-start'>" +
+                                    "<span class='q_ctg'>[" + commonCode.filter(code => code.code == "EVAL_QUES_CTGR").map(imsiCode => imsiCode.subCode.filter(code2 => code2.code == eduInfo.questionCategory) )[0][0].codeName +
+                                    "] 제목 및 내용</span>" +
+                                    "<span class='q_text'>" + eduInfo.questionTitle + "</span>" +
+                                    "</td>" +
+                                    `<td>
+                                        <div class="chk_box">
+                                            <input id="q_chk${index + 1}" type="checkbox" name="q_chk" onchange='eduInfoDataMake(` + false + `,` + JSON.stringify(eduInfo) + `)'>
+                                            <label for="q_chk${index + 1}">
+                                                <span class="me-0"></span>
+                                            </label>
+                                        </div>
+                                    </td>` +
+                                    "</tr>"
+                            }
+                        })
+                        document.querySelector('#popQuestion .bl_paginate').innerHTML += `<a class='btn btnDefault' onclick='eduInfoDataMake(` + true + `)'>선택</a>`;
+                        pagination(data.pageable, false);
+                        document.querySelector('#popQuestion > div').setAttribute('style', 'visibility: visible');
+                    },
+                    error: function(e){		 //요청 실패시 에러 확인을 위함
+                        alert(e.responseJSON.resultMessage);
+                    }
+                })
+            }
+
+            let eduInfoData = [];
+            function eduInfoDataMake(isSelect, item) {
+                if (!isSelect) {
+                    eduInfoData.push(item)
+                } else {
+                    addQuestion(eduInfoData)
+                    eduInfoData = [];
+                }
+            }
+
+            function addQuestion(item) {
+                document.querySelector('#popQuestion > div > button').click();
+                item.forEach((data, index) => {
+                    if (data.questionType != "0") {
+                        document.querySelector('#questionBody').innerHTML +=
+                            "<tr>" +
+                            "<td class='text-start'>" +
+                            "<span class='q_ctg'>[" + commonCode.filter(code => code.code == "EVAL_QUES_CTGR").map(imsiCode => imsiCode.subCode.filter(code2 => code2.code == data.questionCategory) )[0][0].codeName + "] " +
+                            "" + commonCode.filter(code => code.code == "QUES_TYPE").map(imsiCode => imsiCode.subCode.filter(code2 => code2.code == data.questionType) )[0][0].codeName + "</span>" +
+                            "<span class='q_text'>" + data.questionTitle + "</span>" +
+                            "</td>" +
+                            "<td class='text-center'>" +
+                            "<span class='orderBtn' name='up' onClick='moveRow(this)'>▲</span>" +
+                            "<input style='width: 0px; visibility: hidden' value=" + data.questionSerialNo + ">" +
+                            "<span class='orderBtn' name='down' onClick='moveRow(this)'>▼</span>" +
+                            "</td>" +
+                            "<td class='text-center'>" +
+                            "<a class='btn btnDefault btn_del' onclick='deleteRow(this)'>삭제</a>" +
+                            "</td>" +
+                            "</tr>"
+                    } else {
+                        document.querySelector('#questionBody').innerHTML +=
+                            "<tr>" +
+                            "<td class='text-start'>" +
+                            "<span class='q_ctg'>[" + commonCode.filter(code => code.code == "EVAL_QUES_CTGR").map(imsiCode => imsiCode.subCode.filter(code2 => code2.code == data.questionCategory) )[0][0].codeName+
+                            "]</span>" +
+                            "<span class='q_text'>" + data.questionTitle + "</span>" +
+                            "</td>" +
+                            "<td class='text-center'>" +
+                            "<span class='orderBtn' name='up' onClick='moveRow(this)'>▲</span>" +
+                            "<input style='width: 0px; visibility: hidden' value=" + data.questionSerialNo + ">" +
+                            "<span class='orderBtn' name='down' onClick='moveRow(this)'>▼</span>" +
+                            "</td>" +
+                            "<td class='text-center'>" +
+                            "<a class='btn btnDefault btn_del' onclick='deleteRow(this)'>삭제</a>" +
+                            "</td>" +
+                            "</tr>"
+                    }
+                })
+            }
+
+            /** 행 이동 */
+            function moveRow(object) {
+                const row = $(object).closest('tr');
+                if(object.getAttribute("name") == "up") { row.prev().before(row); }
+                else if(object.getAttribute("name") == "down") { row.next().after(row); }
+            }
+
+            /** 행 삭제 */
+            function deleteRow(item) {
+                item.parentElement.parentElement.outerHTML = "";
+            }
+
+            // 미입력된 필수 정보가 있을 경우 alert
+            function requiredChk() {
+
+                if (!document.querySelector("#evaluateTitle").value) {
+                    alert('강의 평가 제목은 필수입니다.');
+                    return false;
+                } else params.evaluateTitle = document.querySelector("#evaluateTitle").value;
+
+                if (!document.querySelector("#evaluateType").value) {
+                    alert('강의 평가 타입은 필수입니다.');
+                    return false;
+                } else params.evaluateType = document.querySelector("#evaluateType").value;
+
+                if (!document.querySelector("#isUsableOtherComments").value) {
+                    alert('강의 평가 기타항목 여부는 필수입니다.');
+                    return false;
+                }
+                return true;
+            }
+
+            /** 평가 등록 */
+            function regist() {
+                /** 필수 값 체크 */
+                if (!requiredChk()) return;
+
+                params.evaluateContents = document.querySelectorAll('iframe')[0].contentWindow.document.body.children[0].textContent;
+
+                if (document.getElementById('isUsableOtherComments').value == '1') {
+                    params.isUsableOtherComments = true;
+                }
+                if (document.getElementById('isUsableOtherComments').value == '0') {
+                    params.isUsableOtherComments = false;
+                }
+
+                /** 평가 질문 */
+                params.questionList = [];
+                for(let index = 0; index < document.querySelector('#questionBody').childElementCount; ++index) {
+                    params.questionList.push({sortNo: (index + 1), value: document.querySelector('#questionBody').children[index].children[1].children[1].value})
+                }
+
+                /** 강의 평가 등록 */
+                $.ajax({ //jquery ajax
+                    type: "post", //http method
+                    url: "/api/contents/evaluate/create", //값을 가져올 경로
+                    headers: {'Content-Type': 'application/json'},
+                    data: JSON.stringify(params),
+                    dataType: "json", //html, xml, text, script, json, jsonp 등 다양하게 쓸 수 있음
+                    success: function (data) {   //요청 성공시 실행될 메서드
+                        alert("평가 등록이 완료되었습니다.");
+                        window.location.replace('/contents/evaluate');
+                    },
+                    error: function (e) {		 //요청 실패시 에러 확인을 위함
+                        alert(e.responseJSON.resultMessage+"("+e.responseJSON.verboseMessage+")");
+                    }
+                })
+            }
+
+            /** 평가 수정 */
+            function modify() {
+                /** 필수 값 체크 */
+                if (!requiredChk()) return;
+
+                params.evaluateSerialNo = content.evaluateSerialNo;
+
+                params.evaluateContents = document.querySelectorAll('iframe')[0].contentWindow.document.body.children[0].textContent;
+
+                if (document.getElementById('isUsableOtherComments').value == '1') {
+                    params.isUsableOtherComments = true;
+                }
+                if (document.getElementById('isUsableOtherComments').value == '0') {
+                    params.isUsableOtherComments = false;
+                }
+
+                /** 평가 질문 */
+                params.questionList = [];
+                for(let index = 0; index < document.querySelector('#questionBody').childElementCount; ++index) {
+                    params.questionList.push({sortNo: (index + 1), value: document.querySelector('#questionBody').children[index].children[1].children[1].value})
+                }
+
+                /** 평가 수정 */
+                $.ajax({ //jquery ajax
+                    type:"put", //http method
+                    url:"/api/contents/evaluate/update", //값을 가져올 경로
+                    headers: {'Content-Type': 'application/json'},
+                    data: JSON.stringify(params),
+                    dataType:"json", //html, xml, text, script, json, jsonp 등 다양하게 쓸 수 있음
+                    success: function(data) {   //요청 성공시 실행될 메서드
+                        alert("평가지 수정이 완료되었습니다.");
+                        window.location.reload();
+                    },
+                    error: function(e){		 //요청 실패시 에러 확인을 위함
+                        alert(e.responseJSON.resultMessage+"("+e.responseJSON.verboseMessage+")");
+                    }
+                })
+            }
+            /* ]]> */
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

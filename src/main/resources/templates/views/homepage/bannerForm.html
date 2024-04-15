@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="homepage-15">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>배너 관리</h2>
+        </div>
+
+        <div class="tableLeftResponsive">
+            <table class="tableLeft">
+                <colgroup>
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                </colgroup>
+                <tbody>
+                    <form name="dataForm">
+                        <tr>
+                            <th scope="row"><span class="el_required">*</span>제목</th>
+                            <td>
+                                <input id="title" type="text" class="hp_w600" not_null="true" alert_name="배너 제목" th:if="${content} == null">
+                                <input id="title" type="text" class="hp_w600" not_null="true" alert_name="배너 제목"  th:unless="${content} == null" th:value="${content[0].title}" >
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row"><span class="el_required">*</span>사용기간</th>
+                            <td>
+                                <div class="bl_dateRange">
+                                    <input id="bannerStartYmd" type="text" class="el_datePicker sdate" name="bannerStartYmd" th:if="${content} == null" cts-required="시작기간을 입력해주세요." placeholder="YYYY-MM-DD" not_null="true" alert_name="시작기간">
+                                    <input id="bannerStartYmd" type="text" class="el_datePicker sdate" name="bannerStartYmd" th:unless="${content} == null" th:value="${content[0].bannerStartYmd}" cts-required="시작기간을 입력해주세요." placeholder="YYYY-MM-DD" not_null="true" alert_name="시작기간">
+                                    <span class="blank">~</span>
+                                    <input id="bannerEndYmd" type="text" class="el_datePicker edate" name="bannerEndYmd" th:if="${content} == null" cts-required="종료기간을 입력해주세요." placeholder="YYYY-MM-DD" not_null="true" alert_name="종료기간">
+                                    <input id="bannerEndYmd" type="text" class="el_datePicker edate" name="bannerEndYmd" th:unless="${content} == null" th:value="${content[0].bannerEndYmd}" cts-required="종료기간을 입력해주세요." placeholder="YYYY-MM-DD" not_null="true" alert_name="종료기간">
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row">배너 이미지</th>
+                            <td>
+                                <div class="bl_uploadGrid">
+                                    <div class="bl_upload js_upload hp_lg_w462">
+                                        <input type="text" id="bannerImagePath" class="bl_upload_path js_path" readonly th:if="${content} and ${content[0].bannerImagePath} == null">
+                                        <input type="text" id="bannerImagePath" class="bl_upload_path js_path" readonly th:if="${content} and ${content[0].bannerImagePath} != null" th:value="${content[0].bannerImagePath}">
+                                        <input th:unless="${content}" id="bannerImagePath" type="text" class="bl_upload_path js_path" readonly>
+
+                                        <label class="btn btnDefault bg-secondary text-white bl_upload_btn">파일선택</label>
+                                        <input id="thumbnailFile" type="file" name="file" class="bl_upload_file js_file">
+                                    </div>
+                                </div>
+                                <div class="bl_uploadGrid" style="margin-top: 10px;">
+                                    <div class="bl_upload hp_lg_w462">
+                                        <input id="bannerLink" type="text" class="hp_w600" th:if="${content} == null" placeholder="배너에 링크를 추가하려면 입력하세요.">
+                                        <input id="bannerLink" type="text" class="hp_w600" th:unless="${content} == null" th:value="${content[0].bannerLink}" placeholder="배너에 링크를 추가하려면 입력하세요.">
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row"><span class="el_required">*</span>사용여부</th>
+                            <td>
+                                <div class="radio_box">
+                                    <input id="bannerStatusY" type="radio" name="bannerStatus" checked th:if="${content} == null">
+                                    <input id="bannerStatusY" type="radio" name="bannerStatus" checked th:unless="${content} == null" th:checked="${content[0].bannerStts == 1?true:false}">
+                                    <label for="bannerStatusY">
+                                        <span></span>
+                                        사용
+                                    </label>
+                                </div>
+                                <div class="radio_box">
+                                    <input id="bannerStatusN" type="radio" name="bannerStatus" th:if="${content} == null">
+                                    <input id="bannerStatusN" type="radio" name="bannerStatus" th:unless="${content} == null" th:checked="${content[0].bannerStts == 0?true:false}">
+                                    <label for="bannerStatusN">
+                                        <span></span>
+                                        미사용
+                                    </label>
+                                </div>
+                            </td>
+                        </tr>
+                    </form>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="bl_gridBtns">
+            <div class="bl_gridBtns_lft">
+                <div class="btn btnDefault btnDelete" onclick="del()">삭제</div>
+            </div>
+            <div class="bl_gridBtns_rgt">
+                <a class="btn btnDefault btnList" href="/homepage/banner">목록</a>
+                <div class="btn btnDefault btnRegister" th:if="${content == null}" onclick="save('create')">등록</div>
+                <div class="btn btnDefault btnModify" th:if="${content != null}" onclick="save('update')">수정</div>
+            </div>
+        </div>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            /* <![CDATA[ */
+            function del() {
+                if(confirm(`정말로 삭제하시겠습니까?`)){
+                    let params = getFormData();
+                    $.ajax({ //jquery ajax
+                        type:"delete", //http method
+                        url:`/api/homepage/banner/delete/${params.sequenceNo}`, //값을 가져올 경로
+                        headers: {'Content-Type': 'application/json'},
+                        data: JSON.stringify(params),
+                        dataType:"json", //html, xml, text, script, json, jsonp 등 다양하게 쓸 수 있음
+                        success: function(data){   //요청 성공시 실행될 메서드
+                            alert('삭제되었습니다.');
+                            location.href = '/homepage/banner';
+                        },
+                        error: function(e){		 //요청 실패시 에러 확인을 위함
+                            if(e && e.responseJSON && e.responseJSON.resultMessage){
+                                alert(e.responseJSON.resultMessage);
+                            }else{
+                                alert('삭제 중 오류가 발생했습니다.')
+                            }
+                        }
+                    })
+                }
+            }
+
+            function save(type){
+                if(nullCheck()){
+                    let params = getFormData()
+                    console.log(params);
+                    if (type == 'create') {
+                        if ($("#thumbnailFile")[0].files.length != 0) {
+                            $.ajax({
+                                type: "post",
+                                headers: {'Content-Type' : 'application/json'},
+                                url: "/api/homepage/banner/create",
+                                data: JSON.stringify(params),
+                                dataType: "json",
+                                success: function (data){
+                                    var form = new FormData();
+                                    form.append( "thumbnailFile", document.querySelector('#thumbnailFile').files[0] );
+                                    $.ajax({
+                                        type:"put", //http method
+                                        url:"/api/homepage/banner/upload/" + data.bannerSn, //값을 가져올 경로
+                                        processData : false,
+                                        contentType : false,
+                                        data: form,
+                                        success: function(subData) {   //요청 성공시 실행될 메서드
+                                            console.log("배너 이미지 등록이 완료되었습니다.");
+                                        },
+                                        error: function(e) {
+                                            alert(e.responseJSON.resultMessage);
+                                        }
+                                    });
+                                    alert("배너 등록이 완료되었습니다.");
+                                    window.location.replace('/homepage/banner');
+                                },
+                                error: function (e){
+                                    alert(e.responseJSON.resultMessage);
+                                }
+                            })
+                        } else {
+                            alert("배너 이미지 등록은 필수입니다.");
+                        }
+                    } else {
+                        $.ajax({
+                            type: "put",
+                            headers: {'Content-Type' : 'application/json'},
+                            url: "/api/homepage/banner/update",
+                            data: JSON.stringify(params),
+                            dataType: "json",
+                            success: function (data){
+                                alert("배너 수정이 완료되었습니다.");
+                                window.location.reload();
+                            },
+                            error: function (e){
+                                alert(e.responseJSON.resultMessage);
+                            }
+                        })
+                    }
+                }
+            }
+
+            let CONT = null;
+            function getFormData(){
+                let params = {};
+                params.bannerSn='0'
+                if(CONT!=null){
+                    params.bannerSn = CONT[0].bannerSn
+                }
+
+                params.title=$("#title").val()
+                params.bannerStartYmd=$("#bannerStartYmd").val()
+                params.bannerEndYmd=$("#bannerEndYmd").val()
+                params.bannerLink=$("#bannerLink").val()
+                params.bannerImagePath=$("#bannerImagePath").val();
+                params.bannerStts=$("#bannerStatusY").is(":checked")?1:0;
+                return params;
+            }
+
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode}]])
+                CONT = [[ ${content}]]
+            }
+
+        </script>
+    </th:block>
+</div>
+</body>
+</html>
+

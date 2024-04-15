@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="homepage-1">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>게시판 관리</h2>
+        </div>
+
+        <div class="tableLeftResponsive">
+            <table class="tableLeft">
+                <colgroup>
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                </colgroup>
+                <tbody>
+                    <tr>
+                        <th scope="row">상태</th>
+                        <td>
+                            <div class="radio_box">
+                                <input id="boardStateAll" type="radio" name="boardState" checked>
+                                <label for="boardStateAll">
+                                    <span></span>
+                                    전체
+                                </label>
+                            </div>
+                            <div class="radio_box">
+                                <input id="boardStateUse" type="radio" name="boardState" value="1">
+                                <label for="boardStateUse">
+                                    <span></span>
+                                    사용
+                                </label>
+                            </div>
+                            <div class="radio_box">
+                                <input id="boardStateNotUse" type="radio" name="boardState" value="0">
+                                <label for="boardStateNotUse">
+                                    <span></span>
+                                    사용안함
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">검색</th>
+                        <td>
+                            <input type="text" id="containText" class="hp_w600">
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="bl_gridBtns">
+            <div class="bl_gridBtns_md">
+                <div class="btn btnDefault btnReset">리셋</div>
+                <div class="btn btnDefault btnSearch">검색</div>
+                <a class="btn btnDefault btnRegister" onclick="alert('준비중입니다.')">등록</a>
+            </div>
+        </div>
+
+        <!-- BOARD : CONTROLLER -->
+        <div class="bl_boardCtrls">
+            <div class="bl_boardCtrls_lft">
+                <p class="bl_boardCtrls_total">총: <strong th:text="${pageable.totalElements}"></strong>건</p>
+                <select class="common_select" data-list="countSortList"></select>
+            </div>
+        </div>
+
+        <div class="tableResponsive overflowMulti">
+            <table class="table">
+                <colgroup>
+                    <col style="width: 50px">
+                    <col>
+                    <col>
+                    <col>
+                    <col>
+                    <col>
+                    <col>
+                    <col>
+                    <col>
+                    <col>
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th scope="col">번호</th>
+                        <th scope="col">코드</th>
+                        <th scope="col">게시판명</th>
+                        <th scope="col">게시글수</th>
+                        <th scope="col">비밀글</th>
+                        <th scope="col">상단공지</th>
+                        <th scope="col">파일첨부</th>
+                        <th scope="col">답글</th>
+                        <th scope="col">상태</th>
+                        <th scope="col">게시글관리</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1</td>
+                        <td>a</td>
+                        <td>
+                            <a href="">공지사항</a>
+                        </td>
+                        <td>10</td>
+                        <td>
+                            <span class="color_blue">Y</span>
+                            <span class="color_red">N</span>
+                        </td>
+                        <td>
+                            <span class="color_blue">Y</span>
+                            <span class="color_red">N</span>
+                        </td>
+                        <td>
+                            <span class="color_blue">Y</span>
+                            <span class="color_red">N</span>
+                        </td>
+                        <td>
+                            <span class="color_blue">Y</span>
+                            <span class="color_red">N</span>
+                        </td>
+                        <td>
+                            <span class="color_blue">사용</span>
+                            <span class="color_red">사용안함</span>
+                        </td>
+                        <td>
+                            <a href="" class="btn btnDefault">관리</a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="bl_paginate"></div>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            $(".btnSearch").bind('click',function (){
+                let searchQuery = {}
+                let text = $("#containText").val();
+                let state = $("input:radio[name=boardState]:checked").attr('value');
+                if(text){
+                    searchQuery.containText = text;
+                }
+                if(state){
+                    searchQuery.boardState = state;
+                }
+                searchJson(searchQuery)
+            })
+
+            /* <![CDATA[ */
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+                pagination([[ ${pageable} ]], false)
+            }
+            /* ]]> */
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

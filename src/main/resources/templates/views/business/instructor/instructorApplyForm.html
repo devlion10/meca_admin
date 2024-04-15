@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="business-4-2">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>강사배정 관리</h2>
+        </div>
+
+        <div class="tableLeftResponsive">
+            <table class="tableLeft">
+                <colgroup>
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                </colgroup>
+                <tbody>
+                    <tr>
+                        <th scope="row">사업명</th>
+                        <td th:text="${content[0].bizPbancMaster.bizPbancNm}">사업명</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">신청기관</th>
+                        <td th:text="${content[0].organizationInfo.organizationName}">기관명</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">교육기간</th>
+                        <td>
+                            <span th:text="${content[0].bizPbancMaster.bizPbancRcptBgng}">2022.03.23</span> - <span th:text="${content[0].bizPbancMaster.bizPbancRcptEnd}">2022.11.30</span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- GRID : BUTTON -->
+        <div class="bl_gridBtns">
+            <div class="bl_gridBtns_rgt">
+                <a class="btn btnDefault" href="/business/instructor/assignment">목록</a>
+            </div>
+        </div>
+
+        <div class="tableLeftResponsive">
+            <table class="tableLeft">
+                <colgroup>
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                </colgroup>
+                <tbody>
+                    <tr>
+                        <th scope="row">희망강사</th>
+                        <td th:text="${content[0].bizOrgAplyLsnPlanEtcInstr}">
+                            홍길동
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">기타의견</th>
+                        <td th:text="${content[0].bizOrgAplyLsnPlanEtc}">
+                            기타의견 입니다.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- BOARD : CONTROLLER -->
+        <div class="bl_boardCtrls">
+            <div class="bl_boardCtrls_lft"></div>
+            <div class="bl_boardCtrls_rgt">
+                <label for="bizInstrAplyInstrNm" style="min-width: 40px">강사명</label>
+                <input id="bizInstrAplyInstrNm" type="text" class="hp_w200">
+                <div onclick="searchNm()" class="btn btnDefault btnSearch">강사검색</div>
+            </div>
+        </div>
+
+        <div class="tableResponsive overflowMulti">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th scope="col">순위</th>
+                    <th scope="col">강사명</th>
+                    <th scope="col">지원조건</th>
+                    <th scope="col">코멘트</th>
+                    <th scope="col">선정상태</th>
+                    <th scope="col">지원자</th>
+                    <th scope="col">관리</th>
+                </tr>
+                </thead>
+                <tbody th:if="${content != null && content.size > 0}" id="instr_table">
+                <tr class="instrApply" th:each="item,stat:${content[0].bizInstructorAplies}">
+                    <td class="bizInstrAplyCndtOrdr" th:text="${item.bizInstrAplyCndtOrdr}">1</td>
+                    <td><span class="bizInstrAplyInstrNm" th:text="${item.bizInstrAplyInstrNm}">김광남</span>(<span th:text="${item.bizInstrAplyInstrId}">test12</span>) <input class="bizInstrAplyNo" type="hidden" th:value="${item.bizInstrAplyNo}"></td>
+                    <td>
+                        지원순위: <span class="bizInstrAplyCndtOrdr" th:text="${item.bizInstrAplyCndtOrdr}">0</span><br/>
+                        거리: <span class="bizInstrAplyCndtDist" th:text="${item.bizInstrAplyCndtDist}">0.0</span>
+                    </td>
+                    <td class="bizInstrAplyCmnt" th:text="${item.bizInstrAplyCmnt}">0</td>
+                    <td>
+                        <div href="" class="btn btnDefault state__gray bizInstrAplyStts" th:if="${item.bizInstrAplyStts == 0}">임시저장</div>
+                        <div href="" class="btn btnDefault state__blue bizInstrAplyStts" th:if="${item.bizInstrAplyStts == 1}">접수</div>
+                        <div href="" class="btn btnDefault state__tomato bizInstrAplyStts" th:if="${item.bizInstrAplyStts == 9}">임시승인</div>
+                        <div href="" class="btn btnDefault state__green bizInstrAplyStts" th:if="${item.bizInstrAplyStts == 2}">승인</div>
+                        <div href="" class="btn btnDefault state__red bizInstrAplyStts" th:if="${item.bizInstrAplyStts == 3}">반려</div>
+                    </td>
+                    <td>
+                        <span class="d-block" th:text="${item.bizInstrAplyInstrId}">test1234</span>
+                        (<span th:text="${item.createDateTime}">2022.03.07 10:04:42.0</span>)
+                    </td>
+                    <td>
+                        <a onclick="delInstr(this)" th:value="${stat.index}" class="btn btnDefault btnDelete icon_none state__red">삭제</a>
+                    </td>
+                </tr>
+                </tbody>
+                <tbody th:unless="${content != null && content.size > 0}">
+                <tr class="empty_data"><td colspan="5">조회된 내용이 없습니다.</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- POPUP : 강사등록 -->
+        <div class="iframe_wrap">
+            <iframe id="addInstructor" src="about:blank" width="800"></iframe>
+        </div>
+
+        <th:block layout:fragment="script">
+            <script th:inline="javascript">
+                function searchNm(){
+                    let instrNm = $("#bizInstrAplyInstrNm").val();
+                    let url = "/popup/find/instructor?instrCtgr=INSTR&instrStts=1";
+                    if(instrNm){
+                        url+= '&instrNm='+instrNm;
+                    }
+                    openPop('', url, 'addInstructor');
+                }
+                window.addEventListener('message', handleDocHeightMsg, false); // 메시지 수신 이벤트 등록
+
+                function handleDocHeightMsg(eventObj) { // 메시지 수신 처리를 위한 함수
+                    setPopData(eventObj.data);
+                }
+
+                function delInstr(item){
+                    if(confirm("정말로 삭제하시겠습니까?")){
+                        if($(item).attr("value")!=undefined){
+                            let dataIndex = $(item).attr("value");
+                            let CONT = getCont();
+                            let params = CONT[0].bizInstructorAplies[dataIndex];
+                            $.ajax({
+                                type: "delete", //http method
+                                url: `/api/business/instructor/assignment/apply/delete/${params.instuctorAplyNo}`, //값을 가져올 경로
+                                headers: {'Content-Type': 'application/json'},
+                                data: JSON.stringify(params),
+                                dataType: "json",
+                                success: function(data) {
+                                    alert("삭제되었습니다.");
+                                    $(item).parent().parent().remove();
+                                },
+                                error: function(e) {
+                                    alert("오류가 발생했습니다.")
+                                }
+                            })
+                        }else{
+                            $(item).parent().parent().remove();
+                        }
+                    }
+                }
+                /* <![CDATA[ */
+                function onLoadSubmit() {
+                    console.log('commonCode: ', [[ ${commonCode} ]] )
+                }
+                function getCont(){
+                    let CONT =[[ ${content} ]];
+                    return CONT
+                }
+                function setPopData(data){
+                    if(data && data!=null && data.instrNm){
+                        let CONT =getCont();
+                        let params = {};
+                        params.bizInstrNo = CONT[0].bizInstrNo;
+                        params.bizOrgAplyNo = CONT[0].bizOrgAplyNo;
+                        params.bizInstrAplyStts = 1;
+                        params.bizInstrAplyInstrNm = data.instrNm; // 수정필요
+                        params.bizInstrAplyInstrId = data.userId;
+                        params.bizInstrAplyCndtOrdr =1;
+                        params.bizInstrAplySlctnScr =0;
+                        params.bizInstrAplySlctnCndt=0;
+                        params.bizInstrAplyProtOrdr=1;
+                        params.bizInstrAplyCmnt=null;
+                        params.bizInstrAplyNo="100";
+                        params.bizInstrAplyCndtDist = getDistance(CONT[0].organizationInfo.organizationAddress1,data.instrAddr1)
+
+                        $.ajax({
+                            type: "POST",
+                            headers: {'Content-Type' : 'application/json'},
+                            url: "/api/business/instructor/assignment/apply/create",
+                            data: JSON.stringify(params),
+                            dataType: "json",
+                            success: function (res){
+                                alert("강사 등록에 성공했습니다.")
+                                window.location.reload()
+                            },
+                            error: function (e){
+                                alert("강사 등록에 실패했습니다.")
+                            }
+                        })
+                    }
+                }
+
+                //주소 string으로 거리를 계산하는 함수
+                function getDistance(start, end){
+                    let startPoint = findPoint(start);
+                    let endPoint= findPoint(end);
+                    if(startPoint && endPoint){
+                        let len = distance(startPoint.y,startPoint.x,endPoint.y, endPoint.x)
+                        len = Math.round(len * 10)/10;
+                        return len;
+                    }else if(startPoint == null){
+                        alert("출발지 주소를 검색하는 과정에서 오류가 발생했습니다.")
+                        return 0;
+                    }else if(endPoint == null){
+                        alert("기관 주소를 검색하는 과정에서 오류가 발생했습니다.")
+                        return 0;
+                    }
+
+                }
+
+                //좌표 구하는 함수
+                //INDEX는 서울 강남구 강남대로 238 와 같이 건물 주소
+                function findPoint(input,currentPage=1,countPerPage=10) {
+                    let result={};
+                    let newkey = "6046c13b83a2e4d21d510736715ad9eb";
+                    let url ="https://dapi.kakao.com/v2/local/search/address.json";
+                    $.ajax({
+                        data: { query: input,page:currentPage,size:countPerPage },
+                        url: url,
+                        headers : {
+                            "Content-Type" : "application/json",
+                            Authorization : "KakaoAK "+newkey
+                        },
+                        async: false,
+                        dataType: "json",
+                        method: "GET",
+                        error: function (e) {
+                            result.documents=false
+                        },
+                        success: function (data) {
+                            result = data;
+                        },
+                    })
+                    if(result.documents && result.documents.length>0)
+                        return result.documents[0];
+                    else
+                        return null;
+                }
+
+
+                //시작Y, 시작X, 도착Y, 도착X 좌표를 입력하면 추천경로 계산
+                function distance(lat1,lng1,lat2,lng2){
+                    let result=0;
+                    let newkey = "6046c13b83a2e4d21d510736715ad9eb";
+                    let url =`https://apis-navi.kakaomobility.com/v1/directions?origin=${lng1},${lat1}&destination=${lng2},${lat2}&summary=true`;
+                    $.ajax({
+                        url: url,
+                        headers : {
+                            "Content-Type" : "application/json",
+                            Authorization : "KakaoAK "+newkey
+                        },
+                        async: false,
+                        dataType: "json",
+                        method: "GET",
+                        error: function (e) {
+                            result=0
+                        },
+                        success: function (data) {
+                            result = data.routes[0].summary.distance/1000
+                        },
+                    })
+                    return result;
+                }
+                /* ]]> */
+            </script>
+        </th:block>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+</div>
+</body>
+</html>

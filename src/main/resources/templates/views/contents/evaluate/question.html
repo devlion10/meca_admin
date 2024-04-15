@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="contents-2-2">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>평가지 관리</h2>
+        </div>
+
+        <div class="tableLeftResponsive">
+            <table class="tableLeft">
+                <colgroup>
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                </colgroup>
+                <tbody>
+                    <tr>
+                        <th scope="row">등록일</th>
+                        <td>
+                            <div class="bl_dateRange hp_md_w100p">
+                                <input type="text" class="el_datePicker sdate" id="startDate">
+                                <span class="blank">~</span>
+                                <input type="text" class="el_datePicker edate" id="endDate">
+                            </div>
+                        </td>
+                        <th scope="row">상태</th>
+                        <td>
+                            <select class="common_select" id="isUsable">
+                                <option value="">전체</option>
+                                <option value=true>사용</option>
+                                <option value=false>사용안함</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">평가지명</th>
+                        <td colspan="3">
+                            <input type="text" id="evaluateTitle">
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- GRID : BUTTON -->
+        <div class="bl_gridBtns">
+            <div class="bl_gridBtns_md">
+                <div class="btn btnDefault btnReset">리셋</div>
+                <a class="btn btnDefault btnSearch" onclick="goSearch()">검색</a>
+                <a class="btn btnDefault download_excel download_search" href="/api/contents/evaluate/excel">excel 다운로드</a>
+                <a class="btn btnDefault btnRegister" href="/contents/evaluate/regist">등록</a>
+            </div>
+        </div>
+
+        <!-- BOARD : CONTROLLER -->
+        <div class="bl_boardCtrls">
+            <div class="bl_boardCtrls_lft">
+                <p class="bl_boardCtrls_total">총: <strong th:text="${pageable.totalElements}"></strong>건</p>
+            </div>
+            <div class="bl_boardCtrls_rgt">
+                <select class="common_select" data-list="countSortList"></select>
+            </div>
+        </div>
+
+        <div class="tableResponsive overflowMulti">
+            <table class="table">
+                <colgroup>
+                    <col style="width: 50px" />
+                    <col style="width: 200px" />
+                    <col style="width: auto" />
+                    <col style="width: 120px" />
+                    <col style="width: 200px" />
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th scope="col">번호</th>
+                        <th scope="col">구분</th>
+                        <th scope="col">평가지명</th>
+                        <th scope="col">상태</th>
+                        <th scope="col">등록일</th>
+                    </tr>
+                </thead>
+                <tbody th:if="${content != null && content.size > 0}">
+                    <tr th:if="${!#lists.isEmpty(content)}" th:each="item, stat: ${content}">
+                        <td th:text="${pageable.totalElements - ((pageable.page * pageable.size) + stat.index)}"></td>
+                        <th:block th:each="commonCode : ${commonCode}"
+                                  th:if="${commonCode.code} == 'EVAL_TYPE'">
+                            <td th:each="evaluateType : ${commonCode.subCode}"
+                                    th:if="${evaluateType.code == item.evaluateType}"
+                                    th:text="${evaluateType.codeName}"></td>
+                        </th:block>
+                        <td>
+                            <a th:href="@{/contents/evaluate/{evaluateSerialNo}(evaluateSerialNo=${item.evaluateSerialNo})}" th:text="${item.evaluateTitle}">평가지명이 들어갑니다.</a>
+                        </td>
+                        <td>
+                            <span th:if="${item.isUsable == true}" class="color_blue">사용</span>
+                            <span th:unless="${item.isUsable == true}" class="color_red">사용안함</span>
+                        </td>
+                        <td th:text="${#strings.substring(item.createDateTime, 0, 10)}">2022.10.01</td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(content)}" class="empty_data">
+                        <td colspan="5">조회된 데이터가 없습니다.</td>
+                    </tr>
+                </tbody>
+                <tbody th:unless="${content != null && content.size > 0}">
+                    <tr class="empty_data"><td colspan="5">조회된 내용이 없습니다.</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div th:if="${!#lists.isEmpty(content)}" class="bl_paginate"></div>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            /* <![CDATA[ */
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+                pagination([[ ${pageable} ]]);
+
+                const params = new URLSearchParams(decodeURIComponent(window.location.search).replace("?", ""));
+                if(params.get("startDate")) { document.getElementById('startDate').value = params.get("startDate").replaceAll('-','.'); }
+                if(params.get("endDate")) { document.getElementById('endDate').value = params.get("endDate").replaceAll('-','.'); }
+                if(params.get("isUsable")) { document.getElementById('isUsable').value = params.get('isUsable'); }
+                if(params.get("evaluateTitle")) { document.getElementById('evaluateTitle').value = params.get("evaluateTitle"); }
+            }
+
+            function goSearch() {
+                const params = {};
+                if(document.querySelector('#startDate').value) {
+                    params.startDate = document.querySelector('#startDate').value.replaceAll('.','-');
+                }
+                if(document.querySelector('#endDate').value) {
+                    params.endDate = document.querySelector('#endDate').value.replaceAll('.','-');
+                }
+                params.isUsable = document.querySelector("#isUsable").value;
+                params.evaluateTitle = document.querySelector("#evaluateTitle").value;
+
+                const queryParams = Object.entries(params).filter(data => data[1] != null && data[1] !== '').map(data => data.join('=')).join('&');
+                location.href = "/contents/evaluate?" + queryParams;
+            }
+            /* ]]> */
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/pop_layout}">
+<body>
+<div layout:fragment="pop">
+    <div sec:authorize="isAuthenticated()">
+        <p>엑셀 파일을 다운로드 하고 있습니다. 처리하는데 1분 이상 걸릴 수 있습니다. 이 창을 닫지 말고 잠시 기다려 주세요.</p>
+        <table class="table" border="1" id="excelDownload" style="display: none;" th:if="${!#arrays.isEmpty(content) && #strings.equals(param.groupType, 'instr')}">
+            <thead>
+            <tr>
+                <th scope="col">번호</th>
+                <th scope="col">배정강사</th>
+                <th scope="col">생년월일</th>
+                <th scope="col">사업명</th>
+                <th scope="col">학교명</th>
+                <th scope="col">시간당 강의료(원)</th>
+                <th:block th:each="item:${content[0].dtlDate}">
+                    <th th:if="${#strings.substring(item,4,5)=='0'}" scope="col" th:text="${#strings.substring(item,5,6)+'월 강의시간'}"></th>
+                    <th th:if="${#strings.substring(item,4,5)=='0'}" scope="col" th:text="${#strings.substring(item,5,6)+'월 강의료'}"></th>
+                    <th th:unless="${#strings.substring(item,4,5)=='0'}" scope="col" th:text="${#strings.substring(item,4,6)+'월 강의시간'}"></th>
+                    <th th:unless="${#strings.substring(item,4,5)=='0'}" scope="col" th:text="${#strings.substring(item,4,6)+'월 강의료'}"></th>
+                </th:block>
+                <th scope="col">지급액(원)</th>
+                <th scope="col">언택트 강의 포함유무</th>
+                <th scope="col">지급액(강사별)</th>
+                <th scope="col">비고</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr class="bizIdentify" th:each="item, stat : ${content}">
+                <td th:text="${stat.count+(pageable.size * pageable.page)}"></td>
+                <td class="instrName" th:name="${item.bizInstrAplyInstrId}">
+                    <span th:text="${item.bizInstrAplyInstrNm}">강사명</span>
+                </td>
+                <td>
+                    <th:block th:unless="${#strings.isEmpty(item.lmsUser.birthDay)}">
+                        <span th:text="${#strings.substring(item.lmsUser.birthDay,0,4)}"></span>-<span th:text="${#strings.substring(item.lmsUser.birthDay,4,6)}"></span>-<span th:text="${#strings.substring(item.lmsUser.birthDay,6,8)}"></span>
+                    </th:block>
+                </td>
+                <td>
+                    <span th:text="${item.bizOrganizationAply.bizPbancMaster.bizPbancNm}">사업명</span>
+                </td>
+                <td>
+                    <span th:text="${item.bizOrganizationAply.organizationInfo.organizationName}">초등학교</span>
+                </td>
+                <td>
+                    <span th:if="${item.bizInstructorDist!=null}" class="comma"
+                       th:text="${item.bizInstructorDist.bizDistAmt}">0.0</span>
+                    <span th:unless="${item.bizInstructorDist!=null}" class="guide_text">거리증빙 X</span>
+                </td>
+                <th:block th:each="item2, stat:${content[0].dtlDate}">
+                    <td th:name="bizHr" th:class="${item2+'Hr'}">
+                        <th:block th:each="item3:${item.bizInstructorIdentifies}">
+                            <span class="bizHr bizInstrIdntyPayYm" th:value="${item3.bizInstrIdntyPayYm+item3.bizInstrIdntyYm}" th:if="${item3.bizInstrIdntyYm==item2}" th:text="${item3.bizInstrIdntyTime}"></span>
+                        </th:block>
+                    </td>
+                    <td th:class="${item2+'Amt'}">
+                        <th:block th:each="item3:${item.bizInstructorIdentifies}">
+                            <span class="comma bizInstrIdntyPayYm" th:if="${item3.bizInstrIdntyYm==item2}"
+                              th:value="${item3.bizInstrIdntyPayYm+item3.bizInstrIdntyYm}"
+                               th:text="${item3.bizInstrIdntyAmt}"></span>
+                        </th:block>
+                    </td>
+                </th:block>
+                <td class="bizAmt comma"> </td>
+                <td>
+                    <span class="isUntact"></span>
+                </td>
+                <td class="instrAmt comma" th:name="${item.bizInstrAplyInstrId+item.bizOrganizationAply.bizPbancNo}">
+                    강사별
+                </td>
+                <td class="etcFormula">
+                    <th:block th:each="item2,stat2:${item.bizInstructorIdentifies}">
+                        <th:block th:each="item3, stat3:${item2.bizInstructorIdentifyDtls}">
+                            <span class="bizInstrIdntyEtc" th:if="${!#strings.isEmpty(item3.bizInstrIdntyEtc)}" th:utext="${item3.bizInstrIdntyEtc}"></span>
+                            <span class="bizInstrIdntyFormula" th:if="${!#strings.isEmpty(item3.bizInstrIdntyFormula)}" th:utext="${item3.bizInstrIdntyFormula}"></span>
+                            <span th:if="${item3.vdoLctYn==1}" th:text="${item3.bizOrganizationAplyDtl.bizOrgAplyLsnDtlYmd+' '+ item3.bizOrganizationAplyDtl.bizOrgAplyLsnDtlHr+'시간 언택트 강의'}"></span>
+                            <span th:if="${!#strings.isEmpty(item3.bizInstrIdntyEtc) || item3.vdoLctYn==1 || !#strings.isEmpty(item3.bizInstrIdntyFormula)}">
+                                <br th:unless="${(stat2.count!=stat2.size)&&(stat3.count!=stat3.size)}">
+                            </span>
+                        </th:block>
+                    </th:block>
+                </td>
+            </tr>
+            <tr>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <th:block th:each="item:${content[0].dtlDate}">
+                    <td th:class="${item+'HrSum comma'}">강의시간</td>
+                    <td th:class="${item+'AmtSum comma'}">강의료</td>
+                </th:block>
+                <td class="bizAmtSum comma">지급액(원)</td>
+                <td></td>
+                <td class="instrAmtSum comma">지급액(강사별)</td>
+                <td></td>
+            </tr>
+            </tbody>
+        </table>
+        <table class="table" border="1" id="excelDownload" style="display: none;" th:if="${!#arrays.isEmpty(content) && #strings.equals(param.groupType, 'org')}">
+            <thead>
+            <tr>
+                <th scope="col">번호</th>
+                <th scope="col">사업명</th>
+                <th scope="col">신청기관</th>
+                <th scope="col">강사명</th>
+                <th scope="col">시간당 강의료</th>
+                <th scope="col">강사별 최초총교육시간</th>
+                <th scope="col">강의료 합계(원)</th>
+                <th:block th:each="item:${#numbers.sequence(3,11)}">
+                    <th scope="col" th:text="${item+'월 강의시간'}"></th>
+                    <th scope="col" th:text="${item+'월 강의료'}"></th>
+                </th:block>
+                <th scope="col">금월 지급액(원)</th>
+                <th scope="col">누적 지급액(원)</th>
+                <th scope="col">잔여시간</th>
+                <th scope="col">잔액</th>
+                <th scope="col">비고</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr class="bizIdentify" th:each="item, stat : ${content}">
+                <td th:text="${stat.count+(pageable.size * pageable.page)}"></td>
+                <td th:text="${item.bizOrganizationAply.bizPbancMaster.bizPbancNm}">사업명</td>
+                <td class="orgName" th:name="${item.bizOrganizationAply.orgCd}">
+                    <span th:text="${item.bizOrganizationAply.organizationInfo.organizationName}">초등학교</span>
+                </td>
+                <td>
+                    <span th:text="${item.bizInstrAplyInstrNm}">강사명</span>
+                </td>
+                <td>
+                    <span th:if="${item.bizInstructorDist!=null}"
+                       th:text="${item.bizInstructorDist.bizDistAmt}">0.0</span>
+                    <span th:unless="${item.bizInstructorDist!=null}" class="guide_text">거리증빙 X</span>
+                </td>
+                <td th:text="${item.bizInstrAsgmnTimeAll}"></td>
+                <td class="comma allAmt" th:if="${item.bizInstructorDist !=null}" th:text="${item.bizInstructorDist.bizDistAmt*item.bizInstrAsgmnTimeAll}">
+                    강의료 합계(원)
+                </td>
+                <td class="comma allAmt" th:unless="${item.bizInstructorDist !=null}" th:text="${item.bizInstrAsgmnTimeAll*100000}">
+                    0
+                </td>
+                <th:block th:each="item2:${#numbers.sequence(3,11)}">
+                    <td th:name="bizHr" th:class="${item2+'Hr'}">
+                        <th:block th:each="item3:${item.bizInstructorIdentifies}">
+                            <span class="bizHr bizInstrIdntyPayYm"  th:value="${item3.bizInstrIdntyPayYm+item3.bizInstrIdntyYm}"
+                                  th:if="${(item2 < 10 && #strings.endsWith(item3.bizInstrIdntyYm, '0'+item2)) || (item2 >= 10 && #strings.endsWith(item3.bizInstrIdntyYm, item2)) }" th:text="${item3.bizInstrIdntyTime}"></span>
+                        </th:block>
+                    </td>
+                    <td th:class="${item2+'Amt'}">
+                        <th:block th:each="item3:${item.bizInstructorIdentifies}">
+                            <span class="comma bizInstrIdntyPayYm" th:if="${(item2 < 10 && #strings.endsWith(item3.bizInstrIdntyYm, '0'+item2)) || (item2 >= 10 && #strings.endsWith(item3.bizInstrIdntyYm, item2)) }"
+                               th:value="${item3.bizInstrIdntyPayYm+item3.bizInstrIdntyYm}"
+                               th:text="${item3.bizInstrIdntyAmt}"></span>
+                        </th:block>
+                    </td>
+                </th:block>
+                <td class="bizAmt comma">
+                    금월 지급액(원)
+                </td>
+                <td class="bizAmtAll comma" th:text="${item.bizInstrIdntyAmtAll}">
+                    누적 지급액(원)
+                </td>
+                <td class="restTime" th:text="${item.bizInstrAsgmnTimeRest}">
+                    잔여시간
+                </td>
+                <td class="comma" th:if="${item.bizInstructorDist !=null}" th:text="${item.bizInstructorDist.bizDistAmt*item.bizInstrAsgmnTimeAll-item.bizInstrIdntyAmtAll}">
+                    잔액
+                </td>
+                <td class="comma" th:unless="${item.bizInstructorDist !=null}">
+                    0
+                </td>
+                <td class="etcFormula">
+                    <th:block th:each="item2,stat2:${item.bizInstructorIdentifies}">
+                        <th:block th:each="item3, stat3:${item2.bizInstructorIdentifyDtls}">
+                            <span class="bizInstrIdntyEtc" th:if="${!#strings.isEmpty(item3.bizInstrIdntyEtc)}"></span>
+                            <span th:if="${!#strings.isEmpty(item3.bizInstrIdntyFormula)}" class="bizInstrIdntyFormula"></span>
+                        </th:block>
+                    </th:block>
+                </td>
+            </tr>
+            <tr>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td style="background-color: lightskyblue">강의료 합계</td>
+                <td class="allAmtSum comma" style="background-color: lightskyblue">강의료 합계</td>
+                <th:block th:each="item2:${#numbers.sequence(3,11)}">
+                    <td th:class="${item2+'HrSum'}" style="background-color: lightskyblue">강의시간</td>
+                    <td th:class="${item2+'AmtSum comma'}" style="background-color: lightskyblue">강의료</td>
+                </th:block>
+                <td class="bizAmtSum comma" style="background-color: lightskyblue">금월 지급액(원)</td>
+                <td class="bizAmtAllSum comma" style="background-color: lightskyblue">누적 지급액(원)</td>
+                <td class="restTimeSum" style="background-color: lightskyblue">잔여시간</td>
+                <td class="bizAmtAllSumRest comma" style="background-color: lightskyblue">잔액</td>
+                <td></td>
+            </tr>
+            </tbody>
+        </table>
+        <table class="table" border="1" id="excelDownload" style="display: none;" th:if="${#arrays.isEmpty(content)}">
+            <thead>
+            <tr>
+                <th scope="col">번호</th>
+                <th scope="col">배정강사</th>
+                <th scope="col">학교명</th>
+                <th scope="col">시간당 강의료(원)</th>
+                <th scope="col">총강의료(합계)</th>
+                <th scope="col">4월 강의시간</th>
+                <th scope="col">4월 강의료</th>
+                <th scope="col">지급액(원)</th>
+                <th scope="col">언택트 강의 포함유무</th>
+                <th scope="col">지급액(강사별)(원)</th>
+                <th scope="col">비고</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr class="bizIdentify empty_data">
+                <td colspan="11" rowspan="2">
+                    조회 결과가 없습니다.
+                </td>
+            </tr>
+            <tr></tr>
+            </tbody>
+        </table>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.14.3/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/1.3.8/FileSaver.min.js"></script>
+    <script src="https://cdn.rawgit.com/rainabba/jquery-table2excel/1.1.0/dist/jquery.table2excel.min.js"></script>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            /* <![CDATA[ */
+            let clclDdlnAmt=[[ ${clclDdlnAmt} ]];
+            if(clclDdlnAmt==null){
+                clclDdlnAmt = {bizInstrDistCrtrAmtValue:100000}
+            }
+            let payYm;
+            let nowDate = new Date();
+            let params = new URLSearchParams(window.location.search);
+            if(params.get("year")&&params.get("month")){
+                payYm =params.get("year")+params.get("month");
+            }else if(params.get("year")){
+                payYm =params.get("year");
+                payYm+=nowDate.getMonth()+1>9?nowDate.getMonth()+1:'0'+(nowDate.getMonth()+1);
+            }else if(params.get("month")){
+                payYm =nowDate.getFullYear()+params.get("month");
+            }else{
+                payYm =nowDate.getFullYear();
+                payYm+=nowDate.getMonth()+1>9?nowDate.getMonth()+1:'0'+(nowDate.getMonth()+1);
+            }
+
+
+            $(".etcFormula span").each((idx, item)=>{
+                $(item).html($(item).html().replace(/<br>/g,`<br style='mso-data-placement:same-cell;'>`))
+            })
+            const CONT =  [[ ${content} ]];
+            if(CONT && CONT.length>0){
+                $(".bizIdentify").each((idx, row)=>{
+                    let item = CONT[idx].bizInstructorIdentifies;
+                    $(row).find("td[name=bizHr]").each((index,items)=>{
+                        if($(items).find(".bizHr").length==1){
+                            $(items).find(".bizHr").text(parseInt($(items).find(".bizHr").text()))
+                        }else{
+                            $(items).text(0)
+                        }
+                    })
+
+                    let bizAmt =0;
+                    let count=0;
+                    let countYm=0;
+                    let countYmList=[];
+                    for(let y=0; y<item.length; y++){
+                        if(payYm==item[y].bizInstrIdntyPayYm){
+                            bizAmt+=parseInt(item[y].bizInstrIdntyAmt);
+                        }
+                        for(let x=0; x<item[y].bizInstructorIdentifyDtls.length;x++){
+                            if(item[y].bizInstructorIdentifyDtls[x].vdoLctYn==1){
+                                count+=1;
+                                if(payYm==item[y].bizInstrIdntyPayYm){
+                                    countYm+=1;
+                                    countYmList.push(item[y].bizInstrIdntyYm)
+                                }
+                            }
+                        }
+                        if(CONT[idx].bizInstructorDist.bizDistAmt>clclDdlnAmt.bizInstrDistCrtrAmtValue){
+                            $(row).css("color", "red");
+                        }
+                    }
+                    if(count==0){
+                        $(row).find(".isUntact").text("미포함");
+                    }else{
+                        $(row).find(".isUntact").text(`포함(${count})`);
+                        $(row).find(".isUntact").parent().css("background-color", "#9bed9a");
+                    }
+
+                    $(row).find(".bizInstrIdntyPayYm").each((index, item)=>{
+                        if($(item).attr("value").substring(0,6)==payYm){
+                            if(countYm>0 && countYmList.includes($(item).attr("value").substring(6,12))){
+                                $(item).parent().css("background-color", "#9bed9a");
+                            }else if($(row).find(".etcFormula").text().indexOf("+")>0 || $(row).find(".bizInstrIdntyEtc").length>0 ){
+                                $(item).parent().css("background-color", "#fcbc47")
+                            }else{
+                                $(item).parent().css("background-color", "#f7f765")
+                            }
+                        }else{
+                            $(item).parent().css("background-color", "#bfbfbf")
+                        }
+                    })
+                    $(row).find(".bizAmt").text(bizAmt.toString());
+                })
+            }
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+                let CONT = [[ ${content} ]]
+                let groupType = new URLSearchParams(window.location.search);
+                groupType = groupType.get("groupType");
+
+                if(groupType == "instr"){
+                    FILENAME= `${payYm}지출건_강사별_강사료정산.xls`;
+                    $("#groupInstr").removeAttr("href");
+                    $("#groupInstr").addClass("bg_blue");
+                    $("#groupInstr").css("pointer-events","none");
+
+                    //강사명 병합
+                    $(".instrName").each(function(index, item){
+                        let tempString = $(this).attr("name")
+                        let idx=index;
+                        let c1_rows = $(".instrName").filter(function(){
+                            return $(this).closest('tr').prevAll().length === idx && $(this).attr("name") === tempString && idx++ >=0;
+                        });
+                        if(c1_rows.length > 1){
+                            c1_rows.eq(0).attr("rowspan", c1_rows.length);
+                            c1_rows.not(":eq(0)").remove();
+                        }
+                    });
+
+                    //강사별 지급액
+                    $(".instrAmt").each(function (index, item) {
+                        let tempString = $(this).attr("name")
+                        let idx=index;
+                        let c2_rows = $(".instrAmt").filter(function () {
+                            return $(this).closest('tr').prevAll().length === idx && $(this).attr("name") === tempString && idx++ >=0;
+                        });
+                        let instrAmt = 0;
+                        for (let i of c2_rows) {
+                            instrAmt += parseInt($(i).parent().find(".bizAmt").text());
+                        }
+                        if (c2_rows.length > 1) {
+                            c2_rows.eq(0).attr("rowspan", c2_rows.length);
+                            c2_rows.eq(0).text(instrAmt.toString());
+                            c2_rows.not(":eq(0)").remove();
+                        } else if (c2_rows.length == 1) {
+                            c2_rows.eq(0).text(instrAmt.toString());
+                        }
+                    });
+
+                    // 합계 계산
+                    let bizAmtSum =0;
+                    $(`.bizAmt`).each((idx,i)=>{
+                        bizAmtSum +=parseInt($(i).text())>=0?parseInt($(i).text()):0;
+                    })
+                    $(`.bizAmtSum`).text(bizAmtSum);
+
+                    let instrAmtSum = 0;
+                    $(`.instrAmt`).each((idx,i)=>{
+                        instrAmtSum +=parseInt($(i).text())>=0?parseInt($(i).text()):0;
+                    })
+                    $(`.instrAmtSum`).text(instrAmtSum);
+
+                    if(CONT.length>0){
+                        // 월별 강의시간, 강사료 계산
+                        for(let dtl of CONT[0].dtlDate){
+                            let hrSum =0;
+                            $(`.${dtl}Hr`).each((idx,i)=>{
+                                hrSum +=parseInt($(i).text())>=0?parseInt($(i).text()):0;
+                            })
+                            $(`.${dtl}HrSum`).text(hrSum);
+
+                            let amtSum = 0;
+                            $(`.${dtl}Amt`).each((idx,i)=>{
+                                amtSum +=parseInt($(i).text())>=0?parseInt($(i).text()):0;
+                            })
+                            $(`.${dtl}AmtSum`).text(amtSum);
+                        }
+                    }
+
+                }else if(groupType == "org"){
+                    FILENAME= `${payYm}지출건_기관별_강사료정산.xls`;
+                    $("#groupOrg").removeAttr("href");
+                    $("#groupOrg").addClass("bg_blue");
+                    $("#groupOrg").css("pointer-events","none");
+
+                    // 합계 계산
+                    let allAmtSum =0;
+                    $(`.allAmt`).each((idx,i)=>{
+                        allAmtSum +=parseInt($(i).text())>=0?parseInt($(i).text()):0;
+                    })
+                    $(`.allAmtSum`).text(allAmtSum);
+
+                    let restTimeSum =0;
+                    $(`.restTime`).each((idx,i)=>{
+                        restTimeSum +=parseInt($(i).text())>=0?parseInt($(i).text()):0;
+                    })
+                    $(`.restTimeSum`).text(restTimeSum);
+
+                    let bizAmtSum =0;
+                    $(`.bizAmt`).each((idx,i)=>{
+                        bizAmtSum +=parseInt($(i).text())>=0?parseInt($(i).text()):0;
+                    })
+                    $(`.bizAmtSum`).text(bizAmtSum);
+
+                    let bizAmtAllSum = 0;
+                    $(`.bizAmtAll`).each((idx,i)=>{
+                        bizAmtAllSum +=parseInt($(i).text())>=0?parseInt($(i).text()):0;
+                    })
+                    $(`.bizAmtAllSum`).text(bizAmtAllSum);
+                    $(".bizAmtAllSumRest").text(allAmtSum - bizAmtAllSum)
+
+
+                    // 월별 강의시간, 강사료 계산
+                    for(let dtl =3 ; dtl<=11; dtl++){
+                        let hrSum =0;
+                        $(`.${dtl}Hr`).each((idx,i)=>{
+                            hrSum +=parseInt($(i).text())>=0?parseInt($(i).text()):0;
+                        })
+                        $(`.${dtl}HrSum`).text(hrSum);
+                        let amtSum = 0;
+                        $(`.${dtl}Amt`).each((idx,i)=>{
+                            amtSum +=parseInt($(i).text())>=0?parseInt($(i).text()):0;
+                        })
+                        $(`.${dtl}AmtSum`).text(amtSum);
+                    }
+                }
+                setTimeout(function (){
+                    $(".comma").each((index,item)=>{
+                        if($(item).text() &&$(item).text() !='-' ){
+                            $(item).text($(item).text().replace(/\B(?=(\d{3})+(?!\d))/g, ','))
+                        }
+                    })
+                },3000)
+                setTimeout(function (){
+                    if(CONT&&CONT.length>0){
+                        // exportExcel()
+                        var link = document.createElement('a');
+                        link.download = FILENAME;
+                        var data_type = 'data:application/vnd.ms-excel';
+                        var table_div = document.getElementById( "excelDownload" );
+                        var table_html = table_div.outerHTML.replace(/ /g, '%20');
+                        link.href = data_type + ', ' + table_html;
+                        link.click();
+                        setTimeout(function (){window.close()},3000);
+                    }else{
+                        alert('조회된 사업신청서가 없습니다.');
+                        window.close();
+                    }
+                },5000)
+            }
+            let FILENAME='강사료정산.xlsx';
+            let SHEETNAME='정산금액';
+            var excelHandler = {
+                getExcelFileName : function(){
+                    return FILENAME;	//파일명
+                },
+                getSheetName : function(){
+                    return SHEETNAME;	//시트명
+                },
+                getExcelData : function(){
+                    return document.getElementById('excelDownload'); 	//TABLE id
+                },
+                getWorksheet : function(){
+                    return XLSX.utils.table_to_sheet(this.getExcelData());
+                }
+            }
+
+            function s2ab(s) {
+                var buf = new ArrayBuffer(s.length); //convert s to arrayBuffer
+                var view = new Uint8Array(buf);  //create uint8array as viewer
+                for (var i=0; i<s.length; i++) view[i] = s.charCodeAt(i) & 0xFF; //convert to octet
+                return buf;
+            }
+
+            function exportExcel(){
+                // sheetJS
+                var wb = XLSX.utils.book_new();
+                var newWorksheet = excelHandler.getWorksheet();
+                XLSX.utils.book_append_sheet(wb, newWorksheet, excelHandler.getSheetName());
+                var wbout = XLSX.write(wb, {bookType:'xlsx',  type: 'binary'});
+                saveAs(new Blob([s2ab(wbout)],{type:"application/octet-stream"}), excelHandler.getExcelFileName());
+                return window.close();
+            }
+            /* ]]> */
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

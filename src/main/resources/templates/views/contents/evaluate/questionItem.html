@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="contents-2-1">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>문항 관리</h2>
+        </div>
+
+        <div class="tableLeftResponsive">
+            <table class="tableLeft">
+                <colgroup>
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                </colgroup>
+                <tbody>
+                <tr>
+                    <th scope="row">카테고리</th>
+                    <td>
+                        <select class="common_select" id="questionCategory">
+                            <option value="">전체</option>
+                            <th:block th:each="commonCode : ${commonCode}"
+                                      th:if="${commonCode.code} == 'EVAL_QUES_CTGR'">
+                                <option th:each="questionCategory : ${commonCode.subCode}"
+                                        th:value="${questionCategory.code}"
+                                        th:text="${questionCategory.codeName}"></option>
+                            </th:block>
+                        </select>
+                    </td>
+                    <th scope="row">유형</th>
+                    <td>
+                        <select class="common_select" id="questionType">
+                            <option value="">전체</option>
+                            <option value="0">제목 및 설명</option>
+                            <th:block th:each="commonCode : ${commonCode}" th:if="${commonCode.code} == 'QUES_TYPE'">
+                                <option th:each="questionType : ${commonCode.subCode}" th:value="${questionType.code}"
+                                        th:text="${questionType.codeName}"></option>
+                            </th:block>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">문제</th>
+                    <td colspan="3">
+                        <input type="text" id="questionTitle">
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- GRID : BUTTON -->
+        <div class="bl_gridBtns">
+            <div class="bl_gridBtns_md">
+                <div class="btn btnDefault btnReset">리셋</div>
+                <a class="btn btnDefault btnSearch" onclick="goSearch()">검색</a>
+                <a class="btn btnDefault download_excel download_search" href="/api/contents/question/excel">excel 다운로드</a>
+                <a class="btn btnDefault btnRegister" href="/contents/question/regist">등록</a>
+            </div>
+        </div>
+
+        <!-- BOARD : CONTROLLER -->
+        <div class="bl_boardCtrls">
+            <div class="bl_boardCtrls_lft">
+                <p class="bl_boardCtrls_total">총: <strong th:text="${pageable.totalElements}"></strong>건</p>
+            </div>
+            <div class="bl_boardCtrls_rgt">
+                <select class="common_select" data-list="countSortList"></select>
+            </div>
+        </div>
+
+        <th:block class="tableResponsive overflowMulti">
+            <table class="table">
+                <colgroup>
+                    <col style="width: 50px"/>
+                    <col style="width: 200px"/>
+                    <col style="width: 120px"/>
+                    <col style="width: auto"/>
+                    <col style="width: 200px"/>
+                </colgroup>
+                <thead>
+                <tr>
+                    <th scope="col">번호</th>
+                    <th scope="col">카테고리</th>
+                    <th scope="col">유형</th>
+                    <th scope="col">문제</th>
+                    <th scope="col">등록일</th>
+                </tr>
+                </thead>
+                <tbody th:if="${content != null && content.size > 0}">
+                <tr th:if="${!#lists.isEmpty(content)}" th:each="item, stat: ${content}">
+                    <td th:text="${pageable.totalElements - ((pageable.page * pageable.size) + stat.index)}"></td>
+                    <th:block th:switch="${item.questionCategory}">
+                        <th:block th:each="commonCode : ${commonCode}" th:if="${commonCode.code} == 'EVAL_QUES_CTGR'">
+                            <td th:each="questionCategory : ${commonCode.subCode}"
+                                th:if="${questionCategory.code == item.questionCategory}"
+                                th:value="${questionCategory.code}" th:text="${questionCategory.codeName}"></td>
+                        </th:block>
+                    </th:block>
+                    <td>
+                        <th:block th:if="${item.questionType != '0'}" th:switch="${item.questionType}">
+                            <th:block th:each="commonCode : ${commonCode}" th:if="${commonCode.code} == 'QUES_TYPE'">
+                        <span th:each="questionType : ${commonCode.subCode}"
+                            th:if="${questionType.code == item.questionType}" th:value="${questionType.code}"
+                            th:text="${questionType.codeName}"></span>
+                            </th:block>
+                        </th:block>
+                        <th:block th:unless="${item.questionType != '0'}">제목 및 설명</th:block>
+                    </td>
+                    <td>
+                        <a th:href="@{/contents/question/{questionSerialNo}(questionSerialNo=${item.questionSerialNo})}" th:text="${item.questionTitle}">질문문항 제목이 들어갑니다.</a>
+                    </td>
+                    <td th:text="${#strings.substring(item.createDateTime, 0, 10)}"></td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(content)}" class="empty_data">
+                    <td colspan="5">조회된 데이터가 없습니다.</td>
+                </tr>
+                </tbody>
+                <tbody th:unless="${content != null && content.size > 0}">
+                    <tr class="empty_data"><td colspan="5">조회된 내용이 없습니다.</td></tr>
+                </tbody>
+            </table>
+        </th:block>
+    </div>
+    <div th:if="${!#lists.isEmpty(content)}" class="bl_paginate"></div>
+    <div sec:authorize="!isAuthenticated()"></div>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            /* <![CDATA[ */
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode}]])
+                pagination([[ ${pageable} ]], false);
+
+                const params = new URLSearchParams(decodeURIComponent(window.location.search).replace("?", ""));
+                if (params.get("questionCategory")) {
+                    document.getElementById('questionCategory').value = params.get("questionCategory");
+                }
+                if (params.get("questionType")) {
+                    document.getElementById('questionType').value = params.get("questionType");
+                }
+                if (params.get("questionTitle")) {
+                    document.getElementById('questionTitle').value = params.get("questionTitle");
+                }
+            }
+
+            function goSearch() {
+                const params = {};
+                params.questionCategory = document.querySelector('#questionCategory').value;
+                params.questionType = document.querySelector('#questionType').value;
+
+                var pattern = /[^가-힣ㄱ-ㅎㅏ-ㅣa-zA-Z0-9]/gi;
+                var title = document.querySelector('#questionTitle').value;
+                if (!pattern.test(title)) {
+                    params.questionTitle = title;
+                } else {
+                    alert('검색어에 특수문자는 입력할 수 없습니다.')
+                    return false;
+                }
+
+                const queryParams = Object.entries(params).filter(data => data[1] != null && data[1] !== '').map(data => data.join('=')).join('&')
+                location.href = "/contents/question?" + queryParams;
+            }
+
+            /* ]]> */
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

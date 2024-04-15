@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="homepage-2">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>자주하는 질문 관리</h2>
+        </div>
+
+        <div class="tableLeftResponsive">
+            <table class="tableLeft">
+                <colgroup>
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                </colgroup>
+                <tbody>
+                    <tr>
+                        <th scope="row">Q</th>
+                        <td>
+                            <input id="question" th:if="${content} != null" type="text" class="hp_w600" th:value="${content[0].question}">
+                            <input id="question" th:if="${content} == null" type="text" class="hp_w600">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">A</th>
+                        <td>
+                            <textarea id="answer" th:if="${content} != null" name="contents" class="ckeditor" style="width:100%; height:200px" th:text="${content[0].answer}"></textarea>
+                            <textarea id="answer" th:if="${content} == null" name="contents" class="ckeditor" style="width:100%; height:200px"></textarea>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="bl_gridBtns">
+            <div th:if="${content} != null" class="bl_gridBtns_lft">
+                <a class="btn btnDefault btnDelete">삭제</a>
+            </div>
+            <div th:if="${content} != null" class="bl_gridBtns_rgt">
+                <a href="/homepage/top-qna" class="btn btnDefault btnList">목록</a>
+                <a class="btn btnDefault btnModify">수정</a>
+            </div>
+
+            <div th:if="${content} == null" class="bl_gridBtns_rgt">
+                <a href="/homepage/top-qna" class="btn btnDefault btnList">목록</a>
+                <a class="btn btnDefault btnRegister">등록</a>
+            </div>
+        </div>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            $(".btnDelete").bind('click', function (){
+                let params = getCont();
+                if(confirm(`정말로 삭제하시겠습니까?`)){
+                    $.ajax({
+                        type: "delete", //http method
+                        url: `/api/homepage/top-qna/delete/${params.sequenceNo}`, //값을 가져올 경로
+                        headers: {'Content-Type': 'application/json'},
+                        data: JSON.stringify(params),
+                        dataType: "json",
+                        success: function(data) {
+                            alert("삭제되었습니다.");
+                            window.location.replace('/homepage/top-qna');
+                        },
+                        error:function (e){
+                            alert(e.responseJSON.resultMessage);
+                        }
+                    })
+                }
+            })
+            $(".btnModify").bind('click', function (){
+                let params = getCont();
+                let temp =getFormData();
+                params.question = temp.question;
+                params.answer = temp.answer;
+                $.ajax({
+                    type: "put", //http method
+                    url: `/api/homepage/top-qna/update`, //값을 가져올 경로
+                    headers: {'Content-Type': 'application/json'},
+                    data: JSON.stringify(params),
+                    dataType: "json",
+                    success: function(data) {
+                        alert("자주하는 질문이 수정되었습니다.");
+                        window.location.reload();
+                    },
+                    error:function (e){
+                        alert(e.responseJSON.resultMessage);
+                    }
+                })
+            })
+            $(".btnRegister").bind('click', function (){
+                let params =getFormData();
+                $.ajax({
+                    type: "post", //http method
+                    url: `/api/homepage/top-qna/create`, //값을 가져올 경로
+                    headers: {'Content-Type': 'application/json'},
+                    data: JSON.stringify(params),
+                    dataType: "json",
+                    success: function(data) {
+                        alert("자주하는 질문이 등록되었습니다.");
+                        window.location.replace('/homepage/top-qna');
+                    },
+                    error:function (e){
+                        alert(e.responseJSON.resultMessage);
+                    }
+                })
+            })
+            function getFormData(){
+                let params={};
+                params.question =$("#question").val()
+                params.answer = CKEDITOR.instances.answer.getData();
+                params.sequenceNo =0;
+                return params;
+            }
+            /* <![CDATA[ */
+            function getCont(){
+                let CONT = [[ ${content} ]]
+                return CONT[0];
+            }
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+            }
+            /* ]]> */
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

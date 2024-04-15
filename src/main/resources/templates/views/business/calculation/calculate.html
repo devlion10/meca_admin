@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="business-5-3">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>강의료 정산</h2>
+        </div>
+
+        <div class="bl_tab2 js_tab">
+            <ul class="bl_tab2_menu">
+                <li>
+                    <a href="/business/instructor/calculate">정산마감일</a>
+                </li>
+                <li>
+                    <a href="/business/instructor/calculate/target">정산요청 목록</a>
+                </li>
+                <li class="is_active">
+                    <a href="/business/instructor/calculate/list?groupType=instr">정산금액 조회</a>
+                </li>
+                <li>
+                    <a href="/business/instructor/calculate/distance/amount">이동거리 기준단가</a>
+                </li>
+            </ul>
+
+            <div class="sch_box justify-content-start">
+                <div class="sch_box_lft">
+                    <a id="groupInstr" href="/business/instructor/calculate/list?groupType=instr" class="btn btnDefault">강사별</a>
+                    <a id="groupOrg" href="/business/instructor/calculate/list?groupType=org" class="btn btnDefault">기관별</a>
+                </div>
+        
+                <div class="sch_box_md">
+                    <input type="hidden" id="groupType" th:value="${param.groupType?:'instr'}">
+                    <select id="bizPbancType" class="common_select" data-list="businessTemp"></select>
+                    <select id="bizPbancRnd" class="common_select" data-list="numList">
+                    </select>
+                    <select id="year" class="common_select" data-list="yearList"></select>
+                    <select id="month" class="common_select">
+                        <option value="">월</option>
+                        <option value="01">1월 지출건</option>
+                        <option value="02">2월 지출건</option>
+                        <option value="03">3월 지출건</option>
+                        <option value="04">4월 지출건</option>
+                        <option value="05">5월 지출건</option>
+                        <option value="06">6월 지출건</option>
+                        <option value="07">7월 지출건</option>
+                        <option value="08">8월 지출건</option>
+                        <option value="09">9월 지출건</option>
+                        <option value="10">10월 지출건</option>
+                        <option value="11">11월 지출건</option>
+                        <option value="12">12월 지출건</option>
+                    </select>
+                    <select id="bizOrgAplyRgn" class="common_select" data-list="submissionList"></select>
+                    <select id="containTextType" class="common_select">
+                        <option value="0">전체</option>
+                        <option value="1">강사명</option>
+                        <option value="3">기관명</option>
+                        <option value="2">강사아이디</option>
+                    </select>
+                    <input id="containText" type="text" class="hp_w200">
+                    <div onclick="search()" class="btn btnDefault btnSearch">검색</div>
+                    <a class="btn btnDefault" th:if="${#strings.equals(param.groupType, 'instr')}" href="/business/instructor/calculate/list?groupType=instr">리셋</a>
+                    <a class="btn btnDefault" th:if="${#strings.equals(param.groupType, 'org')}" href="/business/instructor/calculate/list?groupType=org">리셋</a>
+                </div>
+            </div>
+        
+            <!-- BOARD : CONTROLLER -->
+            <div class="bl_boardCtrls">
+                <div class="bl_boardCtrls_lft">
+                    <p class="bl_boardCtrls_total">
+                         총: <strong th:text="${pageable.totalElements}"></strong>건
+                    </p>
+                </div>
+                <div class="bl_boardCtrls_rgt">
+                    <a target="_blank" href="/business/instructor/calculate/list/pdf" class="btn btnDefault download_pdf">PDF 다운로드</a>
+                    <a th:if="${#strings.equals(param.groupType, 'instr') ||  #strings.equals(param.groupType, 'org')}" target="_blank" href="/business/instructor/calculate/list/excel" class="btn btnDefault download_excel">excel 다운로드</a>
+                    <select class="common_select" data-list="countSortList"></select>
+                </div>
+            </div>
+        
+            <div class="tableResponsive overflowMulti" >
+                <table class="table" id="excelDownload" th:if="${!#arrays.isEmpty(content) && #strings.equals(param.groupType, 'instr')}">
+                    <thead>
+                        <tr>
+                            <th scope="col">
+                                <div class="chk_box">
+                                    <input id="all_check" type="checkbox" name="calculateList">
+                                    <label for="all_check">
+                                        <span class="me-0"></span>
+                                    </label>
+                                </div>
+                            </th>
+                            <th scope="col">번호</th>
+                            <th scope="col">배정강사</th>
+                            <th scope="col">사업명</th>
+                            <th scope="col">학교명</th>
+                            <th scope="col">생년월일</th>
+                            <th scope="col">시간당 강의료(원)</th>
+                            <th:block th:each="item:${content[0].dtlDate}">
+                                <th th:if="${#strings.substring(item,4,5)=='0'}" scope="col" th:text="${#strings.substring(item,5,6)+'월 강의시간'}"></th>
+                                <th th:if="${#strings.substring(item,4,5)=='0'}" scope="col" th:text="${#strings.substring(item,5,6)+'월 강의료'}"></th>
+                                <th th:unless="${#strings.substring(item,4,5)=='0'}" scope="col" th:text="${#strings.substring(item,4,6)+'월 강의시간'}"></th>
+                                <th th:unless="${#strings.substring(item,4,5)=='0'}" scope="col" th:text="${#strings.substring(item,4,6)+'월 강의료'}"></th>
+                            </th:block>
+                            <th scope="col">지급액(원)</th>
+                            <th scope="col">언택트 강의 포함유무</th>
+                            <th scope="col">지급액(강사&사업별)</th>
+                            <th scope="col">비고</th>
+                        </tr>
+                    </thead>
+                    <tbody th:if="${content != null && content.size > 0}">
+                        <tr class="bizIdentify" th:each="item, stat : ${content}">
+                            <td>
+                                <div class="chk_box item_chk">
+                                    <input th:id="${'list'+stat.index}" th:value="${stat.index}" type="checkbox" name="calculateList">
+                                    <label th:for="${'list'+stat.index}">
+                                        <span class="me-0"></span>
+                                    </label>
+                                </div>
+                            </td>
+                           <td th:text="${stat.count+(pageable.size * pageable.page)}"></td>
+                            <td class="instrName" th:name="${item.bizInstrAplyInstrId}">
+                                <span th:text="${item.bizInstrAplyInstrNm}">강사명</span>
+                            </td>
+                            <td>
+                                <span th:text="${item.bizOrganizationAply.bizPbancMaster.bizPbancNm}">사업명</span>
+                            </td>
+                            <td>
+                                <a th:href="@{/business/organization/apply/{id}(id=${item.bizOrgAplyNo})}" th:text="${item.bizOrganizationAply.organizationInfo.organizationName}">기관명</a><br/>
+                            </td>
+                            <td>
+                                <th:block th:unless="${#strings.isEmpty(item.lmsUser.birthDay)}">
+                                    <span th:text="${#strings.substring(item.lmsUser.birthDay,0,4)}"></span>-<span th:text="${#strings.substring(item.lmsUser.birthDay,4,6)}"></span>-<span th:text="${#strings.substring(item.lmsUser.birthDay,6,8)}"></span>
+                                </th:block>
+                            </td>
+                            <td>
+                                <a th:if="${item.bizInstructorDist!=null}" class="comma"
+                                   th:href="@{/business/instructor/distance/{id}(id=${item.bizInstructorDist.bizInstrDistNo})}"
+                                   th:text="${item.bizInstructorDist.bizDistAmt}">0.0</a>
+                                <span th:unless="${item.bizInstructorDist!=null}" class="guide_text">거리증빙 오류</span>
+                            </td>
+                            <th:block th:each="item2, stat:${content[0].dtlDate}">
+                                <td th:name="bizHr">
+                                    <th:block th:each="item3:${item.bizInstructorIdentifies}">
+                                        <span class="bizHr bizInstrIdntyPayYm" th:value="${item3.bizInstrIdntyPayYm}" th:if="${item3.bizInstrIdntyYm==item2}" th:text="${item3.bizInstrIdntyTime}"></span>
+                                    </th:block>
+                                </td>
+                                <td>
+                                    <th:block th:each="item3:${item.bizInstructorIdentifies}">
+                                        <a class="comma" th:if="${item3.bizInstrIdntyYm==item2}"
+                                              th:href="@{/business/instructor/identify/{id}(id=${item3.bizInstrIdntyNo})}"
+                                              th:text="${item3.bizInstrIdntyAmt}"></a>
+                                    </th:block>
+                                </td>
+                            </th:block>
+                            <td class="bizAmt">
+
+                        </td>
+                        <td>
+                            <span class="isUntact"></span>
+                        </td>
+                        <td class="instrAmt" th:name="${item.bizInstrAplyInstrId+item.bizOrganizationAply.bizPbancNo}">
+                            강사별
+                        </td>
+                        <td name="etcColor">
+                            <div class="btn btnDefault mb-2" th:id="${item.bizOrganizationAply.bizOrgAplyNo}" th:onclick="openPop('', '/popup/organization/apply/history/'+this.id, 'pbancApplyHistory')" >변경이력</div>
+                            <th:block th:each="item2,stat2:${item.bizInstructorIdentifies}">
+                                <th:block th:each="item3,stat3:${item2.bizInstructorIdentifyDtls}">
+                                    <p th:utext="${item3.bizInstrIdntyEtc}"></p>
+                                    <p th:utext="${item3.bizInstrIdntyFormula}"></p>
+                                    <p th:if="${item3.vdoLctYn==1}" th:text="${item3.bizOrganizationAplyDtl.bizOrgAplyLsnDtlYmd+' '+ item3.bizOrganizationAplyDtl.bizOrgAplyLsnDtlHr+'시간 언택트 강의'}"></p>
+                                    <span th:if="${!#strings.isEmpty(item3.bizInstrIdntyEtc) || !#strings.isEmpty(item3.bizInstrIdntyFormula)}">
+                                        <br th:if="${(stat2.count!=stat2.size)||(stat3.count!=stat3.size)}">
+                                    </span>
+                                </th:block>
+                            </th:block>
+                        </td>
+                    </tr>
+                    </tbody>
+                    <tbody th:unless="${content != null && content.size > 0}">
+                    <tr class="empty_data"><td colspan="30">조회된 내용이 없습니다.</td></tr>
+                    </tbody>
+                </table>
+                <table class="table" id="excelDownload" th:if="${!#arrays.isEmpty(content) && #strings.equals(param.groupType, 'org')}">
+                    <thead>
+                    <tr>
+                        <th scope="col">
+                            <div class="chk_box">
+                                <input id="all_check" type="checkbox" name="calculateList">
+                                <label for="all_check">
+                                    <span class="me-0"></span>
+                                </label>
+                            </div>
+                        </th>
+                        <th scope="col">번호</th>
+                        <th scope="col">신청기관</th>
+                        <th scope="col">강사명</th>
+                        <th scope="col">시간당 강의료</th>
+                        <th scope="col">강의료 합계(원)</th>
+                        <th:block th:each="item:${content[0].dtlDate}">
+                            <th th:if="${#strings.substring(item,4,5)=='0'}" scope="col" th:text="${#strings.substring(item,5,6)+'월 강의시간'}"></th>
+                            <th th:if="${#strings.substring(item,4,5)=='0'}" scope="col" th:text="${#strings.substring(item,5,6)+'월 강의료'}"></th>
+                            <th th:unless="${#strings.substring(item,4,5)=='0'}" scope="col" th:text="${#strings.substring(item,4,6)+'월 강의시간'}"></th>
+                            <th th:unless="${#strings.substring(item,4,5)=='0'}" scope="col" th:text="${#strings.substring(item,4,6)+'월 강의료'}"></th>
+                        </th:block>
+                        <th scope="col">누적 지급액(원)</th>
+                        <th scope="col">금월 지급액(원)</th>
+                        <th scope="col">잔여시간</th>
+                        <th scope="col">잔액</th>
+                        <th scope="col">비고</th>
+                    </tr>
+                    </thead>
+                    <tbody th:if="${content != null && content.size > 0}">
+                    <tr class="bizIdentify" th:each="item, stat : ${content}">
+                        <td>
+                            <div class="chk_box item_chk">
+                                <input th:id="${'list'+stat.index}" th:value="${stat.index}" type="checkbox" name="calculateList">
+                                <label th:for="${'list'+stat.index}">
+                                    <span class="me-0"></span>
+                                </label>
+                            </div>
+                        </td>
+                        <td th:text="${stat.count+(pageable.size * pageable.page)}"></td>
+                        <td class="orgName" th:name="${item.bizOrganizationAply.orgCd}">
+                            <a th:href="@{/business/organization/apply/{id}(id=${item.bizOrgAplyNo})}" th:text="${item.bizOrganizationAply.organizationInfo.organizationName}">기관명</a><br/>
+                        </td>
+                        <td>
+                            <span th:text="${item.bizInstrAplyInstrNm}">강사명</span>
+                        </td>
+                        <td>
+                            <a th:if="${item.bizInstructorDist!=null}"
+                               th:href="@{/business/instructor/distance/{id}(id=${item.bizInstructorDist.bizInstrDistNo})}"
+                               th:text="${item.bizInstructorDist.bizDistAmt}">0.0</a>
+                            <span th:unless="${item.bizInstructorDist!=null}" class="guide_text">거리증빙 오류</span>
+                        </td>
+                        <td class="comma allAmt" th:text="${item.bizInstructorDist.bizDistAmt*item.bizInstrAsgmnTimeAll}">
+                            강의료 합계(원)
+                        </td>
+                        <th:block th:each="item2, stat:${content[0].dtlDate}">
+                            <td th:name="bizHr">
+                                <th:block th:each="item3:${item.bizInstructorIdentifies}">
+                                    <span class="bizHr" th:if="${item3.bizInstrIdntyYm==item2}" th:text="${item3.bizInstrIdntyTime}"></span>
+                                </th:block>
+                            </td>
+                            <td>
+                                <th:block th:each="item3:${item.bizInstructorIdentifies}">
+                                    <a class="comma" th:if="${item3.bizInstrIdntyYm==item2}"
+                                       th:href="@{/business/instructor/identify/{id}(id=${item3.bizInstrIdntyNo})}"
+                                       th:text="${item3.bizInstrIdntyAmt}"></a>
+                                </th:block>
+                            </td>
+                        </th:block>
+                        <td class="comma" th:text="${item.bizInstrIdntyAmtAll}">
+                            누적 지급액(원)
+                        </td>
+                        <td class="bizAmt">
+                            지급액(원)
+                        </td>
+                        <td class="restTime" th:text="${item.bizInstrAsgmnTimeRest}">
+                            잔여시간
+                        </td>
+                        <td class="restAmt" th:text="${item.bizInstructorDist.bizDistAmt*item.bizInstrAsgmnTimeAll-item.bizInstrIdntyAmtAll}">
+                            잔액
+                        </td>
+                        <td name="etcColor">
+                            <div class="btn btnDefault mb-2" th:id="${item.bizOrganizationAply.bizOrgAplyNo}" th:onclick="openPop('', '/popup/organization/apply/history/'+this.id, 'pbancApplyHistory')" >변경이력</div>
+                            <th:block th:each="item2,stat2:${item.bizInstructorIdentifies}">
+                                <th:block th:each="item3, stat3:${item2.bizInstructorIdentifyDtls}">
+                                    <p th:utext="${item3.bizInstrIdntyFormula}"></p>
+                                    <span th:if="${!#strings.isEmpty(item3.bizInstrIdntyFormula)}">
+                                        <br th:if="${(stat2.count!=stat2.size)||(stat3.count!=stat3.size)}">
+                                    </span>
+                                </th:block>
+                            </th:block>
+                        </td>
+                    </tr>
+                    </tbody>
+                    <tbody th:unless="${content != null && content.size > 0}">
+                    <tr class="empty_data"><td colspan="30">조회된 내용이 없습니다.</td></tr>
+                    </tbody>
+                </table>
+                <table class="table" id="excelDownload" th:if="${#arrays.isEmpty(content)}">
+                    <thead>
+                    <tr>
+                        <th scope="col">
+                            <div class="chk_box">
+                                <input id="list_all" type="checkbox" name="calculateList">
+                                <label for="list_all">
+                                    <span class="me-0"></span>
+                                </label>
+                            </div>
+                        </th>
+                        <th scope="col">번호</th>
+                        <th scope="col">배정강사</th>
+                        <th scope="col">학교명</th>
+                        <th scope="col">시간당 강의료(원)</th>
+                        <th scope="col">총강의료(합계)</th>
+                        <th scope="col">4월 강의시간</th>
+                        <th scope="col">4월 강의료</th>
+                        <th scope="col">지급액(원)</th>
+                        <th scope="col">언택트 강의 포함유무</th>
+                        <th scope="col">지급액(강사별)(원)</th>
+                        <th scope="col">비고</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr class="bizIdentify empty_data">
+                        <td colspan="12" rowspan="2">
+                            결과가 없습니다.
+                        </td>
+                    </tr>
+                    <tr></tr>
+                    </tbody>
+                </table>
+            </div>
+        
+            <!-- GRID : BUTTON -->
+            <div class="bl_gridBtns">
+                <div class="bl_gridBtns_lft">
+                    <div class="d-flex align-items-center gap-2">
+                        <select id="aprvYear" class="common_select" data-list="yearList"></select>
+                        <select id="aprvMonth" class="common_select">
+                            <option value="">월</option>
+                            <option value="01">1월 지출건</option>
+                            <option value="02">2월 지출건</option>
+                            <option value="03">3월 지출건</option>
+                            <option value="04">4월 지출건</option>
+                            <option value="05">5월 지출건</option>
+                            <option value="06">6월 지출건</option>
+                            <option value="07">7월 지출건</option>
+                            <option value="08">8월 지출건</option>
+                            <option value="09">9월 지출건</option>
+                            <option value="10">10월 지출건</option>
+                            <option value="11">11월 지출건</option>
+                            <option value="12">12월 지출건</option>
+                        </select>
+                        <div onclick="removeAprvYM()" class="btn btnDefault mx-0 bg_red">정산초기화</div>
+                        <div onclick="removeAprv()" class="btn btnDefault mx-0">선택항목 정산초기화</div>
+                    </div>
+                </div>
+            </div>
+            <div class="bl_paginate"></div>
+        </div>
+
+        <!-- POPUP : 변경이력 -->
+        <div class="iframe_wrap">
+            <iframe id="pbancApplyHistory" src="about:blank" width="800"></iframe>
+        </div>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            let payYm;
+            let nowDate = new Date();
+            let urlSearch = new URLSearchParams(window.location.search);
+            if(urlSearch.get("year")&&urlSearch.get("month")){
+                payYm =urlSearch.get("year")+urlSearch.get("month");
+            }else if(urlSearch.get("year")){
+                payYm =urlSearch.get("year");
+                payYm+=nowDate.getMonth()+1>9?nowDate.getMonth()+1:'0'+(nowDate.getMonth()+1);
+            }else if(urlSearch.get("month")){
+                payYm =nowDate.getFullYear()+urlSearch.get("month");
+            }else{
+                payYm =nowDate.getFullYear();
+                payYm+=nowDate.getMonth()+1>9?nowDate.getMonth()+1:'0'+(nowDate.getMonth()+1);
+            }
+
+            //아래행과 위치변경
+            function moveDown(el){
+                let $tr = $(el);
+                $tr.next().after($tr);
+            }
+            if(urlSearch.get("groupType") === "instr" && $(".bizIdentify").length>2){
+                let n = $('.bizIdentify').length;
+                let nowDate, nextDate;
+                for (let i=n-1; i>0; i--) {
+                    for (let j=0; j<i; j++) {
+                        nowDate=$($('.bizIdentify')[j]).find(".instrAmt").attr("name");
+                        nextDate=$($('.bizIdentify')[j+1]).find(".instrAmt").attr("name");
+                        if (nowDate > nextDate) {
+                            moveDown($('.bizIdentify')[j])
+                        }
+                    }
+                }
+            }
+
+            const CONT =  [[ ${content} ]];
+            if(CONT && CONT.length>0){
+                checkBox();
+                $(".bizIdentify").each((idx, row)=>{
+                    // 비고 있을때 칠하는 식
+                    $(row).find("td[name=etcColor]").each((index,items)=>{
+                        if($(items).text().trim()!="변경이력"){
+                            $(items).css("background-color", "lightyellow")
+                        }else{
+                            $(items).find(".btnDefault").remove();
+                        }
+                    })
+                    let item = CONT[idx].bizInstructorIdentifies;
+                    $(row).find("td[name=bizHr]").each((index,items)=>{
+                        if($(items).find(".bizHr").length==1){
+                            $(items).find(".bizHr").text(parseInt($(items).find(".bizHr").text()))
+                        }else{
+                            $(items).text(0)
+                        }
+                    })
+
+                    let today = new Date();
+                    today.setHours(today.getHours()+9);
+                    let nowYm = today.getMonth()+1;
+
+                    $(row).find(".bizInstrIdntyPayYm").each((index, item)=>{
+                        if(Number($(item).attr("value").substring(4,6))<nowYm){
+                            // 지난번 지출 표시
+                            $(item).parent().css("background-color", "#e4dfe8")
+                            $(item).parent().next().css("background-color", "#e4dfe8")
+                        }
+                    })
+
+                    let bizAmt =0;
+                    let count=0;
+                    for(let y=0; y<item.length; y++){
+                        if(payYm==item[y].bizInstrIdntyPayYm){
+                            bizAmt+=parseInt(item[y].bizInstrIdntyAmt);
+                        }
+                        for(let x=0; x<item[y].bizInstructorIdentifyDtls.length;x++){
+                            if(item[y].bizInstructorIdentifyDtls[x].vdoLctYn==1){
+                                count+=1;
+                            }
+                        }
+                    }
+
+                    if(count==0){
+                        $(row).find(".isUntact").text("미포함");
+                    }else{
+                        $(row).find(".isUntact").text(`포함(${count})`);
+                        $(row).find(".isUntact").addClass("color_green");
+                    }
+                    $(row).find(".bizAmt").text(bizAmt.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+                })
+            }
+
+            function removeAprvYM(){
+                if($("#aprvYear").val() && $("#aprvMonth").val()&&confirm('정말로 초기화하시겠습니까? 선택한 연월에 지출 처리된 강의확인서가 모두 승인(지출 대기) 상태로 변경됩니다.')){
+                    let params = {
+                        "bizInstrIdntyAmt": "0",
+                        "bizInstrIdntyAprvDt": "0",
+                        "bizInstrIdntyAtchFile": "0",
+                        "bizInstrIdntyLsnFile": "0",
+                        "bizInstrIdntyNo": "1",
+                        "bizInstrIdntyStts": 3,
+                        "bizInstrIdntyTime": "0",
+                        "bizInstrIdntyYm": $("#aprvYear").val() + $("#aprvMonth").val(),
+                        "bizInstrIdntyPayYm": $("#aprvYear").val() + $("#aprvMonth").val(),
+                        "bizOrgAplyNo": "1",
+                        "idntyNo": [ ]
+                    }
+
+                    $.ajax({
+                        type: "put", //http method /api/business/instructor/assignment/create
+                        url: `/api/business/instructor/identify/remove`,
+                        headers: {'Content-Type': 'application/json'},
+                        data: JSON.stringify(params),
+                        dataType: "json",
+                        async:false,
+                        success: function(data) {
+                            alert('초기화하였습니다.')
+                            window.location.reload();
+                        },
+                        error: function(e) {
+                            alert('초기화하는 과정에서 오류가 발생하였습니다.')
+                        }
+                    })
+                }else{
+                    alert('초기화할 연도와 월을 모두 선택해 주세요.');
+                }
+            }
+            function removeAprv(){
+                let idnty=[];
+                $(".item_chk input:checkbox:checked").each((index, item)=>{
+                    let idx = parseInt( $(item).attr("value"));
+                    for(let i=0; i<CONT[idx].bizInstructorIdentifies.length;i++){
+                        idnty.push(CONT[idx].bizInstructorIdentifies[i].bizInstrIdntyNo)
+                    }
+                })
+                console.log(idnty)
+                if($(".item_chk input:checkbox:checked").length>0 &&confirm('정말로 초기화하시겠습니까? 선택한 항목의 강의확인서가 모두 승인(지출 대기) 상태로 변경됩니다.')) {
+                    let params = {
+                        "bizInstrIdntyAmt": "0",
+                        "bizInstrIdntyAprvDt": "0",
+                        "bizInstrIdntyAtchFile": "0",
+                        "bizInstrIdntyLsnFile": "0",
+                        "bizInstrIdntyNo": "1",
+                        "bizInstrIdntyStts": 3,
+                        "bizInstrIdntyTime": "0",
+                        "bizInstrIdntyYm": "0000",
+                        "bizOrgAplyNo": "1",
+                        "idntyNo": idnty
+                    }
+
+                    $.ajax({
+                        type: "put", //http method /api/business/instructor/assignment/create
+                        url: `/api/business/instructor/identify/remove`,
+                        headers: {'Content-Type': 'application/json'},
+                        data: JSON.stringify(params),
+                        dataType: "json",
+                        async:false,
+                        success: function(data) {
+                            alert('초기화하였습니다.')
+                            window.location.reload();
+                        },
+                        error: function(e) {
+                            alert('초기화하는 과정에서 오류가 발생하였습니다.')
+                        }
+                    })
+                }else{
+                    alert('선택한 항목이 없습니다.')
+                }
+            }
+            function search(){
+                let searchQuery = {}
+                if($("#groupType").val()) searchQuery.groupType =$("#groupType").val();
+                if($("#bizOrgAplyRgn").val()!="제출처")searchQuery.bizOrgAplyRgn =$("#bizOrgAplyRgn").val();
+                if($("#year").val()) searchQuery.year=$("#year").val();
+                if($("#month").val()) searchQuery.month=$("#month").val();
+                if(parseInt($("#bizPbancType").val())>=0) searchQuery.bizPbancType=parseInt($("#bizPbancType").val());
+                if(parseInt($("#bizPbancRnd").val())) searchQuery.bizPbancRnd=parseInt($("#bizPbancRnd").val());
+                if($("#containText").val()){
+                    searchQuery.containText=$("#containText").val();
+                    searchQuery.containTextType=$("#containTextType").val();
+                }
+                searchJson(searchQuery);
+            }
+
+            if(window.location.search.indexOf("groupType=instr") == -1 && window.location.search.indexOf("groupType=org") == -1 ){
+                window.location.href='/business/instructor/calculate/list?groupType=instr';
+            }
+
+            /* <![CDATA[ */
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+                pagination([[ ${pageable} ]], false)
+                let page =  [[ ${pageable} ]];
+
+                /** 연도 고정값 기능(정산금액조회만) */
+                let YYYY=new Date().getFullYear();
+                $("div.bl_tab2 a[href*='/business/instructor/calculate/list?groupType']").each((index, item) => {
+                    let url = $(item).attr("href")
+                    $(item).attr("href", url+"&year="+YYYY)
+                })
+
+                $(".download_pdf").each((index, item)=>{
+                    item.href += `/${page.totalElements}?${urlSearch.toString()}`;
+                })
+                $(".download_excel").each((index, item)=>{
+                    urlSearch.delete("size");
+                    item.href += `?${urlSearch.toString()}&size=${page.totalElements}`;
+                })
+
+                let now = new Date();
+                now.setUTCHours(now.getUTCHours()+9);
+                let toDay = now.toJSON().split('T')[0];
+                FILENAME= `${toDay}_`;
+                if($("#year").val()) FILENAME = FILENAME+`${$("#year").val()}년_`;
+                if($("#month").val()) FILENAME = FILENAME+`${$("#month").val()}월 지출건_`;
+                FILENAME = FILENAME+`강사료 정산.xlsx`;
+                $(".comma").each((index,item)=>{
+                    if($(item).text() &&$(item).text() !='-' ){
+                        $(item).text($(item).text().replace(/\B(?=(\d{3})+(?!\d))/g, ','))
+                    }
+                })
+
+                let groupType = urlSearch.get("groupType");
+                if(groupType == "instr"){
+                    $("#groupInstr").removeAttr("href");
+                    $("#groupInstr").addClass("bg_blue");
+                    $("#groupInstr").css("pointer-events","none");
+
+                    //강사명 병합
+                    $(".instrName").each(function(){
+                        let tempString = $(this).attr("name")
+                        let c1_rows = $(".instrName").filter(function(){
+                            return $(this).attr("name") == tempString;
+                        });
+                        if(c1_rows.length > 1){
+                            c1_rows.eq(0).attr("rowspan", c1_rows.length);
+                            c1_rows.not(":eq(0)").remove();
+                        }
+                    });
+
+                    //강사별 지급액
+                    $(".instrAmt").each(function () {
+                        let tempString = $(this).attr("name")
+                        let c2_rows = $(".instrAmt").filter(function () {
+                            return $(this).attr("name") == tempString;
+                        });
+                        let instrAmt = 0;
+                        for (let i of c2_rows) {
+                            instrAmt += parseInt($(i).parent().find(".bizAmt").text().replace(/,/g, ''));
+                        }
+                        if (c2_rows.length > 1) {
+                            c2_rows.eq(0).attr("rowspan", c2_rows.length);
+                            c2_rows.eq(0).text(instrAmt.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+                            c2_rows.not(":eq(0)").remove();
+                        } else if (c2_rows.length == 1) {
+                            if (c2_rows.eq(0).text().trim() == "강사별") c2_rows.eq(0).text(instrAmt.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','));
+                        }
+                    });
+
+                }else if(groupType == "org"){
+                    $("#groupOrg").removeAttr("href");
+                    $("#groupOrg").addClass("bg_blue");
+                    $("#groupOrg").css("pointer-events","none");
+                }
+
+            }
+            let FILENAME='강사료정산.xlsx';
+            let SHEETNAME='정산금액';
+            var excelHandler = {
+                getExcelFileName : function(){
+                    return FILENAME;	//파일명
+                },
+                getSheetName : function(){
+                    return SHEETNAME;	//시트명
+                },
+                getExcelData : function(){
+                    return document.getElementById('excelDownload'); 	//TABLE id
+                },
+                getWorksheet : function(){
+                    return XLSX.utils.table_to_sheet(this.getExcelData());
+                }
+            }
+            /* ]]> */
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

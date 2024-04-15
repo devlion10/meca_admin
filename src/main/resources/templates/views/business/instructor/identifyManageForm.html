@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="business-7">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>강의활동확인서 관리</h2>
+        </div>
+
+        <div class="tableLeftResponsive">
+            <table class="tableLeft">
+                <colgroup>
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                </colgroup>
+                <tbody>
+                    <tr>
+                        <th scope="row">강사명</th>
+                        <td>
+                            <input id="userName" type="text" class="hp_w200">
+                        </td>
+                        <th scope="row">아이디</th>
+                        <td>
+                            <input id="userId" type="text" class="hp_w200">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">발급일</th>
+                        <td colspan="3">
+                            <div class="bl_dateRange">
+                                <input type="text" id="startDate" class="el_datePicker sdate">
+                                <span class="blank">~</span>
+                                <input type="text" id="endDate" class="el_datePicker edate">
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="bl_gridBtns">
+            <div class="bl_gridBtns_md">
+                <a onclick="searchManage()" class="btn btnDefault btnSearch">검색</a>
+                <a class="btn btnDefault btnReset">리셋</a>
+            </div>
+        </div>
+
+        <!-- BOARD : CONTROLLER -->
+        <div class="bl_boardCtrls">
+            <div class="bl_boardCtrls_lft">
+                <p class="bl_boardCtrls_total">
+                    총:
+                    <strong th:if="${!#lists.isEmpty(content) && content[0].bizInstructorIdentifies != null}" th:text="${#lists.size(content[0].bizInstructorIdentifies)}"></strong>
+                    <strong th:unless="${!#lists.isEmpty(content) && content[0].bizInstructorIdentifies != null}">0</strong>
+                    건
+                </p>
+            </div>
+            <div class="bl_boardCtrls_rgt">
+                <a th:if="${!#lists.isEmpty(content)}" th:href="@{/api/business/instructor/identify/excel(registUserId=${content[0].bizInstrAplyInstrId},bizOrgAplyNo=${content[0].bizOrgAplyNo})}" class="btn btnDefault download_excel">excel 다운로드</a>
+                <select class="common_select" data-list="countSortList"></select>
+            </div>
+        </div>
+
+        <div class="tableResponsive overflowMulti">
+            <table class="table">
+                <colgroup>
+                    <col style="width: 50px">
+                    <col>
+                    <col>
+                    <col>
+                    <col>
+                </colgroup>
+                <thead>
+                <tr>
+                    <th scope="col">번호</th>
+                    <th scope="col">강사명</th>
+                    <th scope="col">아이디</th>
+                    <th scope="col">휴대폰번호</th>
+                    <th scope="col">강의확인서</th>
+                    <th scope="col">강의시간</th>
+                    <th scope="col">발급일</th>
+                </tr>
+                </thead>
+                <tbody th:if="${content != null && content.size > 0 && content[0].bizInstructorIdentifies.size > 0}">
+                <tr th:if="${content[0].bizInstructorIdentifies != null}" th:each="item, stat: ${content[0].bizInstructorIdentifies}">
+                    <td>
+                        <span th:text="${#lists.size(content[0].bizInstructorIdentifies) - stat.index}"></span>
+                    </td>
+                    <td>
+                        <span th:if="${content[0].bizInstrAplyInstrNm != null}" th:text="${content[0].bizInstrAplyInstrNm}">홍길동</span>
+                    </td>
+                    <td>
+                        <span th:if="${content[0].bizInstrAplyInstrId != null}" th:text="${content[0].bizInstrAplyInstrId}">test123</span>
+                    </td>
+                    <td>
+                        <span th:if="${content[0].phone != null}" th:text="${content[0].phone}">010-1234-1234</span>
+                    </td>
+                    <td>
+                        <a th:if="${item.bizInstrIdntyNo != null}" th:href="@{/business/instructor/identify/{id}(id=${item.bizInstrIdntyNo})}" class="btn btnDefault">보기</a>
+                        <span th:if="${item.bizInstrIdntyNo == null}">-</span>
+                    </td>
+                    <td>
+                        <span th:if="${item.bizInstrIdntyTime != null}" th:text="${item.bizInstrIdntyTime}">2022.10.01</span>
+                    </td>
+                    <td>
+                        <span th:if="${item.createDateTime != null}" th:text="${#strings.substring(item.createDateTime,0,10)}">2022.10.01</span>
+                    </td>
+                </tr>
+                </tbody>
+                <tbody th:unless="${content != null && content.size > 0 && content[0].bizInstructorIdentifies.size > 0}">
+                <tr class="empty_data"><td colspan="6">조회된 내용이 없습니다.</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="bl_paginate"></div>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            function searchManage() {
+                let searchQuery = {}
+                let sDate = $("#startDate").val()
+                let eDate = $("#endDate").val()
+                if($("#userId").val()) searchQuery.userId = $("#userId").val()
+                if($("#userName").val()) searchQuery.userName = $("#userName").val()
+                if(sDate && eDate){
+                    searchQuery.startDate= sDate;
+                    searchQuery.endDate= eDate;
+                }else if(sDate||eDate){
+                    alert('작성일은 시작일과 종료일을 모두 입력해야 합니다.')
+                }
+                searchJson(searchQuery)
+            }
+            /* <![CDATA[ */
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+                console.log('content: ', [[ ${content} ]] )
+                pagination([[ ${pageable} ]], false)
+            }
+            /* ]]> */
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

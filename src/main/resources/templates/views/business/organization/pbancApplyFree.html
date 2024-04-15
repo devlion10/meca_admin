@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="business-3">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>사업신청 관리(자유형)</h2>
+        </div>
+
+        <div class="sch_box flex-wrap">
+            <select id="bizPbancCtgr" class="common_select">
+                <option value="-">구분</option>
+                <option value="0">미디어교육</option>
+                <option value="1">언론인연수</option>
+                <option value="2">미디어지원</option>
+            </select>
+            <select id="bizPbancYr" class="common_select" data-list="yearList"></select>
+            <select id="bizPbancRnd" class="common_select" data-list="numList"></select>
+            <select id="bizAplyStts" class="common_select">
+                <option value="-">처리상태</option>
+                <option value="1">신청</option>
+                <option value="5">가승인</option>
+                <option value="7">승인</option>
+                <option value="9">종료</option>
+            </select>
+            <select id="containTextType" class="common_select">
+                <option value="1">전체</option>
+                <option value="2">사업명</option>
+                <option value="3">기관명</option>
+                <option value="4">신청자명</option>
+            </select>
+            <input id="containText" type="text" class="hp_w400" placeholder="검색어를 입력해주세요.">
+            <div class="d-flex-1">
+                <div th:onclick="searchPbancApply()" class="btn btnDefault btnSearch">검색</div>
+                <a class="btn btnDefault btnReset">리셋</a>
+                <a id="apply_stts1" class="btn btnDefault state__blue" onclick="updateStts(1)">선택 신청</a>
+                <a id="apply_stts5" class="btn btnDefault state__green" onclick="updateStts(5)">선택 가승인</a>
+                <a id="apply_stts7" class="btn btnDefault state__dark_green" onclick="updateStts(7)">선택 승인</a>
+                <a id="apply_stts9" class="btn btnDefault state__gray" onclick="updateStts(9)">선택 종료</a>
+                <div id="apply_delete" class="btn btnDefault btnDelete icon_none" onclick="deleteAply()">선택 삭제</div>
+            </div>
+        </div>
+
+        <!-- BOARD : CONTROLLER -->
+        <div class="bl_boardCtrls">
+            <div class="bl_boardCtrls_lft">
+                <p class="bl_boardCtrls_total">총: <strong th:text="${pageable.totalElements}"></strong>건</p>
+            </div>
+            <div class="bl_boardCtrls_rgt">
+                <select class="common_select" id="pbanc5_list" onchange="searchPbancApply()">
+                    <option value="">선택</option>
+                </select>
+                <a id="aply5_download" class="btn btnDefault" onclick="getAnswerExcel()">필수 입력값 excel 다운로드</a>
+
+                <a href="/api/business/apply/free/excel" class="btn btnDefault download_excel download_search">excel 다운로드</a>
+                <select class="common_select" data-list="countSortList"></select>
+            </div>
+        </div>
+
+        <div class="tableResponsive overflowMulti">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th scope="col">
+                        <div class="chk_box">
+                            <input id="all_check" type="checkbox">
+                            <label for="all_check">
+                                <span class="me-0"></span>
+                            </label>
+                        </div>
+                    </th>
+                    <th scope="col">번호</th>
+                    <th scope="col">년도</th>
+                    <th scope="col">구분</th>
+                    <th scope="col">사업명</th>
+                    <th scope="col">차수</th>
+                    <th scope="col">신청자(아이디)</th>
+                    <th scope="col">기관명</th>
+                    <th scope="col">상태</th>
+                    <th scope="col">신청서</th>
+                    <th scope="col">신청일시</th>
+                    <th scope="col">수정일시</th>
+                </tr>
+                </thead>
+                <tbody th:if="${content != null && content.size > 0}">
+                <tr th:each="item, stat : ${content}">
+                    <td>
+                        <div class="chk_box item_chk">
+                            <input th:id="'application'+${stat.index}" type="checkbox" name="business_application" th:value="${item.sequenceNo}" >
+                            <label th:for="'application'+${stat.index}">
+                                <span class="me-0"></span>
+                            </label>
+                        </div>
+                    </td>
+                    <td th:text="${pageable.totalElements - ((pageable.page * pageable.size) + stat.index)}"></td>
+                    <td th:text="${item.bizPbancMaster.bizPbancYr}">2022</td>
+                    <td>
+                        <span th:if="${item.bizPbancMaster.bizPbancCtgr == 0}">미디어교육</span>
+                        <span th:if="${item.bizPbancMaster.bizPbancCtgr == 1}">언론인연수</span>
+                        <span th:if="${item.bizPbancMaster.bizPbancCtgr == 2}">미디어지원</span>
+                    </td>
+                    <td>
+                        <a th:href="@{/business/pbanc/list/{type}/{id}(type=${item.bizPbancMaster.bizPbancType}, id=${item.bizPbancMaster.bizPbancNo})}" th:text="${item.bizPbancMaster.bizPbancNm}">사업명</a>
+                    </td>
+                    <td th:text="${item.bizPbancMaster.bizPbancRnd}">3</td>
+                    <td><span th:text="${item.bizAplyUserNm}">이름</span>
+                        (<span th:text="${item.bizAplyUserID}">아이디</span>)
+                    </td>
+                    <td>
+                        <span th:text="${#strings.isEmpty(item.orgName) && item.lmsUser.organizationInfo != null ? item.lmsUser.organizationInfo.organizationName : item.orgName}"></span>
+                        <span th:text="${#strings.isEmpty(item.orgName) && item.lmsUser.mediaInfo != null ? ' / '+ item.lmsUser.mediaInfo.mediaName : ''}"></span>
+                    </td>
+                    <td>
+                        <span class="state state__blue" th:if="${item.bizAplyStts == 1}">신청</span>
+                        <span class="state state__red" th:if="${item.bizAplyStts == 3}">반려</span>
+                        <span class="state state__green" th:if="${item.bizAplyStts == 5}">가승인</span>
+                        <span class="state state__dark_green" th:if="${item.bizAplyStts == 7}">승인</span>
+                        <span class="state state__gray" th:if="${item.bizAplyStts == 9}">종료</span>
+                    </td>
+                    <td>
+                        <a class="btn btnDefault" th:href="@{/business/apply/free/{seqNo}(seqNo=${item.sequenceNo})}">보기</a>
+                    </td>
+                    <td th:text="${item.createDateTime}">
+                    </td>
+                    <td th:text="${item.updateDateTime}">
+                    </td>
+                </tr>
+                </tbody>
+                <tbody th:unless="${content != null && content.size > 0}">
+                <tr class="empty_data"><td colspan="12">조회된 내용이 없습니다.</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="bl_paginate"></div>
+
+        <th:block layout:fragment="script">
+            <script th:inline="javascript">
+                function deleteAply(){
+                    let params ={}
+                    params.sequenceNoList = []
+                    $("table tbody input[type=checkbox]:checked").each((index, item)=>{
+                        params.sequenceNoList.push(Number($(item).attr("value")));
+                    })
+
+                    if(confirm("정말로 삭제하시겠습니까?")){
+                        $.ajax({
+                            type: "delete", //http method
+                            url: `/api/business/apply/delete/all`, //값을 가져올 경로
+                            headers: {'Content-Type': 'application/json'},
+                            data: JSON.stringify(params),
+                            dataType: "json",
+                            async:false,
+                            success: function(data) {
+                                alert("사업신청서를 삭제하였습니다.");
+                                window.location.reload();
+                            },
+                            error: function(e) {
+                                alert("사업신청 상태를 삭제하는 과정에서 오류가 발생하였습니다.");
+                            }
+                        })
+                    }
+                }
+                function updateStts(stts){
+                    let params ={}
+                    params.sequenceNoList = []
+                    $("table tbody input[type=checkbox]:checked").each((index, item)=>{
+                        params.sequenceNoList.push(Number($(item).attr("value")));
+                    })
+                    params.bizAplyStts = stts;
+                    if(confirm("정말로 상태를 변경하시겠습니까?")){
+                        sendUpdate(params)
+                    }
+                }
+                function sendUpdate(params){
+                    $.ajax({
+                        type: "put", //http method
+                        url: `/api/business/apply/update/stts`, //값을 가져올 경로
+                        headers: {'Content-Type': 'application/json'},
+                        data: JSON.stringify(params),
+                        dataType: "json",
+                        async:false,
+                        success: function(data) {
+                            alert("사업신청 상태를 수정하였습니다.");
+                            window.location.reload();
+                        },
+                        error: function(e) {
+                            alert("사업신청 상태를 수정하는 과정에서 오류가 발생하였습니다.");
+                        }
+                    })
+                }
+                /* 검색 */
+                function searchPbancApply(){
+                    let searchQuery = {}
+                    let bizPbancNo = $("#pbanc5_list").val();
+                    let name = $("#containText").val();
+                    $("div.sch_box select").each((index, item)=>{
+                        let v = $(item).val();
+                        let id = $(item).attr("id");
+                        if(v&&v!='-' && Number(v)>=0){
+                            searchQuery[id] = v;
+                        }
+                    })
+                    if(name){
+                        searchQuery.containText = name
+                    }
+                    if(bizPbancNo){
+                        searchQuery.bizPbancNo = bizPbancNo
+                    }
+                    searchJson(searchQuery)
+                }
+
+                function getPbanc5List(){
+                    $.ajax({
+                        type: "get", //http method
+                        url: `/api/business/pbanc/list/5/page`, //값을 가져올 경로
+                        headers: {'Content-Type': 'application/json'},
+                        dataType: "json",
+                        async:false,
+                        success: function(data) {
+                            let selectEl = document.querySelector("#pbanc5_list");
+                            $(data).each((index, item)=> {
+                                var objOption = document.createElement("option");
+                                objOption.text = item.bizPbancNm
+                                objOption.value = item.bizPbancNo
+                                selectEl.options.add(objOption);
+                            })
+                        },
+                        error: function(e) { }
+                    })
+                }
+                function searchPbanc(){
+                    let searchParams = new URLSearchParams(window.location.search);
+                    for (const [key, value] of searchParams.entries()) {
+                        if (key === 'bizPbancNo') {
+                            $('#pbanc5_list').val(value).prop("selected", true);
+                        }
+                    }
+                    if ($('#pbanc5_list').val()) {
+                        $('#aply5_download').show()
+                    } else {
+                        $('#aply5_download').hide()
+                    }
+                }
+                function getAnswerExcel(){
+                    let pbancNo = $('#pbanc5_list').val();
+                    window.open('/business/apply/free/excel/'+pbancNo, "_blank", "fullscreen=yes");
+                }
+
+                /* <![CDATA[ */
+                function updateData(index){
+                    let CONT = [[ ${content} ]];
+                    return CONT[index]
+                }
+                function onLoadSubmit() {
+                    console.log('commonCode: ', [[ ${commonCode} ]] )
+                    checkBox()
+                    pagination([[ ${pageable} ]])
+
+                    $('#aply5_download').hide()
+                    getPbanc5List()
+                    searchPbanc()
+                }
+                /* ]]> */
+            </script>
+        </th:block>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+</div>
+</body>
+</html>

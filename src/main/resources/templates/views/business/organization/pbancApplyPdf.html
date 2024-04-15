@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/pop_layout}">
+<body>
+
+<div layout:fragment="pop">
+    <p>PDF 파일을 다운로드 하고 있습니다. 처리하는데 1분 이상 걸릴 수 있습니다. 이 창을 닫지 말고 잠시 기다려 주세요.</p>
+    <div style="display: none;">
+
+    <th:block th:each="item, stat :${content}">
+        <table th:id="${'title'+stat.index}">
+            <tr>
+                <td th:text="${item.bizPbancMaster.bizPbancNm}">사업명</td>
+            </tr>
+        </table>
+        <br>
+        <table th:id="${'info'+stat.index}">
+            <tr>
+                <td colspan="2">운영구분</td>
+                <td th:text="${item.bizOrgAplyOperCtgr?:'-'}"> 2학기</td>
+                <td>수업형태</td>
+                <td th:text="${item.bizOrgAplyOperMeth?:'-'}">선택프로그램</td>
+            </tr>
+            <tr>
+                <td rowspan="4">신청기관</td>
+                <td>학교명</td>
+                <td colspan="3" th:text="${item.organizationInfo.organizationName}"> 중학교</td>
+            </tr>
+            <tr>
+                <td>주소</td>
+                <td colspan="3"><span th:inline="none">[</span> [[${item.organizationInfo.organizationZipCode}]]<span th:inline="none">]</span>
+                    [[${item.organizationInfo.organizationAddress1}]] [[${item.organizationInfo.organizationAddress2}]]
+                </td>
+            </tr>
+            <tr>
+                <td>대표전화</td>
+                <td th:text="${item.organizationInfo.organizationTelNumber}">010-1234-1234</td>
+                <td>교장</td>
+                <td  th:text="${item.bizOrgAplyRprsvNm}">홍길동</td>
+            </tr>
+            <tr>
+                <td>홈페이지</td>
+                <td th:text="${item.organizationInfo.organizationHomepage?:'-'}">www.</td>
+                <td>학급수/학생수</td>
+                <td>
+                    <th:block th:if="${item.organizationAuthorityHistory!=null}">
+                        <span th:text="${item.organizationAuthorityHistory.learningCount?:'-'}"> 10 </span> / <span th:text="${item.organizationAuthorityHistory.studentNumber?:'-'}"> 10 </span>명
+                    </th:block>
+                    <th:block th:unless="${item.organizationAuthorityHistory!=null}">
+                       -
+                    </th:block>
+                </td>
+            </tr>
+            <tr>
+                <td rowspan="3">담당교사</td>
+                <td>성명</td>
+                <td th:text="${item.bizOrgAplyPicNm}">담당자명</td>
+                <td>직위</td>
+                <td th:text="${item.bizOrgAplyPicJbgd}">교사</td>
+            </tr>
+            <tr>
+                <td>직통번호</td>
+                <td th:text="${item.bizOrgAplyPicTelno}">01012341234</td>
+                <td>휴대전화</td>
+                <td th:text="${item.bizOrgAplyPicMpno}">0103213213</td>
+            </tr>
+            <tr>
+                <td>이메일</td>
+                <td colspan="3" th:text="${item.bizOrgAplyPicEml}">test@tesa.com</td>
+            </tr>
+            <tr>
+                <td rowspan="3">수업계획</td>
+                <td>교육기간</td>
+                <td colspan="3" th:text="${item.bizOrgAplyLsnPlanBgng +' ~ '+item.bizOrgAplyLsnPlanEnd}">2022-10-10~2022-12-12</td>
+            </tr>
+            <tr>
+                <td>총교육시간</td>
+                <td colspan="3" th:text="${#strings.concat(item.bizOrgAplyTime, ' 시간')}">시간</td>
+            </tr>
+            <tr>
+                <td>수업대상학년</td>
+                <td>
+                    <th:block th:if="${#strings.indexOf(item.bizOrgAplyLsnPlanTrgt,'_')>=0}">
+                        <span th:text="${#strings.arraySplit(item.bizOrgAplyLsnPlanTrgt, '_')[0]}"></span>
+                        <span th:text="${#strings.arraySplit(item.bizOrgAplyLsnPlanTrgt, '_')[1]}"></span>학년
+                    </th:block>
+                    <th:block th:unless="${#strings.indexOf(item.bizOrgAplyLsnPlanTrgt,'_')>=0}">
+                        <span th:text="${item.bizOrgAplyLsnPlanTrgt}"></span>
+                    </th:block>
+                </td>
+                <td>회차당교육인원</td>
+                <td> <span  th:text="${item.bizOrgAplyLsnPlanNope}"></span>명</td>
+            </tr>
+            <tr>
+                <td colspan="2">e-NIE프로그램 신청</td>
+                <td colspan="3">
+                    <span th:if="${item.bizOrgAplyPeprYn==1}">신청</span>
+                    <span th:if="${item.bizOrgAplyPeprYn==0}">미신청</span>
+                </td>
+            </tr>
+        </table>
+        <br>
+        <table  th:id="${'rep'+stat.index}">
+            <tr><td><br></td> </tr>
+            <tr><td class="h5">위와 같이 [[${item.bizPbancMaster.bizPbancNm}]] 지원 신청서를 제출합니다.</td></tr>
+            <tr><td><br></td> </tr>
+            <tr><td class="h5" th:text="${#strings.substring(item.createDateTime, 0,4)+'년 '+#strings.substring(item.createDateTime, 5,7)+'월 '+#strings.substring(item.createDateTime, 8,10)+'일'}">  </td> </tr>
+            <tr><td><br></td> </tr>
+            <tr><td class="h5">대표자 : [[${item.organizationInfo.organizationName}]] [[${item.bizOrgAplyRprsvNm}]](직인생략)</td> </tr>
+            <tr><td><br></td> </tr>
+            <tr><td><br></td> </tr>
+            <tr><td class="h4"> 한국언론진흥재단 이사장 귀하 </td> </tr>
+        </table>
+        <br>
+        <table th:id="${'dtlTitle'+stat.index}">
+            <thead>
+            <tr><td><br></td> </tr>
+            <tr>
+                <th>세부 수업 계획서</th>
+            </tr>
+            </thead>
+            <tbody>
+                <tr><td><br></td> </tr>
+                <tr><td style="font-size:14px;">1. 수업 커리큘럼 및 일정</td> </tr>
+            </tbody>
+        </table>
+        <br>
+        <table th:id="${'dtl'+stat.index}">
+            <tr>
+                <td>회차</td>
+                <td>수업일정</td>
+                <td>수업주제</td>
+                <td>수업시간</td>
+                <td>시작시간</td>
+                <td>종료시간</td>
+                <td>인원</td>
+                <td>수업장소</td>
+            </tr>
+            <tr th:each="item2:${item.bizOrganizationAplyDtls}">
+                <td th:text="${item2.bizOrgAplyLsnDtlRnd}"></td>
+                <td th:text="${item2.bizOrgAplyLsnDtlYmd}"></td>
+                <td th:text="${item2.bizOrgAplyLsnDtlTpic}"></td>
+                <td th:text="${item2.bizOrgAplyLsnDtlHr}"></td>
+                <td th:text="${item2.bizOrgAplyLsnDtlBgngTm}"></td>
+                <td th:text="${item2.bizOrgAplyLsnDtlEndTm}"></td>
+                <td th:text="${item2.bizOrgAplyLsnDtlNope}"></td>
+                <td th:text="${item2.bizOrgAplyLsnDtlPlc}"></td>
+            </tr>
+            <tr>
+                <td colspan="4">
+                    계
+                </td>
+                <td colspan="4">
+                    <span th:text="${item.bizOrgAplyTime}"></span> 시간
+                </td>
+            </tr>
+        </table>
+        <br>
+        <table th:id="${'etc1_'+stat.index}">
+            <thead>
+            <tr><th>2. 지원 필요성(우리 학교/기관만의 특성과 추구하는 교육의 방향성 및 신청한 이유)</th> </tr>
+            </thead>
+            <tbody>
+            <tr><td th:utext="${item.bizOrgAplyLsnPlanDscr1}"></td> </tr>
+            </tbody>
+        </table>
+        <br>
+        <table th:id="${'etc2_'+stat.index}">
+            <thead>
+            <tr><th>3. 미디어교육 운영 현황</th> </tr>
+            </thead>
+            <tbody>
+            <tr><td th:utext="${item.bizOrgAplyLsnPlanDscr2}"></td> </tr>
+            </tbody>
+        </table>
+        <br>
+        <table th:id="${'etc3_'+stat.index}">
+            <thead>
+            <tr><th>4. 향후 활용계획 및 수업을 통한 기대효과</th> </tr>
+            </thead>
+            <tbody>
+            <tr><td th:utext="${item.bizOrgAplyLsnPlanDscr3}"></td> </tr>
+            </tbody>
+        </table>
+        <br>
+    </th:block>
+
+    </div>
+    <script th:src="@{/app/js/malgunFont.js}"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/1.3.8/FileSaver.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.0.0/jspdf.umd.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.6/jspdf.plugin.autotable.min.js"></script>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            /* <![CDATA[ */
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode}]])
+                let CONT = [[ ${content}]];
+                if(CONT && CONT.length>0){
+                    zipFilename = `${toDay}_사업신청서(${CONT.length}).zip`
+                    getZip(CONT);
+                }else{
+                    alert('검색 결과가 없습니다.');
+                    window.close();
+                }
+            }
+
+            let zip = new JSZip();
+            let count =0;
+            let now = new Date();
+            now.setUTCHours(now.getUTCHours()+9);
+            let toDay = now.toJSON().split('T')[0];
+            let zipFilename = `${toDay}_사업신청서.zip`;
+
+            function getZip(CONT){
+                let filename;
+                CONT.forEach(function (item){
+                    filename=`${item.bizOrgAplyNo}_${item.organizationInfo.organizationName}_사업신청서.pdf`;
+                    zip.file(filename, getPdf(count));
+                    count+=1;
+                    if(count==CONT.length){
+                        zip.generateAsync({type: "blob"}).then(function (b){
+                            saveAs(b, zipFilename)
+                            return setTimeout(function (){window.close()},5000);
+                        });
+                    }
+                })
+            }
+
+            function getPdf(index){
+                let doc = new jsPDF({
+                    orientation: "p", // p: 가로(기본), l: 세로
+                    unit: "mm", // 단위 : "pt" (points), "mm", "cm", "m", "in" or "px" 등)
+                    format: "a4", // 포맷 (페이지 크기).
+                });
+
+                doc.addFileToVFS("malgun.ttf", font);
+                doc.addFont('malgun.ttf', 'malgun', 'normal');
+                doc.setFont('malgun');
+                titleJson.html="#title"+index;
+                infoJson.html="#info"+index;
+                repJson.html="#rep"+index;
+                doc.autoTable(titleJson);
+                doc.autoTable(infoJson);
+                doc.autoTable(repJson);
+                doc.addPage(); // 페이지 추가
+                dtlTitleJson.html = "#dtlTitle"+index;
+                dtlJson.html = "#dtl"+index;
+                doc.autoTable(dtlTitleJson)
+                doc.autoTable(dtlJson)
+                doc.addPage();
+                etcJson.html = "#etc1_"+index;
+                doc.autoTable(etcJson)
+                etcJson.html = "#etc2_"+index;
+                doc.autoTable(etcJson)
+                etcJson.html = "#etc3_"+index;
+                doc.autoTable(etcJson)
+
+                doc.setProperties({
+                    title: '사업신청서',
+                });
+                return doc.output('blob');
+            }
+
+            let infoJson ={ html: '#info1' ,
+                theme: 'grid',
+                bodyStyles: {lineColor: [0, 0, 0], lineWidth:0.3},
+                tableLineColor: [0, 0, 0],
+                tableLineWidth: 0.6,
+                styles: { font: "malgun", fontStyle: "normal", cellPadding:3, valign: "middle", textColor:[0,0,0] } };
+            let dtlJson ={ html: '#dtl1' ,
+                theme: 'grid',
+                bodyStyles: {lineColor: [0, 0, 0], lineWidth:0.3},
+                tableLineColor: [0, 0, 0],
+                tableLineWidth: 0.6,
+                styles: { font: "malgun", fontStyle: "normal", cellPadding:3, valign: "middle", textColor:[0,0,0] } };
+            let titleJson ={ html: '#title1' ,
+                theme: 'plain',
+                tableLineColor: [0, 0, 0],
+                tableLineWidth: 0.6,
+                styles: { font: "malgun", fontStyle: "normal", cellPadding:5, valign: "middle", halign :"center",fontSize:20, textColor:[0,0,0]} };
+            let repJson ={ html: '#rep1',
+                theme: 'plain',
+                tableLineWidth: 0,
+                useCss : true,
+                styles: { font: "malgun", fontStyle: "normal", cellPadding:5, valign: "middle", halign :"center"} };
+            let dtlTitleJson ={ html: '#dtlTitle1',
+                theme: 'grid',
+                headStyles : {lineColor: [0, 0, 0], lineWidth:0,halign :"center", fillColor:[255,255,255] ,textColor:[0,0,0],cellPadding:0, fontSize:16},
+                bodyStyles: {lineColor: [0, 0, 0], lineWidth:0,fontSize:12, textColor:[0,0,0],},
+                tableLineWidth: 0,
+                styles: { font: "malgun", fontStyle: "normal", cellPadding:0,} };
+            let etcJson ={ html: '#etc1',
+                theme: 'grid',
+                headStyles : {lineColor: [0, 0, 0], lineWidth:0, fillColor:[255,255,255] ,textColor:[0,0,0],cellPadding:0, fontSize:12},
+                bodyStyles: {lineColor: [0, 0, 0], lineWidth:0.3},
+                tableLineWidth: 0,
+                styles: { font: "malgun", fontStyle: "normal", cellPadding:5,} };
+            let font = getMalgunFont();
+
+            /* ]]> */
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

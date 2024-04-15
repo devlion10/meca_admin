@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="homepage-18">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>SMS발송 관리</h2>
+        </div>
+
+        <div class="tableLeftResponsive">
+            <table class="tableLeft">
+                <colgroup>
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                </colgroup>
+                <tbody>
+                    <tr>
+                        <th scope="row">발송대상</th>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="target_list"></div>
+                                <div class="target_list__btn">
+                                    <div>
+                                        <a href="javascript:addUser()" class="btn btnDefault">대상추가</a>
+                                        <a href="javascript: void(0)" class="btn btnDefault" onclick="targetDelete()">대상삭제</a>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">발신번호</th>
+                        <td>
+                            <input type="text" class="hp_w400">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">내용</th>
+                        <td>
+                            <textarea name="contents" style="width:100%; height:200px"></textarea>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="bl_gridBtns">
+            <div class="bl_gridBtns_lft">
+                <div class="btn btnDefault btnDelete" th:if="${content != null}">삭제</div>
+            </div>
+            <div class="bl_gridBtns_rgt">
+                <div class="btn btnDefault btnList" onclick="sendSMS()">등록</div>
+            </div>
+        </div>
+    </div>
+
+    <div sec:authorize="!isAuthenticated()"></div>
+
+    <th:block layout:fragment="script">
+    <script th:inline="javascript">
+        /* <![CDATA[ */
+        function onLoadSubmit(){
+            console.log('commonCode: ', [[ ${commonCode} ]] )
+        }
+
+        let selectList = [];
+        const _LIST_WRAP = $('.target_list');
+        async function addUser(){
+            let _selectList = await searchUser();
+            if(_selectList && _selectList.length){
+                setSelectList(_selectList);
+            }
+        }
+
+        function setSelectList( arry ){
+            selectList = _.filter(arry, function(userItem){
+                return 0 > _.findIndex(selectList, {userSerialNo : userItem.userSerialNo});
+            }).concat(selectList);
+            _LIST_WRAP.empty();
+            renderSelectList();
+        }
+
+        function renderSelectList(){
+            selectList.forEach(function(userItem){
+                addUserItem(userItem);
+            });
+        }
+
+        function addUserItem(userItem){
+            let item = $(`<div class="target">${userItem.userName}(${userItem.userId}) - ${ctsUtil.phoneFomatter(userItem.phone)}<span class="remove-user" style="color:#f10000;float:right;">X</span></div>`);
+            item.find(".remove-user").click(function(e){
+                removeUserItem(userItem);
+            });
+            item.data('user-item' , userItem);
+            _LIST_WRAP.append(item);
+        }
+
+        function removeUserItem(userItem){
+            selectList = _.filter( selectList, function(item){
+                return userItem.userSerialNo != item.userSerialNo;
+            });
+            _LIST_WRAP.empty();
+            renderSelectList();
+        }
+
+        async function sendSMS(){
+            let contents = $("textarea[name=contents]").val().trim();
+            if( !contents ) alert('메시지를 입력해주세요.');
+            if( !confirm('메시지를 전송하시겠습니까?') ) return;
+
+            let sendList = selectList.map(
+                i => i.phone
+            );
+            $.ajax({
+                method: "POST",
+                url : "/api/bizppurio/send-sms",
+                data : {
+                    receiver : sendList,
+                    content : contents
+                },
+                success : function(){
+                    alert('메시지를 전송했습니다.');
+                    location.replace('/homepage/sms');
+                },
+                error : function(){
+                    alert('메시지 전송을 실패했습니다.');
+                }
+            });
+        }
+        /* ]]> */
+    </script>
+</th:block>
+</div>
+</body>
+</html>

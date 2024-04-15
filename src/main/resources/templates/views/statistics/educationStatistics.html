@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="statistics-2">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>학습운영 통계</h2>
+        </div>
+
+        <div class="tableLeftResponsive">
+            <table class="tableLeft">
+                <colgroup>
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                </colgroup>
+                <tbody>
+                    <tr>
+                        <th scope="row">검색기간</th>
+                        <td colspan="3">
+                            <div class="bl_dateRange">
+                                <input type="text" class="el_datePicker sdate" id="startDate">
+                                <span class="blank">~</span>
+                                <input type="text" class="el_datePicker edate" id="endDate">
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">카테고리</th>
+                        <td>
+                            <select class="common_select" id="categoryCode">
+                                <option value="" th:selected="${true}">전체</option>
+                                <th:block th:each="commonCode : ${commonCode}" th:if="${commonCode.code} == 'CTS_CTGR'" >
+                                    <option th:each="categoryCode : ${commonCode.subCode}" th:value="${categoryCode.code}"
+                                            th:text="${categoryCode.codeName}" th:selected="${false}"></option>
+                                </th:block>
+                            </select>
+                        </td>
+                        <th scope="row">예산프로젝트</th>
+                        <td>
+                            <select name="paySelect" id="paySelect" class="common_select">
+                                <option value="" selected>전체</option>
+                                <option value="0">미집행</option>
+                                <option value="1">법인</option>
+                                <option value="2">자발 기금</option>
+                            </select>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- GRID : BUTTON -->
+        <div class="bl_gridBtns">
+            <div class="bl_gridBtns_md">
+                <div class="btn btnDefault btnReset">리셋</div>
+                <div class="btn btnDefault btnSearch">검색</div>
+            </div>
+        </div>
+
+        <div class="bl_tab2 js_tab">
+            <ul class="bl_tab2_menu js_tab_menu">
+                <li>
+                    <a href="#none">교육 방식별</a>
+                </li>
+
+                <li>
+                    <a href="#none">카테고리별</a>
+                </li>
+                <li>
+                    <a href="#none">예산 프로젝트별</a>
+                </li>
+            </ul>
+            <div class="bl_tab2_body js_tab_contents">
+                <div class="bl_tab2_item js_tab_item">
+                    <div class="tableResponsive overflowMulti">
+                        <table class="table">
+                            <thead>
+                            <tr>
+                                <th scope="col"></th>
+                                <th scope="col" colspan="2">학습과정</th>
+                                <th scope="col" colspan="3">학습차시</th>
+                            </tr>
+                            <tr>
+                                <th scope="col">구분</th>
+                                <th scope="col">건수</th>
+                                <th scope="col">비율</th>
+                                <th scope="col">건수</th>
+                                <th scope="col">비율</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr>
+                                <td>화상</td>
+                                <td>0</td>
+                                <td>0%</td>
+                                <td>0</td>
+                                <td>0%</td>
+                            </tr>
+                            <tr>
+                                <td>집합</td>
+                                <td>0</td>
+                                <td>0%</td>
+                                <td>0</td>
+                                <td>0%</td>
+                            </tr>
+                            <tr>
+                                <td>이러닝</td>
+                                <td>0</td>
+                                <td>0%</td>
+                                <td>0</td>
+                                <td>0%</td>
+                            </tr>
+                            <tr>
+                                <td>전체</td>
+                                <td>0</td>
+                                <td>0%</td>
+                                <td>0</td>
+                                <td>0%</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="bl_tab2_item js_tab_item">
+                    <div class="tableResponsive overflowMulti">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th scope="col"></th>
+                                    <th scope="col" colspan="2">학습과정</th>
+                                    <th scope="col" colspan="3">학습차시</th>
+                                </tr>
+                                <tr>
+                                    <th scope="col">구분</th>
+                                    <th scope="col">건수</th>
+                                    <th scope="col">비율</th>
+                                    <th scope="col">건수</th>
+                                    <th scope="col">비율</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>전문 교육-직무 교육</td>
+                                    <td>0</td>
+                                    <td>0%</td>
+                                    <td>0</td>
+                                    <td>0%</td>
+                                </tr>
+                                <tr>
+                                    <td>전문 교육-자율 교육</td>
+                                    <td>0</td>
+                                    <td>0%</td>
+                                    <td>0</td>
+                                    <td>0%</td>
+                                </tr>
+                                <tr>
+                                    <td>공통</td>
+                                    <td>0</td>
+                                    <td>0%</td>
+                                    <td>0</td>
+                                    <td>0%</td>
+                                </tr>
+                                <tr>
+                                    <td>전체</td>
+                                    <td>0</td>
+                                    <td>0%</td>
+                                    <td>0</td>
+                                    <td>0%</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="bl_tab2_item js_tab_item">
+                    <div class="tableResponsive overflowMulti">
+                        <table class="table">
+                            <thead>
+                            <tr>
+                                <th scope="col"></th>
+                                <th scope="col" colspan="2">학습과정</th>
+                                <th scope="col" colspan="3">학습차시</th>
+                            </tr>
+                            <tr>
+                                <th scope="col">구분</th>
+                                <th scope="col">건수</th>
+                                <th scope="col">비율</th>
+                                <th scope="col">건수</th>
+                                <th scope="col">비율</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr>
+                                <td>법인</td>
+                                <td>0</td>
+                                <td>0%</td>
+                                <td>0</td>
+                                <td>0%</td>
+                            </tr>
+                            <tr>
+                                <td>자발 기금</td>
+                                <td>0</td>
+                                <td>0%</td>
+                                <td>0</td>
+                                <td>0%</td>
+                            </tr>
+                            <tr>
+                                <td>미집행</td>
+                                <td>0</td>
+                                <td>0%</td>
+                                <td>0</td>
+                                <td>0%</td>
+                            </tr>
+                            <tr>
+                                <td>전체</td>
+                                <td>0</td>
+                                <td>0%</td>
+                                <td>0</td>
+                                <td>0%</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            /* <![CDATA[ */
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+            }
+            /* ]]> */
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

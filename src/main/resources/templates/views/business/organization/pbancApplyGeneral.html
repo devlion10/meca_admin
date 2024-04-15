@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="business-3">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>사업신청 관리(기본형)</h2>
+        </div>
+
+        <div class="sch_box flex-wrap">
+            <select id="bizPbancYr" class="common_select" data-list="yearList"></select>
+            <select id="bizPbancRnd" class="common_select" data-list="numList"></select>
+            <input id="containText" type="text" class="hp_w400" placeholder="사업명, 기관명">
+            <div class="d-flex-1">
+                <div th:onclick="searchPbancApply()" class="btn btnDefault btnSearch">검색</div>
+                <a class="btn btnDefault btnReset">리셋</a>
+                <div id="apply_delete" class="btn btnDefault btnDelete icon_none">선택삭제</div>
+            </div>
+        </div>
+
+        <!-- BOARD : CONTROLLER -->
+        <div class="bl_boardCtrls">
+            <div class="bl_boardCtrls_lft">
+                <p class="bl_boardCtrls_total">총: <strong th:text="${pageable.totalElements}"></strong>건</p>
+            </div>
+            <div class="bl_boardCtrls_rgt">
+                <a href="/api/business/apply/general/excel" class="btn btnDefault download_excel download_search">excel 다운로드</a>
+                <select class="common_select" data-list="countSortList"></select>
+            </div>
+        </div>
+
+        <div class="tableResponsive overflowMulti">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th scope="col">
+                        <div class="chk_box">
+                            <input id="all_check" type="checkbox">
+                            <label for="all_check">
+                                <span class="me-0"></span>
+                            </label>
+                        </div>
+                    </th>
+                    <th scope="col">번호</th>
+                    <th scope="col">년도</th>
+                    <th scope="col">사업명</th>
+                    <th scope="col">차수</th>
+                    <th scope="col">등록일시</th>
+                    <th scope="col">기관명</th>
+                    <th scope="col">신청서</th>
+                    <th scope="col">관리</th>
+                </tr>
+                </thead>
+                <tbody th:if="${content != null && content.size > 0}">
+                    <tr th:each="item, stat : ${content}">
+                        <td>
+                            <div class="chk_box item_chk">
+                                <input th:id="'application'+${stat.index}" type="checkbox" name="business_application" th:value="${stat.index}" >
+                                <label th:for="'application'+${stat.index}">
+                                    <span class="me-0"></span>
+                                </label>
+                            </div>
+                        </td>
+                        <td th:text="${pageable.totalElements - ((pageable.page * pageable.size) + stat.index)}"></td>
+                        <td th:text="${item.bizPbancMaster.bizPbancYr}">2022</td>
+                        <td>
+                            <a th:href="@{/business/pbanc/list/{type}/{id}(type=${item.bizPbancMaster.bizPbancType}, id=${item.bizPbancMaster.bizPbancNo})}" th:text="${item.bizPbancMaster.bizPbancNm}">사업명</a>
+                        </td>
+                        <td th:text="${item.bizPbancMaster.bizPbancRnd}">3</td>
+                        <td th:text="${item.createDateTime}">2022.08.08 20:52:59</td>
+                        <td>
+                            <span th:text="${item.lmsUser.organizationInfo != null ? item.lmsUser.organizationInfo.organizationName : ''}"></span>
+                            <span th:if="${item.lmsUser.mediaInfo != null}">/</span>
+                            <span th:text="${item.lmsUser.mediaInfo != null ? item.lmsUser.mediaInfo.mediaName : ''}"></span>
+                        </td>
+                        <td>
+                            <a th:href="@{/api/business/apply/download/(attachFilePath=${item.bizAplyFile})}" class="btn btnDefault download_ajax">다운로드</a>
+                        </td>
+                        <td>
+                            <a th:value="${stat.index}" class="btn btnDefault btnDelete icon_none apply_delete">삭제</a>
+                        </td>
+                    </tr>
+                </tbody>
+                <tbody th:unless="${content != null && content.size > 0}">
+                    <tr class="empty_data"><td colspan="9">조회된 내용이 없습니다.</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- PAGINATE -->
+        <div class="bl_paginate"></div>
+
+        <th:block layout:fragment="script">
+            <script th:inline="javascript">
+                /* 검색 */
+                function searchPbancApply(){
+                    let searchQuery = {}
+                    let name = $("#containText").val();
+                    let year = $("#bizPbancYr").val();
+                    let rnd = $("#bizPbancRnd").val();
+
+                    if(name){
+                        searchQuery.containText = name
+                    }
+                    if(year && year!=0){
+                        searchQuery.bizPbancYr = year
+                    }
+                    if(rnd && rnd!=0){
+                        searchQuery.bizPbancRnd =rnd
+                    }
+                    searchJson(searchQuery)
+                }
+                
+                /* <![CDATA[ */
+                function updateData(index){
+                    let CONT = [[ ${content} ]];
+                    return CONT[index]
+                }
+                function onLoadSubmit() {
+                    console.log('commonCode: ', [[ ${commonCode} ]] )
+                    checkBox()
+                    pagination([[ ${pageable} ]])
+                }
+                /* ]]> */
+            </script>
+        </th:block>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+</div>
+</body>
+</html>

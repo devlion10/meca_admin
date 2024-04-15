@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="homepage-17">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>페이지 관리</h2>
+        </div>
+
+        <div class="tableLeftResponsive">
+            <table class="tableLeft">
+                <colgroup>
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                </colgroup>
+                <tbody>
+                    <tr>
+                        <th scope="row">구분</th>
+                        <td>
+                            <div class="radio_box">
+                                <input id="documentType_all" type="radio" name="documentType" value="" checked>
+                                <label for="documentType_all">
+                                    <span></span>
+                                    전체
+                                </label>
+                            </div>
+                            <th:block th:each="commonCode : ${commonCode}" th:if="${commonCode.code} == 'DCMNT_TYPE'" >
+                                <th:block th:each="documentType: ${commonCode.subCode}">
+                                    <div class="radio_box">
+                                        <input th:id="${documentType.codeName}" type="radio" name="documentType" th:value="${documentType.code}" th:checked="${false}">
+                                        <label th:for="${documentType.codeName}">
+                                            <span></span>
+                                            <p th:text="${documentType.codeName}"></p>
+                                        </label>
+                                    </div>
+                                </th:block>
+                            </th:block>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">작성일</th>
+                        <td>
+                            <div class="bl_dateRange">
+                                <input type="text" id="startDate" class="el_datePicker sdate">
+                                <span class="blank">~</span>
+                                <input type="text" id="endDate" class="el_datePicker edate">
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="bl_gridBtns">
+            <div class="bl_gridBtns_md">
+                <div class="btn btnDefault btnReset">리셋</div>
+                <div class="btn btnDefault btnSearch">검색</div>
+                <a href="/homepage/page/" class="btn btnDefault btnRegister">등록</a>
+            </div>
+        </div>
+
+        <!-- BOARD : CONTROLLER -->
+        <div class="bl_boardCtrls">
+            <div class="bl_boardCtrls_lft">
+                <p class="bl_boardCtrls_total">총: <strong th:text="${pageable.totalElements}"></strong>건</p>
+                <select class="common_select" data-list="countSortList"></select>
+            </div>
+        </div>
+
+        <div class="tableResponsive overflowMulti">
+            <table class="table">
+                <colgroup>
+                    <col style="width: 50px">
+                    <col style="width: auto">
+                    <col style="width: 200px">
+                    <col style="width: 120px">
+                    <col style="width: 120px">
+                    <col style="width: 100px">
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th scope="col">번호</th>
+                        <th scope="col">구분</th>
+                        <th scope="col">등록일</th>
+                        <th scope="col">미리보기</th>
+                        <th scope="col">관리</th>
+                        <th scope="col">상태</th>
+                    </tr>
+                </thead>
+                <tbody th:if="${content != null && content.size > 0}">
+                    <tr th:each="item,stat:${content}">
+                        <td th:text="${stat.count}">1</td>
+                        <td>
+                            <span th:if="${item.documentType != null}">
+                                <th:block th:each="commonCode : ${commonCode}" th:if="${commonCode.code} == 'DCMNT_TYPE'">
+                                    <span th:each="types : ${commonCode.subCode}" th:if="${item.documentType == types.code}"
+                                          th:text="${types.codeName}">
+                                    </span>
+                                </th:block>
+                            </span>
+                        </td>
+                        <td th:text="${#strings.substring(item.createDateTime,0,10)}">2022.10.01</td>
+                        <td>
+                            <a th:href="@{/homepage/page/{sequenceNo}?view(sequenceNo=${item.sequenceNo})}" class="btn btnDefault">미리보기</a>
+                        </td>
+                        <td>
+                            <a th:href="@{/homepage/page/{sequenceNo}(sequenceNo=${item.sequenceNo})}" class="btn btnDefault btnModify">수정</a>
+                            <a th:value="${stat.index}" class="btn btnDefault btnDelete">삭제</a>
+                        </td>
+                        <td>
+                            <span th:if="${item.documentStatus=='1'}" class="state state__blue">사용</span>
+                            <span th:if="${item.documentStatus=='0'}" class="state state__red">미사용</span>
+                        </td>
+                    </tr>
+                </tbody>
+                <tbody th:unless="${content != null && content.size > 0}">
+                <tr class="empty_data"><td colspan="6">조회된 내용이 없습니다.</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="bl_paginate"></div>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            $(".btnSearch").on('click',function (){
+                let searchQuery = {};
+                let startDate = $("#startDate").val();
+                let endDate = $("#endDate").val();
+                let documentType = $("input:radio[name='documentType']:checked").val();
+                if (startDate && endDate) {
+                    searchQuery.startDate = startDate;
+                    searchQuery.endDate = endDate;
+                } else if (startDate || endDate) {
+                    alert('검색 시작일과 종료일을 모두 입력해야 합니다.')
+                }
+                if (documentType) {
+                    searchQuery.documentType = documentType;
+                }
+                searchJson(searchQuery)
+            });
+
+            $(".btnDelete").on("click", function (){
+                if(confirm("정말로 삭제하시겠습니까?")){
+                    let dataIndex = $(this).attr("value");
+                    let params = updateData(dataIndex);
+                    $.ajax({
+                        type: "delete", //http method
+                        url: `/api/homepage/page/delete/${params.sequenceNo}`, //값을 가져올 경로
+                        headers: {'Content-Type': 'application/json'},
+                        data: JSON.stringify(params),
+                        dataType: "json",
+                        success: function(data) {
+                            alert("삭제되었습니다.");
+                            window.location.reload();
+                        },
+                        error: function(data) {
+                            alert("오류가 발생했습니다.")
+                            window.location.reload();
+                        }
+                    })
+                }
+            })
+
+            /* <![CDATA[ */
+            function updateData(index){
+                let CONT = [[ ${content} ]];
+                return CONT[index]
+            }
+
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+                pagination([[ ${pageable} ]], false)
+
+                let searchParams = new URLSearchParams(window.location.search);
+                if (searchParams.has('startDate')){
+                    $("#startDate").val(searchParams.get('startDate'));
+                    $("#endDate").val(searchParams.get('endDate'));
+                }
+                if (searchParams.has('documentType')){
+                    if (searchParams.get('documentType') == 0) {
+                        $("input:radio[name='documentType']#documentType_normal").prop('checked', true);
+                    } else if (searchParams.get('documentType') == 1) {
+                        $("input:radio[name='documentType']#documentType_terms").prop('checked', true);
+                    } else if (searchParams.get('documentType') == 2) {
+                        $("input:radio[name='documentType']#documentType_policy").prop('checked', true);
+                    } else {
+                        $("input:radio[name='documentType']#documentType_agreement").prop('checked', true);
+                    }
+                }
+            }
+            /* ]]> */
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

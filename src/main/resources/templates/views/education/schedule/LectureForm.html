@@ -1,0 +1,1219 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="edu-2">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>과정개설 관리</h2>
+        </div>
+
+        <div class="tableLeftResponsive">
+            <table class="tableLeft">
+                <colgroup>
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                </colgroup>
+                <tbody>
+                    <tr>
+                        <th scope="row">유형</th>
+                        <td id="type_wrap">
+                            <div class="radio_box">
+                                <input id="type4" type="radio" name="type" value="4">
+                                <label for="type4">
+                                    <a href="/education/schedule/regist/parallel" class="d-flex-start">
+                                        <span></span>
+                                        병행(화상+집합)
+                                    </a>
+                                </label>
+                            </div>
+                            <div class="radio_box">
+                                <input id="type1" type="radio" name="type" value="2" checked>
+                                <label for="type1">
+                                    <a href="/education/schedule/regist/lecture" class="d-flex-start">
+                                        <span></span>
+                                        집합
+                                    </a>
+                                </label>
+                            </div>
+                            <div class="radio_box">
+                                <input id="type2" type="radio" name="type" value="1">
+                                <label for="type2">
+                                    <a href="/education/schedule/regist/e-lecture" class="d-flex-start">
+                                        <span></span>
+                                        화상
+                                    </a>
+                                </label>
+                            </div>
+                            <div class="radio_box">
+                                <input id="type3" type="radio" name="type" value="3">
+                                <label for="type3">
+                                    <a href="/education/schedule/regist/e-learning" class="d-flex-start">
+                                        <span></span>
+                                        이러닝
+                                    </a>
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="tableLeftResponsive">
+            <form name="dataForm" th:with="dataSet=${content.size > 0 ? content[0] : null}">
+                <input type="hidden" name="operationType" value="1"/>
+                <table class="tableLeft">
+                    <colgroup>
+                        <col style="width: 200px">
+                        <col style="width: auto">
+                        <col style="width: 200px">
+                        <col style="width: auto">
+                    </colgroup>
+                    <tbody>
+                        <tr>
+                            <th scope="row"><span class="el_required">*</span>과정선택</th>
+                            <td colspan="3">
+                                <div class="d-flex-2">
+                                    <input type="text" class="hp_w600" name="curriculumName"
+                                           th:id="${dataSet?.curriculumMaster?.curriculumCode}"
+                                           th:value="${dataSet?.curriculumMaster?.curriculumName}" readonly cts-required="과정을 선택해주세요.">
+                                    <div data-control="modal" data-handler="modalOfCurriculum" class="btn btnDefault" onclick="goCurriculumSearch(true)">과정 선택</div>
+                                </div>
+                                <input type="hidden" name="curriculumCode" th:value="${dataSet?.curriculumMaster?.curriculumCode}"/>
+                            </td>
+                        </tr>
+                        <tr class="teacher_code">
+                            <th scope="row"><span class="el_required">*</span>과정번호</th>
+                            <td colspan="3">
+                                <input type="text" name="programNumber" data-key="programNumber" placeholder="과정번호는 숫자 4자리만 입력해주세요."/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row"><span class="el_required">*</span>담당자</th>
+                            <td>
+                                <input type="text" class="hp_w200" name="eduPlanPic" data-key="eduPlanPic" th:value="${dataSet?.curriculumMaster?.managerDepartment}" readonly>
+                                <input type="hidden" class="hp_w200" id="province" data-key="province" name="province" th:value="${dataSet?.province}" readonly>
+                                <button type="button" onclick="findAdminTel()" class="btn btnDefault">연락처 확인</button>
+                            </td>
+                            <th scope="row">담당자 연락처</th>
+                            <td>
+                                <input type="text" class="hp_w400" id="picTel" name="picTel" data-key="picTel" th:value="${dataSet?.picTel}" readonly/>
+                            </td>
+                        </tr>
+                        <tr class="operation_view">
+                            <th scope="row"><span class="el_required">*</span>연도</th>
+                            <td>
+                                <select class="common_select" data-list="yearList" name="yearOfEducationPlan" data-key="yearOfEducationPlan" cts-required="연도를 선택해주세요."></select>
+                            </td>
+                            <th scope="row"><span class="el_required">*</span>기수</th>
+                            <td>
+                                <select class="common_select" data-list="numList2" name="yearOfEducationPlanStep" data-key="yearOfEducationPlanStep" cts-required="기수를 선택해주세요."></select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row">지점</th>
+                            <td colspan="3">
+                                <select class="common_select" data-list="branchList" name="province" th:value="${dataSet?.province}"></select>
+                            </td>
+                        </tr>
+                        <tr class="operation_view">
+                            <th scope="row"><span class="el_required">*</span>신청기간</th>
+                            <td colspan="3">
+                                <div class="bl_dateRange hp_wAuto">
+                                    <input type="text" class="el_datePicker hp_w200 sdate" name="applyBeginDate" th:value="${dataSet?.applyBeginDateTime}" cts-required="신청기간을 입력해주세요." placeholder="YYYY-MM-DD">
+                                    <span class="blank">~</span>
+                                    <input type="text" class="el_datePicker hp_w200 edate" name="applyEndDate" th:value="${dataSet?.applyEndDateTime}" cts-required="신청기간을 입력해주세요." placeholder="YYYY-MM-DD">
+                                </div>
+                            </td>
+                        </tr>
+                        <tr class="operation_view">
+                            <th scope="row"><span class="el_required">*</span>취소기간</th>
+                            <td colspan="3">
+                                <div class="bl_dateRange hp_wAuto">
+                                    <input type="text" class="el_datePicker hp_w200 sdate" name="cancelBeginDate" th:value="${dataSet?.cancelBeginDateTime}" cts-required="취소기간을 입력해주세요." placeholder="YYYY-MM-DD">
+                                    <span class="blank">~</span>
+                                    <input type="text" class="el_datePicker hp_w200 edate" name="cancelEndDate" th:value="${dataSet?.cancelEndDateTime}" cts-required="취소기간을 입력해주세요." placeholder="YYYY-MM-DD">
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                    <!-- 차시 정보 -->
+                    <tbody class="lectureInfoList">
+                        <tr>
+                            <th scope="row"><span class="el_required">*</span>교육기간</th>
+                            <td>
+                                <div class="d-flex-start">
+                                    <div class="bl_dateRange hp_wAuto">
+                                        <div class="d-flex-1">
+                                            <input type="text" class="el_datePicker hp_w150 sdate" data-key="operationBeginDateTimeDate" cts-required="교육기간을 선택해주세요.">
+                                            <select class="common_select" data-list="hourList" data-key="operationBeginDateTimeHour" cts-required="교육기간을 선택해주세요."></select>
+                                            <select class="common_select" data-list="minuteList" data-key="operationBeginDateTimeMin" cts-required="교육기간을 선택해주세요."></select>
+                                        </div>
+                                        <span class="blank">~</span>
+                                        <div class="d-flex-1">
+                                            <input type="text" class="el_datePicker hp_w150 edate" data-key="operationEndDateTimeDate" cts-required="교육기간을 선택해주세요.">
+                                            <select class="common_select" data-list="hourList" data-key="operationEndDateTimeHour" cts-required="교육기간을 선택해주세요."></select>
+                                            <select class="common_select" data-list="minuteList" data-key="operationEndDateTimeMin" cts-required="교육기간을 선택해주세요."></select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                            <th scope="row"><span class="el_required">*</span>강사장소</th>
+                            <td>
+                                <div class="d-flex-between">
+                                    <div>
+                                        <div class="radio_box">
+                                            <input id="edu0" type="radio" name="lecturerPlace0" data-key="lecturerPlace" checked value="교육장">
+                                            <label for="edu0">
+                                                <span></span>
+                                                교육장
+                                            </label>
+                                        </div>
+                                        <div class="radio_box">
+                                            <input id="etc0" type="radio" name="lecturerPlace0" data-key="lecturerPlace" value="기타장소">
+                                            <label for="etc0">
+                                                <span></span>
+                                                기타장소
+                                            </label>
+                                        </div>
+                                        <input data-key="lecturerPlaceEtc" type="text" class="hp_w150 ms-2" style="display: none">
+                                    </div>
+                                    <div>
+                                        <div id="addBtn" class="btn btnDefault btn_add" onclick="addInfo(this)">추가</div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row"><span class="el_required">*</span>차시명</th>
+                            <td colspan="3">
+                                <input type="text" class="hp_w400" data-key="lectureTitle" cts-required="차시명을 입력해주세요.">
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row"><span class="el_required">*</span>차시 내용</th>
+                            <td colspan="3">
+                                <input type="text" class="hp_w600" data-key="lectureDetail" cts-required="차시내용을 입력해주세요.">
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row">
+                                <div class="d-flex-between">
+                                    <span><span class="el_required">*</span>강사</span>
+                                    <span class="btn btnDefault" data-control="modal" data-handler="popInstructorSelection" onclick="openInstructorSelection(this)">강사 선택</span>
+                                </div>
+                            </th>
+                            <td colspan="3">
+                                <div class="d-flex-2 lecturers"></div>
+                                <div class="guide_text mb-0">'강사 선택' 버튼으로 강사를 등록해주세요.</div>
+                            </td>
+                        </tr>
+                    </tbody>
+
+                    <tbody>
+                        <tr>
+                            <th scope="row"><span class="el_required">*</span>교육장소</th>
+                            <td colspan="3">
+                                <input type="text" class="hp_w600" name="educationPlace" th:value="${dataSet?.educationPlace}"  cts-required="교육장소를 입력해주세요.">
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row"><span class="el_required">*</span>정원</th>
+                            <td>
+                                <div class="d-flex-2">
+                                    <input type="text" class="hp_w80" name="numberOfPeople" th:value="${dataSet?.numberOfPeople}" cts-required="정원을 입력해주세요." oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');" />
+                                    명(0명일 경우 무제한)
+                                </div>
+                            </td>
+                            <th scope="row"><span class="el_required">*</span>숙박제공 여부</th>
+                            <td>
+                                <div class="radio_box">
+                                    <input id="lodgment_y" type="radio" name="isAccommodation" checked value="true" data-key="isAccommodation" cts-required="숙박제공 여부를 선택해주세요.">
+                                    <label for="lodgment_y">
+                                        <span></span>
+                                        제공
+                                    </label>
+                                </div>
+                                <div class="radio_box">
+                                    <input id="lodgment_n" type="radio" name="isAccommodation" value="false" data-key="isAccommodation" cts-required="숙박제공 여부를 선택해주세요.">
+                                    <label for="lodgment_n">
+                                        <span></span>
+                                        미제공
+                                    </label>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row"><span class="el_required">*</span>복습제공 여부</th>
+                            <td>
+                                <div class="radio_box">
+                                    <input id="review_y" type="radio" name="isReview" value="true" checked data-key="isReview" cts-required="복습제공 여부를 입력해주세요.">
+                                    <label for="review_y">
+                                        <span></span>
+                                        Y
+                                    </label>
+                                </div>
+                                <div class="radio_box">
+                                    <input id="review_n" type="radio" name="isReview" value="false" data-key="isReview" cts-required="복습제공 여부를 입력해주세요.">
+                                    <label for="review_n">
+                                        <span></span>
+                                        N
+                                    </label>
+                                </div>
+                            </td>
+                            <th scope="row">
+                                <span class="el_required">*</span>복습기간
+                                <span class="text_sm">(0개월 일 경우 무제한)</span>
+                            </th>
+                            <td>
+                                <div class="d-flex-2">
+                                    수료 후
+                                    <input type="text" class="hp_w80" name="availableReviewTerm" data-key="availableReviewTerm" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
+                                    개월
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row">복습영상 경로</th>
+                            <td colspan="3">
+                                <input type="text" class="hp_w400" name="reviewPath" data-key="reviewPath" placeholder="예) http://meca.or.kr - URL 전체 주소를 입력해주세요">
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row"><span class="el_required">*</span>썸네일</th>
+                            <td colspan="3">
+                                <div class="bl_uploadGrid">
+                                    <div class="bl_upload">
+                                        <input th:value="${dataSet?.thumbnailFilePath}" id="thumbnailFileName" type="text" class="bl_upload_path js_path" readonly>
+                                        <label for="thumbnailFile" class="btn btnDefault bg-secondary text-white bl_upload_btn">파일선택</label>
+                                        <input id="thumbnailFile" type="file" name="thumbnailFile" class="bl_upload_file js_file">
+                                    </div>
+                                    <a th:value="${dataSet?.educationPlanCode}" class="btn btnDefault bl_uploadGrid2_del">파일삭제</a>
+                                    <a id="thumbnailDownload" th:if="${dataSet?.thumbnailFilePath != null}" th:href="@{/api/education/schedule/download(attachFilePath =${dataSet.thumbnailFilePath})}" class="btn btnDefault bg_blue download_ajax ms-1">다운로드</a>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row"><span class="el_required">*</span>상태</th>
+                            <td>
+                                <select class="common_select" name="isUsable" data-key="isUsable">
+                                    <option value="true" th:selected="${dataSet?.isUsable == true}">사용</option>
+                                    <option value="false" th:selected="${dataSet?.isUsable == false}">미사용</option>
+                                </select>
+                            </td>
+                            <th scope="row"><span class="el_required">*</span>상단고정</th>
+                            <td>
+                                <div class="radio_box">
+                                    <input id="is_top_y" type="radio" data-key="isTop" name="isTop" value="true">
+                                    <label for="is_top_y">
+                                        <span></span>
+                                        Y
+                                    </label>
+                                </div>
+                                <div class="radio_box">
+                                    <input id="is_top_n" type="radio" data-key="isTop" name="isTop" value="false" checked>
+                                    <label for="is_top_n">
+                                        <span></span>
+                                        N
+                                    </label>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr> <!-- 파일첨부 API 5 -->
+                            <th scope="row">파일첨부</th>
+                            <td colspan="3">
+                                <div class="bl_uploadList__scroll hp_w600">
+                                    <ul class="bl_uploadList" th:if="${(content != null) && (content.size > 0) && (content[0].fileMasters != null)}">
+                                        <li th:each="item, index: ${content[0].fileMasters}">
+                                            <a th:href="@{/api/common/upload/download(attachFilePath=${item.filePath})}" class="download_ajax" th:text="${item.originalFileName}"></a>
+                                            <div class="bl_uploadList_rgt">
+                                                <span class="file_size" th:text="${item.fileSize}"></span>
+                                                <a class="file_delete" th:href="@{/api/common/upload/delete/{sn}(sn=${item.fileSn})}" th:value="${index.index}">
+                                                    <i class="fas fa-times color_red"></i>
+                                                </a>
+                                            </div>
+                                        </li>
+                                    </ul>
+                                    <ul class="bl_uploadList" th:unless="${(content != null) && (content.size > 0) && (content[0].fileMasters != null)}">
+
+                                    </ul>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mt-2 hp_w600">
+                                    <div class="d-flex gap-2 align-items-center">
+                                        <div class="bl_uploadGrid">
+                                            <div class="bl_upload js_upload me-0">
+                                                <label for="formFile" class="btn btnDefault bg-secondary text-white bl_upload_btn">파일찾기</label>
+                                                <input id="formFile" type="file" name="formFile" class="bl_upload_file js_file" accept=".gif, .jpg, .png, .pdf, .hwp, .hwpx, .doc, .docx, .ppt, .pptx, .xls, .xlsx, .zip">
+                                            </div>
+                                        </div>
+                                        <p class="bl_uploadNote">※ 파일형식 gif, jpg, png, pdf, hwp, doc, docx, ppt, pptx, xls, xlsx, zip / 5MB 미만</p>
+                                    </div>
+                                    <p id="fileSize" class="bl_uploadNote">총용량: <span id="fileMB">0</span>MB</p>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <input id="video_lecture_y" type="radio" data-key="isVideoLecture" name="isVideoLecture" value="false" checked style="display:none;"/>
+            </form>
+        </div>
+
+        <div class="bl_gridBtns">
+            <div class="bl_gridBtns_rgt">
+                <a href="/education/schedule" class="btn btnDefault btnList">목록</a>
+                <div class="btn btnDefault btnRegister" onclick="regist()">등록</div>
+            </div>
+        </div>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+
+    <style>
+        tbody.lectureInfoList {
+            border-top: 2px solid;
+            border-bottom: 2px solid;
+        }
+    </style>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            $("#thumbnailFile").bind('change', function (e){
+                if( $("#thumbnailFile")[0].files[0].name){
+                    $("#thumbnailFileName").val($("[name=thumbnailFile]")[0].files[0].name);
+                }
+            })
+            /* <![CDATA[ */
+            const commonCode = [[ ${commonCode} ]];
+            const content = [[ ${content} ]][0];
+            const params = {};
+            let modeType = "insert";
+
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+                eventBind();
+                setFormData();
+                //지점 셀렉트
+                if(content){
+                    $(`[data-list="branchList"]`).val(content.province).prop("selected", true);
+                }
+
+                //총용량 계산1
+                $(".file_size").each((index, item)=>{
+                    let text = $(item).text();
+                    if(text.indexOf('KB')==-1){
+                        text = text.replace("MB", "");
+                        text = parseFloat(text)
+                    }else{
+                        text = text.replace("KB", "");
+                        text = parseFloat(text) / 1024;
+                        text = text.toFixed(2);
+                    }
+                    let now = $('#fileMB').text();
+                    now = parseFloat(now)+parseFloat(text);
+                    now = parseFloat(now).toFixed(2);
+                    $('#fileMB').text(now);
+                })
+            }
+
+            /**
+             * 과정선택 팝업
+             * @param hidden
+             */
+            async function goCurriculumSearch(){
+                let item = await searchCurriculum(2, true, [[${commonCode}]] );
+                if( item ){
+                    $("input[name=curriculumName]")[0].value = item.curriculumName;
+                    $("input[name=curriculumName]")[0].id = item.curriculumCode;
+                    document.forms.dataForm.curriculumCode.value = item.curriculumCode;
+
+                    $("input[name=eduPlanPic]")[0].value = item.managerDepartment;
+                    document.forms.dataForm.eduPlanPic.value = item.managerDepartment;
+
+                    if (item.educationTarget == '3') {
+                        $(".teacher_code").show();
+                    } else {
+                        $(".teacher_code").hide();
+                    }
+                }
+            }
+            $(".teacher_code").hide();
+
+            /**
+             * 초기 이벤트 바인딩
+             */
+            function eventBind(){
+                // 강사장소 - 기타장소 선택시 input 노출
+                $('input[data-key=lecturerPlace]').change(function(){
+                    let targetId = $(this).attr('id');
+                    if (targetId.match("edu")) { // 교육장
+                        $('input[data-key=lecturerPlaceEtc]').hide();
+                    } else if (targetId.match("etc")) { // 기타장소
+                        $('input[data-key=lecturerPlaceEtc]').show();
+                    }
+                });
+
+                // 복습제공여부에따른 복습영상경로
+                $("input[name=isReview]").change(function(e){
+                    if(e.target.value == "false"){
+                        document.forms.dataForm.reviewPath.value = "";
+                        document.forms.dataForm.reviewPath.disabled = true;
+                        document.forms.dataForm.availableReviewTerm.disabled = true;
+                    }else{
+                        document.forms.dataForm.reviewPath.disabled = false;
+                        document.forms.dataForm.availableReviewTerm.disabled = false;
+                    }
+                });
+
+
+                //썸네일 삭제 이벤트
+                $(".bl_uploadGrid2_del").bind('click', function (e){
+                    if($("#thumbnailFileName").val() && confirm("정말로 썸네일 파일을 삭제하시겠습니까?")){
+                        let eduPlanCode = $(".bl_uploadGrid2_del").attr("value");
+                        $.ajax({
+                            type: "delete", //http method
+                            url: `/api/education/schedule/delete/thumbnailFile/${eduPlanCode}`,
+                            headers: {'Content-Type': 'application/json'},
+                            dataType: "json",
+                            success: function(data) {
+                                alert("삭제되었습니다.");
+                                $("#thumbnailFileName").val(null);
+                                $("#thumbnailDownload").remove();
+                            },
+                            error: function(data) {
+                                alert("오류가 발생했습니다.")
+                            }
+                        })
+                    }else if($("#thumbnailFileName").val()==''){
+                        alert('등록된 파일이 없습니다.')
+                    }
+                })
+            }
+
+            /**
+             * 수정모드 일 때 INPUT값 세팅
+             */
+            function setFormData(){
+                if( !content ) return;
+                modeType = "modify";
+
+                let addBtn = document.querySelector(".lectureInfoList .btn.btn_add");
+                content.lectureMasterList.forEach(function(item, index){
+                    if( index > 0) addInfo(addBtn);
+                    let itemWrap = $(".lectureInfoList").eq(index);
+                    setLectureMaster(itemWrap, item);
+                });
+
+                // 수강신청한 인원이 있으면 수정 삭제버튼 안보이게
+                if( content && content.currentNumberOfPeople > 0){
+                    $(".lectureInfoList .btn.btn_add").hide();
+                    $(".lectureInfoList .btn.btn_del").hide();
+                }
+                if ( content && content.curriculumMaster.educationTarget == '3' ) {
+                    $(".teacher_code").show();
+                } else {
+                    $(".teacher_code").hide();
+                }
+
+                let wrap = $(document.forms.dataForm);
+                wrap.find("[data-key=programNumber]").val(content.programNumber);
+                wrap.find("[data-key=yearOfEducationPlan]").val(content.yearOfEducationPlan);
+                wrap.find("[data-key=yearOfEducationPlanStep]").val(content.yearOfEducationPlanStep);
+                wrap.find("[data-key=province]").val(content.province);
+                wrap.find("[data-key=availableReviewTerm]").val(content.availableReviewTerm);
+                wrap.find("[data-key=eduPlanPic]").val(content.eduPlanPic);
+                wrap.find("[data-key=picTel]").val(content.picTel);
+
+                wrap.find("[data-key=videoLecturePath]").val(content.videoLecturePath);
+                wrap.find("[data-key=reviewPath").val(content.reviewPath);
+                wrap.find(`[data-key=isReview][value="${content.isReview}"]`).attr("checked", true);
+                wrap.find(`[data-key=isAccommodation][value="${content.isAccommodation}"]`).attr("checked", true);
+                wrap.find(`[data-key=isTop][value="${content.isTop}"]`).attr("checked", true);
+
+                if(content.isReview == false){
+                    document.forms.dataForm.reviewPath.disabled = true;
+                    document.forms.dataForm.availableReviewTerm.disabled = true;
+                }
+                $(".btnRegister").text("수정");
+            }
+
+            /**
+             * 수정모드일 시 자동 세팅
+             * @param wrap
+             * @param item
+             */
+            function setLectureMaster(wrap, item){
+                if( !wrap || !item ) return;
+
+                //강사설정
+                if(item){
+                    let trs = $(wrap).find("tr")
+                    let lecturerTr = trs[trs.length-1]
+                    let lecturerArea = $(lecturerTr).children()
+                    let lecturerTd = lecturerArea[lecturerArea.length-1]
+                    let itemWrap = $(lecturerTd).find(".d-flex-2.lecturers");
+                    let guide = itemWrap[0].nextElementSibling;
+                    if (item.lectureLecturerList && item.lectureLecturerList.length > 0) {
+                        item.lectureLecturerList.forEach(function(subItem, index){
+                            let _ii= $(`<div class="p-1 state__blue rounded">
+                                    <div class="lecture_list_wrap">
+                                        <input type="hidden" data-key="lecturer" value="${subItem.lecturer}"/>
+                                        <span>${subItem.lecturerInfo?.instrNm}</span>
+                                        <span class="close-remove-lecture"><i class="fas fa-times color_red cursor-pointer ms-1"></i></span>
+                                    </div>
+                                    <input class="hp_w200" type="number" value="${subItem.lecturerGratuity}" data-key="lecturerAmount" placeholder="사례비를 입력해주세요." cts-required="사례비를 입력해주세요."/>
+                                </div>`);
+                            _ii.find(".close-remove-lecture").click(function(){
+                                _ii.remove();
+                                if (itemWrap[0].getElementsByClassName('p-1 state__blue rounded').length == 0) {
+                                    $(guide).show();
+                                }
+                            });
+                            itemWrap.append(_ii[0]);
+                        });
+                    } else {
+                        let _ii= $(`<div class="p-1 state__blue rounded">
+                                    <div class="lecture_list_wrap">
+                                        <input type="hidden" data-key="lecturer" value="${item.lecturer}"/>
+                                        <span>${item.lecturerInfo?.instrNm}</span>
+                                        <span class="close-remove-lecture"><i class="fas fa-times color_red cursor-pointer ms-1"></i></span>
+                                    </div>
+                                    <input class="hp_w200" type="number" data-key="lecturerAmount" placeholder="사례비를 입력해주세요." cts-required="사례비를 입력해주세요."/>
+                                </div>`);
+                        _ii.find(".close-remove-lecture").click(function(){
+                            _ii.remove();
+                            if (itemWrap[0].getElementsByClassName('p-1 state__blue rounded').length == 0) {
+                                $(guide).show();
+                            }
+                        });
+                        itemWrap.append(_ii[0]);
+                    }
+                    $(guide).hide();
+                }
+
+                wrap.append(`<input type="hidden" class="lectureCodeInput" name="lectureCode" value="${item.lectureCode}">`);
+                wrap.find("input[data-key=lectureTitle]").val(item.lectureTitle);
+                wrap.find("input[data-key=lectureDetail]").val(item.lectureDetail);
+                if( item.lecturerPlace == "교육장"){
+                    wrap.find(`input[data-key=lecturerPlace][value="${item.lecturerPlace}"]`)?.attr("checked", true);
+                }else{
+                    wrap.find(`input[data-key=lecturerPlace][value=기타장소]`)?.attr("checked", true);
+                    wrap.find('input[data-key=lecturerPlaceEtc]').show().val(item.lecturerPlace);
+                }
+
+                let beginDate = moment(item.operationBeginDateTime);
+                wrap.find("[data-key=operationBeginDateTimeDate]").val( beginDate.format("YYYY-MM-DD") )
+                wrap.find("[data-key=operationBeginDateTimeHour]").val( beginDate.format("HH") );
+                wrap.find("[data-key=operationBeginDateTimeMin]").val( beginDate.format("mm") );
+
+                let endDate = moment(item.operationEndDateTime);
+                wrap.find("[data-key=operationEndDateTimeDate]").val( endDate.format("YYYY-MM-DD") )
+                wrap.find("[data-key=operationEndDateTimeHour]").val( endDate.format("HH") );
+                wrap.find("[data-key=operationEndDateTimeMin]").val( endDate.format("mm") );
+            }
+
+            /**
+             * 차시정보 추가
+             * @param target
+             */
+            let idx = 0;
+            const addInfo = (target) => {
+                const TBODY = target.parentElement.parentElement.parentElement.parentElement.parentElement;
+                idx += 1;
+
+                /* 교육기간, 강사장소 */
+                const _tbody = document.createElement('tbody');
+                _tbody.classList.add('lectureInfoList');
+
+                const TR1 = document.createElement('tr');
+                const TH1_1 = document.createElement('th');
+                TH1_1.setAttribute('scope', 'row');
+                TH1_1.innerHTML = '<span class="el_required">*</span>교육기간';
+                const TD1_1 = document.createElement('td');
+                const TH1_2 = document.createElement('th');
+                TH1_2.setAttribute('scope', 'row');
+                TH1_2.innerHTML = '<span class="el_required">*</span>강사장소';
+                const TD1_2 = document.createElement('td');
+                TR1.appendChild(TH1_1);
+                TR1.appendChild(TD1_1);
+                TR1.appendChild(TH1_2);
+                TR1.appendChild(TD1_2);
+
+                const TD1_1__DIV = document.createElement('div');
+                TD1_1__DIV.setAttribute('class', 'd-flex-start');
+                const DATERANGE = document.createElement('div');
+                DATERANGE.setAttribute('class', 'bl_dateRange hp_wAuto');
+                const DATERANGE__DIV1 = document.createElement('div');
+                DATERANGE__DIV1.setAttribute('class', 'd-flex-1');
+                const DATERANGE__DIV2 = document.createElement('div');
+                DATERANGE__DIV2.setAttribute('class', 'd-flex-1');
+                const DATEPICKER_1 = document.createElement('input');
+                DATEPICKER_1.setAttribute('type', 'text');
+                DATEPICKER_1.setAttribute('class', 'el_datePicker hp_w150 sdate');
+                $(DATEPICKER_1).attr('data-key','operationBeginDateTimeDate');
+
+                const HOURSELECT = document.createElement('select');
+                HOURSELECT.setAttribute('class', 'common_select');
+                HOURSELECT.setAttribute('data-list', 'hourList');
+                $(HOURSELECT).attr('data-key','operationBeginDateTimeHour')
+
+                const MINUTESELECT = document.createElement('select');
+                MINUTESELECT.setAttribute('class', 'common_select');
+                MINUTESELECT.setAttribute('data-list', 'minuteList');
+                $(MINUTESELECT).attr('data-key','operationBeginDateTimeMin');
+
+                const BLANK = document.createElement('span');
+                BLANK.setAttribute('class', 'blank');
+                BLANK.innerText = '~';
+                const DATEPICKER_2 = document.createElement('input');
+                DATEPICKER_2.setAttribute('type', 'text');
+                DATEPICKER_2.setAttribute('class', 'el_datePicker hp_w150 edate');
+                $(DATEPICKER_2).attr('data-key','operationEndDateTimeDate');
+
+                const HOURSELECT2 = document.createElement('select');
+                HOURSELECT2.setAttribute('class', 'common_select');
+                HOURSELECT2.setAttribute('data-list', 'hourList');
+                $(HOURSELECT2).attr('data-key','operationEndDateTimeHour');
+
+                const MINUTESELECT2 = document.createElement('select');
+                MINUTESELECT2.setAttribute('class', 'common_select');
+                MINUTESELECT2.setAttribute('data-list', 'minuteList');
+                $(MINUTESELECT2).attr('data-key','operationEndDateTimeMin');
+
+                TD1_1.appendChild(TD1_1__DIV);
+                TD1_1__DIV.appendChild(DATERANGE);
+                DATERANGE.appendChild(DATERANGE__DIV1);
+                DATERANGE.appendChild(BLANK);
+                DATERANGE.appendChild(DATERANGE__DIV2);
+                DATERANGE__DIV1.appendChild(DATEPICKER_1);
+                DATERANGE__DIV1.appendChild(HOURSELECT);
+                DATERANGE__DIV1.appendChild(MINUTESELECT);
+                DATERANGE__DIV2.appendChild(DATEPICKER_2);
+                DATERANGE__DIV2.appendChild(HOURSELECT2);
+                DATERANGE__DIV2.appendChild(MINUTESELECT2);
+
+                const TD1_2__DIV = document.createElement('div');
+                TD1_2__DIV.setAttribute('class', 'd-flex-between');
+                const TD1_2_1__DIV = document.createElement('div');
+                TD1_2_1__DIV.setAttribute('class', 'd-flex-start');
+                const RADIO_BOX = document.createElement('div');
+                RADIO_BOX.setAttribute('class', 'radio_box');
+
+                const RADIO_INPUT = document.createElement('input');
+                RADIO_INPUT.setAttribute('type', 'radio');
+                RADIO_INPUT.setAttribute('id', 'edu'+idx);
+                RADIO_INPUT.setAttribute('name', 'lecturerPlace'+idx);
+                RADIO_INPUT.setAttribute('checked', 'checked');
+                $(RADIO_INPUT).attr('data-key','lecturerPlace').attr("value","교육장");
+                const RADIO_LABEL = document.createElement('label');
+                RADIO_LABEL.setAttribute('for', 'edu'+idx);
+                RADIO_LABEL.innerHTML = '<span></span>교육장';
+                const RADIO_BOX2 = document.createElement('div');
+                RADIO_BOX2.setAttribute('class', 'radio_box');
+
+                const RADIO_INPUT2 = document.createElement('input');
+                RADIO_INPUT2.setAttribute('type', 'radio');
+                RADIO_INPUT2.setAttribute('id', 'etc'+idx);
+                RADIO_INPUT2.setAttribute('name', 'lecturerPlace'+idx);
+                $(RADIO_INPUT2).attr('data-key','lecturerPlace').attr("value","기타장소");
+                const RADIO_LABEL2 = document.createElement('label');
+                RADIO_LABEL2.setAttribute('for', 'etc'+idx);
+                RADIO_LABEL2.innerHTML = '<span></span>기타장소';
+                const RADIO_BOX2__INPUT = document.createElement('input');
+                RADIO_BOX2__INPUT.setAttribute('data-key', 'lecturerPlaceEtc');
+                RADIO_BOX2__INPUT.setAttribute('type', 'text');
+                RADIO_BOX2__INPUT.setAttribute('class', 'hp_w150 ms-2');
+                RADIO_BOX2__INPUT.setAttribute('style', 'display: none');
+
+                TD1_2.appendChild(TD1_2__DIV);
+                TD1_2__DIV.appendChild(TD1_2_1__DIV);
+                TD1_2_1__DIV.appendChild(RADIO_BOX);
+                TD1_2_1__DIV.appendChild(RADIO_BOX2);
+                RADIO_BOX.appendChild(RADIO_INPUT);
+                RADIO_BOX.appendChild(RADIO_LABEL);
+                RADIO_BOX2.appendChild(RADIO_INPUT2);
+                RADIO_BOX2.appendChild(RADIO_LABEL2);
+                TD1_2_1__DIV.appendChild(RADIO_BOX2__INPUT);
+
+                const TD1_2_2__DIV = document.createElement('div');
+                const ADD_BTN = document.createElement('div');
+                ADD_BTN.setAttribute('class', 'btn btnDefault btn_add');
+                ADD_BTN.setAttribute('onclick', 'addInfo(this)');
+                ADD_BTN.innerText = '추가';
+                const DEL_BTN = document.createElement('div');
+                DEL_BTN.setAttribute('class', 'btn btnDefault btn_del');
+                DEL_BTN.setAttribute('onclick', 'removeInfo(this)');
+                DEL_BTN.innerText = '삭제';
+                TD1_2_2__DIV.appendChild(ADD_BTN);
+                TD1_2_2__DIV.appendChild(DEL_BTN);
+                TD1_2__DIV.appendChild(TD1_2_2__DIV);
+                _tbody.appendChild(TR1);
+
+                /* 차시명 */
+                const TR2 = document.createElement('tr');
+                const TH2 = document.createElement('th');
+                TH2.setAttribute('scope', 'row');
+                TH2.innerHTML = '<span class="el_required">*</span>차시명';
+                const TD2 = document.createElement('td');
+                TD2.setAttribute('colspan', 3);
+                TR2.appendChild(TH2);
+                TR2.appendChild(TD2);
+
+                const TD2__INPUT = document.createElement('input');
+                TD2__INPUT.setAttribute('type', 'text');
+                TD2__INPUT.setAttribute('class', 'hp_w400');
+                $(TD2__INPUT).attr('data-key','lectureTitle');
+                TD2.appendChild(TD2__INPUT);
+                _tbody.appendChild(TR2);
+
+                /* 차시 내용 */
+                const TR3 = document.createElement('tr');
+                const TH3 = document.createElement('th');
+                TH3.setAttribute('scope', 'row');
+                TH3.innerHTML = '<span class="el_required">*</span>차시 내용';
+                const TD3 = document.createElement('td');
+                TD3.setAttribute('colspan', 3);
+                TR3.appendChild(TH3);
+                TR3.appendChild(TD3);
+
+                const TD3__INPUT = document.createElement('input');
+                TD3__INPUT.setAttribute('type', 'text');
+                TD3__INPUT.setAttribute('class', 'hp_w600');
+                $(TD3__INPUT).attr('data-key','lectureDetail');
+                TD3.appendChild(TD3__INPUT);
+                _tbody.appendChild(TR3);
+
+                /* 강사 */
+                const TR4 = document.createElement('tr');
+                const TH4 = document.createElement('th');
+                TH4.setAttribute('scope', 'row');
+                const TH4_1__DIV = document.createElement('div');
+                TH4_1__DIV.setAttribute('class', 'd-flex-between');
+                const TH4_1__SPAN = document.createElement('span');
+                TH4_1__SPAN.innerHTML = '<span class="el_required">*</span>강사'
+                const TH4_2__SPAN = document.createElement('span');
+                TH4_2__SPAN.setAttribute('class', 'btn btnDefault');
+                TH4_2__SPAN.setAttribute('data-control', 'modal');
+                TH4_2__SPAN.setAttribute('data-handler', 'popInstructorSelection');
+                TH4_2__SPAN.setAttribute('onclick', 'openInstructorSelection(this)');
+                TH4_2__SPAN.innerHTML = '강사선택'
+
+                const TD4 = document.createElement('td');
+                TD4.setAttribute('colspan', '3');
+                const TD4_2__DIV = document.createElement('div');
+                TD4_2__DIV.setAttribute('class', 'd-flex-2 lecturers');
+                const TD4_3__DIV = document.createElement('div');
+                TD4_3__DIV.setAttribute('class', 'guide_text mb-0');
+                TD4_3__DIV.innerHTML = "'\강사 선택'\ 버튼으로 강사를 등록해주세요."
+                TR4.appendChild(TH4);
+                TR4.appendChild(TD4);
+                TH4.appendChild(TH4_1__DIV);
+                TH4_1__DIV.appendChild(TH4_1__SPAN);
+                TH4_1__DIV.appendChild(TH4_2__SPAN);
+                TD4.appendChild(TD4_2__DIV);
+                TD4.appendChild(TD4_3__DIV);
+
+                _tbody.appendChild(TR4);
+                TBODY.parentNode.insertBefore(_tbody, $("tbody.lectureInfoList").last().next().get(0));
+
+                // 동적 추가 요소에 달력 호출 하기
+                CommonUI.datePicker($(DATEPICKER_1));
+                CommonUI.datePicker($(DATEPICKER_2));
+
+                // 동적 추가 요소에 select 리스트 불러오기
+                CommonUI.dataListSelectBox(HOURSELECT);
+                CommonUI.dataListSelectBox(MINUTESELECT);
+                CommonUI.dataListSelectBox(HOURSELECT2);
+                CommonUI.dataListSelectBox(MINUTESELECT2);
+
+                // 강사장소 - 기타장소 선택시 input 노출
+                $(RADIO_INPUT).change(function(){
+                    $(RADIO_BOX2__INPUT).hide();
+                });
+                $(RADIO_INPUT2).change(function(){
+                    $(RADIO_BOX2__INPUT).show();
+                });
+            }
+
+            /**
+             * 차시정보 삭제
+             * @param target
+             */
+            const removeInfo = (target) => {
+                const TR1 = target.parentElement.parentElement.parentElement.parentElement;
+                const TR2 = target.parentElement.parentElement.parentElement.parentElement.nextElementSibling;
+                const TR3 = target.parentElement.parentElement.parentElement.parentElement.nextElementSibling.nextElementSibling;
+                const TR4 = target.parentElement.parentElement.parentElement.parentElement.nextElementSibling.nextElementSibling.nextElementSibling;
+                const lectureCode = target.parentElement.parentElement.parentElement.parentElement.nextElementSibling.nextElementSibling.nextElementSibling.nextElementSibling;
+
+                if (location.pathname.indexOf('regist') > -1) {
+                    TR1.remove();
+                    TR2.remove();
+                    TR3.remove();
+                    TR4.remove();
+                } else {
+                    if (lectureCode) {
+                        if (confirm('정말 차시 정보를 삭제하시겠습니까?')) {
+                            $.ajax({
+                                type: "put", //http method
+                                url: `/api/education/curriculum/lecture/delete/`+lectureCode.value, //값을 가져올 경로
+                                headers: {'Content-Type': 'application/json'},
+                                dataType: "json",
+                                success: function(data) {
+                                    window.location.reload();
+                                },
+                                error: function(e) {
+                                    if(e && e.responseJSON && e.responseJSON.resultMessage){
+                                        alert(e.responseJSON.resultMessage);
+                                    }else{
+                                        alert('수정하는 과정에서 오류가 발생했습니다.');
+                                    }
+                                }
+                            })
+                        }
+                    } else {
+                        TR1.remove();
+                        TR2.remove();
+                        TR3.remove();
+                        TR4.remove();
+                    }
+                }
+            }
+
+            /**
+             * 강사 검색
+             * @param el
+             * @returns {Promise<void>}
+             */
+            async function openInstructorSelection(el) {
+                let item = await searchLecturers();
+                let wrap = el.parentElement.parentElement.nextElementSibling
+                let div = wrap.getElementsByClassName('d-flex-2 lecturers')[0]
+                let guide = wrap.getElementsByClassName('guide_text');
+                let lecturer = div.querySelectorAll('.p-1.state__blue.rounded')
+
+                if(item && item.values){
+                    item.values.forEach(value => {
+                        if (lecturer && lecturer.length > 0) {
+                            lecturer.forEach(subValue => {
+                                let data = subValue.getElementsByClassName("lecture_list_wrap")[0]
+                                if ($(data).find("[data-key=lecturer]").val() != value.seq) {
+                                    let _ii= $(`<div class="p-1 state__blue rounded">
+                                        <div class="lecture_list_wrap">
+                                            <input type="hidden" data-key="lecturer" cts-required="강사를 선택해주세요." value="${value.seq}"/>
+                                            <span>${value.username}</span>
+                                            <span class="close-remove-lecture"><i class="fas fa-times color_red cursor-pointer ms-1"></i></span>
+                                        </div>
+                                        <input class="hp_w200" type="number" data-key="lecturerAmount" placeholder="사례비를 입력해주세요." cts-required="사례비를 입력해주세요."/>
+                                    </div>`);
+                                    _ii.find(".close-remove-lecture").click(function(){
+                                        _ii.remove();
+                                        if (!div.getElementsByClassName('p-1 state__blue rounded')) {
+                                            $(guide).show();
+                                        }
+                                    });
+                                    div.appendChild(_ii[0]);
+                                }
+                            })
+                        } else {
+                            let _ii= $(`<div class="p-1 state__blue rounded">
+                                        <div class="lecture_list_wrap">
+                                            <input type="hidden" data-key="lecturer" cts-required="강사를 선택해주세요." value="${value.seq}"/>
+                                            <span>${value.username}</span>
+                                            <span class="close-remove-lecture"><i class="fas fa-times color_red cursor-pointer ms-1"></i></span>
+                                        </div>
+                                        <input class="hp_w200" type="number" data-key="lecturerAmount" placeholder="사례비를 입력해주세요." cts-required="사례비를 입력해주세요."/>
+                                    </div>`);
+                            _ii.find(".close-remove-lecture").click(function(){
+                                _ii.remove();
+                                if (!div.getElementsByClassName('p-1 state__blue rounded')) {
+                                    $(guide).show();
+                                }
+                            });
+                            div.appendChild(_ii[0]);
+                        }
+                    })
+                    $(guide).hide();
+                }
+            }
+
+            /**
+             * 파라미터를 생성
+             * @returns {*|jQuery}
+             */
+            function generalParam(){
+                let params = $(document.forms.dataForm).serializeObject();
+                let lectureInfoList = [];
+                $("tbody.lectureInfoList").each(function(index, el){
+                    let wrap = $(this);
+                    let lectureDetail = wrap.find("[data-key=lectureDetail]").val();
+                    let lectureTitle = wrap.find("[data-key=lectureTitle]").val();
+                    let lecturerPlace = wrap.find("[data-key=lecturerPlace]:checked").val();
+                    if(lecturerPlace == "기타장소"){
+                        lecturerPlace = wrap.find("[data-key=lecturerPlaceEtc]").val();
+                    }
+
+                    let operationBeginDateTimeDate = wrap.find("[data-key=operationBeginDateTimeDate]").val();
+                    let operationBeginDateTimeHour = wrap.find("[data-key=operationBeginDateTimeHour]").val();
+                    let operationBeginDateTimeMin = wrap.find("[data-key=operationBeginDateTimeMin]").val();
+                    let operationBeginDateTime = `${operationBeginDateTimeDate} ${operationBeginDateTimeHour}:${operationBeginDateTimeMin}:00`
+
+                    let operationEndDateTimeDate = wrap.find("[data-key=operationEndDateTimeDate]").val();
+                    let operationEndDateTimeHour = wrap.find("[data-key=operationEndDateTimeHour]").val();
+                    let operationEndDateTimeMin = wrap.find("[data-key=operationEndDateTimeMin]").val();
+                    let operationEndDateTime = `${operationEndDateTimeDate} ${operationEndDateTimeHour}:${operationEndDateTimeMin}:00`
+                    
+                    let lectureLecturerList = [];
+                    $(wrap).find(".state__blue").each(function(index, el){
+                        let subWrap = $(this)
+                        let lecturer = '';
+                        $(subWrap).find(".lecture_list_wrap").each(function(index, el){
+                            let lectureWrap = $(this)
+                            lecturer = lectureWrap.find("[data-key=lecturer]").val();
+                        });
+                        let lecturerAmount = subWrap.find("[data-key=lecturerAmount]").val();
+                        let subItem = {
+                            sequenceNo: 0,
+                            lecturer: lecturer,
+                            lecturerGratuity: lecturerAmount
+                        }
+                        subItem.lectureCode = wrap.find(".lectureCodeInput").val();
+                        lectureLecturerList.push(subItem)
+                    });
+
+                    let item = {
+                        lectureDetail: lectureDetail,
+                        lectureTitle: lectureTitle,
+                        lecturerPlace: lecturerPlace,
+                        operationBeginDateTime: operationBeginDateTime,
+                        operationEndDateTime: operationEndDateTime,
+                        lectureLecturerList: lectureLecturerList
+                    }
+                    if( wrap.find(".lectureCodeInput").length > 0 ){
+                        item.lectureCode = wrap.find(".lectureCodeInput").val();
+                    }
+                    lectureInfoList.push(item);
+                });
+                params.lectureInfoList = lectureInfoList;
+                return params;
+            }
+
+            /**
+             * 유효성 검사 실행
+             */
+            function validatorForm(){
+                let validatorList = document.querySelectorAll("[cts-required]");
+                let result = true;
+                for(let i=0;validatorList.length>i;i++){
+                    let el = $(validatorList[i]);
+                    if( !el.val() || ( el.val() && !el.val().trim()) ){
+                        let message = el.attr("cts-required");
+                        alert(message);
+                        el.focus();
+                        result = false;
+                        break;
+                    }
+                }
+
+                let params = generalParam();
+                params.lectureInfoList.forEach(function (data, index) {
+                    if( data.lectureLecturerList ){
+                        if( data.lectureLecturerList.length < 1  ){
+                            alert("차시별 강사를 한명 이상씩 등록해주세요")
+                            return result = false;
+                        } else if( data.lectureLecturerList.length > 10 ){
+                            alert("차시별 강사는 10명까지만 등록이 가능합니다.")
+                            return result = false;
+                        }
+                    } else {
+                        alert("차시별 강사를 한명 이상씩 등록해주세요")
+                        return result = false;
+                    }
+                });
+                return result;
+            }
+
+            /**
+             * 등록/수정 동작 실행
+             */
+            function regist(){
+                if( !validatorForm() ){
+                    return false;
+                }
+                Array.from($("a[name=button]")).forEach(function (form, index, list) {
+                    form.disabled = true;
+                });
+                let url = (modeType  == "insert") ? '/api/education/schedule/create' : '/api/education/schedule/update';
+                let params = generalParam();
+                params.educationType = "2";
+                if(modeType=="modify"){
+                    params.educationPlanCode = content.educationPlanCode;
+                }
+                if(modeType == "modify" && !confirm('내용을 수정하시겠습니까? 기존에 입력하신 정보는 삭제됩니다.')){
+                    return;
+                }
+                $.ajax({ //jquery ajax
+                    type: (modeType  == "insert") ? "post" : "put", //http method
+                    url: url, //값을 가져올 경로
+                    headers: {'Content-Type': 'application/json'},
+                    data: JSON.stringify(params),
+                    dataType:"json", //html, xml, text, script, json, jsonp 등 다양하게 쓸 수 있음
+                    success: function(result) {   //요청 성공시 실행될 메서드
+                        if(document.querySelector('#thumbnailFile').files[0]) {
+                            var form = new FormData();
+                            form.append( "thumbnailFile", document.querySelector('#thumbnailFile').files[0] );
+                            $.ajax({
+                                type:"put", //http method
+                                url:"/api/education/schedule/upload/thumbnailFile/" + result.educationPlanCode, //값을 가져올 경로
+                                processData : false,
+                                contentType : false,
+                                data: form,
+                                async: false,
+                                error: function(e) {
+                                    alert(e.responseJSON.resultMessage);
+                                }
+                            });
+                        }
+                        if(fileList.length>0) { //파일첨부API4
+                            for (f of fileList) {
+                                if (f != null) {
+                                    let form = new FormData();
+                                    form.append("attachFile", f);
+                                    $.ajax({
+                                        type: "put", //http method
+                                        url: `/api/common/upload/attach/${result.educationPlanCode}?attachType=EDUCATION`, //값을 가져올 경로
+                                        processData: false,
+                                        contentType: false,
+                                        async: false,
+                                        data: form,
+                                        success: function (data) { },  //요청 성공시 실행될 메서드
+                                        error: function (e) {
+                                            alert(e.responseJSON.resultMessage);
+                                        }
+                                    })
+                                }
+                                if (f == fileList[fileList.length - 1]) {
+                                    (modeType  == "insert") ? alert("교육과정 개설이 완료되었습니다.") : alert("수정 되었습니다.");
+                                    (modeType  == "insert") ? window.location.replace('/education/schedule') : window.location.reload();
+                                }
+                            }
+                        } else {
+                            (modeType  == "insert") ? alert("교육과정 개설이 완료되었습니다.") : alert("수정 되었습니다.");
+                            (modeType  == "insert") ? window.location.replace('/education/schedule') : window.location.reload();
+                        }
+                    },
+                    error: function(e){		 //요청 실패시 에러 확인을 위함
+                        alert(e.responseJSON.resultMessage+"("+e.responseJSON.verboseMessage+")");
+                        Array.from($("a[name=button]")).forEach(function (form, index, list) {
+                            form.disabled = false;
+                        });
+                    }
+                })
+            }
+
+            //파일첨부API1
+            let fileSize = $(".file_size");
+
+            for (var item of fileSize) {
+                if(Math.floor(item.innerText / 1024)>1024){
+                    let temp = Math.floor(item.innerText / 1024);
+                    temp = parseFloat(temp);
+                    temp = parseFloat(temp / 1024);
+                    temp = temp.toFixed(2);
+                    $(item).text(temp+"MB")
+                }else{
+                    $(item).text(Math.floor(item.innerText / 1024)+"KB")
+                }
+            }
+            var fileList=[];
+
+            $("#formFile").bind("change", function (e){
+                if(this.files[0]){
+                    fileList.push(this.files[0])
+
+                    //총용량 추가
+                    let text = this.files[0].size;
+                    text = parseFloat(text) / 1024;
+                    text = parseFloat(text) / 1024;
+                    text = text.toFixed(2);
+                    let now = $('#fileMB').text();
+                    now = parseFloat(now)+parseFloat(text);
+                    now = parseFloat(now).toFixed(2);
+                    $('#fileMB').text(now);
+                }
+            })
+
+            //파일첨부API2
+            $(".file_delete").bind("click", function (e){
+                e.preventDefault();
+                if(confirm("정말로 파일을 삭제하시겠습니까?")){
+                    let CONT = [[ ${content}]];
+                    let index = $(this).attr("value")*1 ? $(this).attr("value")*1:0;
+                    let url = $(this).attr("href")
+                    $.ajax({
+                        type: "delete", //http method
+                        url: url, //값을 가져올 경로
+                        headers: {'Content-Type': 'application/json'},
+                        data: JSON.stringify(CONT[0].fileMasters[index]),
+                        dataType: "json",
+                        success: function(data) {
+                            alert("삭제되었습니다.")
+                        },
+                        error: function(e) {
+                            alert("오류가 발생했습니다.")
+                        }
+                    })
+                    //총용량 계산
+                    let text= $(this).parent().find('.file_size').text()
+                    text = text.replace("KB", "");
+                    text =  parseInt(text) / 1024;
+                    text = text.toFixed(2);
+                    let now = $('#fileMB').text();
+                    now = parseFloat(now)-parseFloat(text);
+                    now = parseFloat(now).toFixed(2);
+                    $('#fileMB').text(now);
+                    $(this).parent().parent().remove();
+                }
+            })
+
+            function findAdminTel() {
+                let adminId = $("input[name=eduPlanPic]").val();
+                if (adminId) {
+                    $.ajax({ //jquery ajax
+                        type:"get", //http method
+                        url:"/api/user/admin-user?userId="+adminId, //값을 가져올 경로
+                        headers: {'Content-Type': 'application/json'},
+                        dataType: "json", //html, xml, text, script, json, jsonp 등 다양하게 쓸 수 있음
+                        success: function(result) {   //요청 성공시 실행될 메서드
+                            if (result.content != null && result.pageable.totalElements > 0) {
+                                $("input[name=picTel]").prop("readonly", false);
+                                // 담당자 이름 및 연락처
+                                var userName = result.content[0].userName;
+                                var picTel = result.content[0].telNo;
+                                if (picTel) {
+                                    picTel = picTel.replace(/[^0-9]/g, '')
+                                    picTel = picTel.replace(/^(\d{2,3})(\d{3,4})(\d{4})$/, `$1-$2-$3`)
+                                    $("input[name=picTel]").val(userName+"("+picTel+")")
+                                } else {
+                                    $("input[name=picTel]").val(userName+"()")
+                                }
+
+                                // 담당자 소속
+                                var province = result.content[0].department;
+                                $("input[name=province]").val(province)
+                            } else {
+                                alert("조회되는 관리자 정보가 없습니다. 과정 관리에서 담당자를 확인해주세요.")
+                            }
+                        },
+                        error: function(e){		 //요청 실패시 에러 확인을 위함
+                            alert(e.responseJSON.resultMessage);
+                        }
+                    })
+                } else {
+                    alert("과정 관리에서 담당자를 지정해주세요.");
+                }
+            }
+            /* ]]> */
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

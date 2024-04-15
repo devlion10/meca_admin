@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/pop_layout}">
+<body>
+<div layout:fragment="pop">
+  <div sec:authorize="isAuthenticated()">
+    <p>엑셀 파일을 다운로드 하고 있습니다. 처리하는데 1분 이상 걸릴 수 있습니다. 이 창을 닫지 말고 잠시 기다려 주세요.</p>
+    <table id="excelDownload" style="display: none;" th:if="${!#arrays.isEmpty(content)}">
+      <tr>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <th:block th:if="${#arrays.isEmpty(content[0].instrAplyAll)}">
+          <td> </td>
+        </th:block>
+        <th:block th:unless="${#arrays.isEmpty(content[0].instrAplyAll)}" th:each="item, stat: ${content[0].instrAplyAll}">
+          <td th:text="${item.bizInstrAplyCmnt}"></td>
+        </th:block>
+      </tr>
+      <tr>
+        <th>번호</th>
+        <th>상태</th>
+        <th>구분</th>
+        <th>지역</th>
+        <th>시군</th>
+        <th>학교명</th>
+        <th>담당자 이름</th>
+        <th>담당자 직위</th>
+        <th>담당자 직통번호</th>
+        <th>담당자 핸드폰번호</th>
+        <th>담당자 이메일</th>
+        <th>수업 대상</th>
+        <th>강의시간</th>
+        <th>기관건의사항</th>
+        <th>희망강사</th>
+        <th>배정강사</th>
+        <th>신청강사수</th>
+        <th:block th:if="${#arrays.isEmpty(content[0].instrAplyAll)}">
+          <th>지원강사없음</th>
+        </th:block>
+        <th:block th:unless="${#arrays.isEmpty(content[0].instrAplyAll)}" th:each="item, stat: ${content[0].instrAplyAll}">
+          <th th:text="${item.bizInstrAplyInstrNm}"></th>
+        </th:block>
+      </tr>
+      <tr th:each="cont, stat :${content}">
+        <td th:text="${stat.count}">번호</td>
+        <td>
+          <span th:if="${cont.bizOrgAplyStts==0}" th:text="임시저장"></span>
+          <span th:if="${cont.bizOrgAplyStts==1}" th:text="제출"></span>
+          <span th:if="${cont.bizOrgAplyStts==2}" th:text="승인"></span>
+          <span th:if="${cont.bizOrgAplyStts==3}" th:text="반려"></span>
+          <span th:if="${cont.bizOrgAplyStts==9}" th:text="가승인"></span>
+          <span th:if="${cont.bizOrgAplyStts==7}" th:text="종료"></span>
+        </td>
+        <td>
+          <span th:if="${cont.bizPbancType==0}" th:text="${cont.bizPbancYr}+'년 기본형'"></span>
+          <span th:if="${cont.bizPbancType==1}" th:text="${cont.bizPbancYr}+'년 미디어교육 평생교실'"></span>
+          <span th:if="${cont.bizPbancType==2}" th:text="${cont.bizPbancYr}+'년 미디어교육 운영학교'"></span>
+          <span th:if="${cont.bizPbancType==3}" th:text="${cont.bizPbancYr}+'년 자유학기제 미디어교육지원'"></span>
+          <span th:if="${cont.bizPbancType==4}" th:text="${cont.bizPbancYr}+'년 팩트체크 교실'"></span>
+        </td>
+        <td th:text="${cont.bizOrgAplyRgn}">지역</td>
+        <td th:text="${cont.organizationAddress1}">시군</td>
+        <td th:text="${cont.organizationName}">학교명</td>
+        <td th:text="${cont.bizOrgAplyPicNm}">담당자명</td>
+        <td th:text="${cont.bizOrgAplyPicJbgd}">담당자 직위</td>
+        <td class="numberType" th:text="${' '+cont.bizOrgAplyPicTelno}">담당자 직통번호</td>
+        <td class="numberType" th:text="${' '+cont.bizOrgAplyPicMpno}">담당자 핸드폰번호</td>
+        <td th:text="${cont.bizOrgAplyPicEml}">담당자 이메일</td>
+        <td th:text="${cont.bizOrgAplyLsnPlanTrgt}">수업 대상</td>
+        <td th:text="${cont.bizOrgAplyTime}">강의시간</td>
+        <td th:text="${cont.bizOrgAplyLsnPlanEtc}">기관건의사항</td>
+        <td th:if="${#strings.isEmpty(cont.bizOrgAplyLsnPlanEtcInstr)}"></td>
+        <td th:unless="${#strings.isEmpty(cont.bizOrgAplyLsnPlanEtcInstr)}">
+          <th:block th:if="${#strings.listSplit(cont.bizOrgAplyLsnPlanEtcInstr,',').size()==1}" th:text="${#strings.listSplit(cont.bizOrgAplyLsnPlanEtcInstr,'(')[0]}">
+          </th:block>
+          <th:block th:unless="${#strings.listSplit(cont.bizOrgAplyLsnPlanEtcInstr,',').size()==1}"
+                    th:text="${#strings.listSplit(cont.bizOrgAplyLsnPlanEtcInstr,'(')[0]+','+#strings.listSplit(#strings.listSplit(cont.bizOrgAplyLsnPlanEtcInstr,',')[1],'(')[0]}">
+          </th:block>
+        </td>
+        <td th:text="${cont.bizOrgAplyLsnEtcInstr}">배정강사</td>
+        <td th:text="${cont.instrNumber}">신청강사수</td>
+        <th:block th:if="${#arrays.isEmpty(content[0].instrAplyAll)}">
+          <td></td>
+        </th:block>
+        <th:block th:unless="${#arrays.isEmpty(content[0].instrAplyAll)}" th:each="item, stat: ${content[0].instrAplyAll}">
+          <td>
+            <th:block th:unless="${#arrays.isEmpty(cont.instrAply)}" th:each="item2, stat2: ${cont.instrAply}">
+              <th:block th:if="${item.bizInstrAplyInstrId == item2.bizInstrAplyInstrId}" th:text="${item2.bizInstrAplyCndtOrdr}">0</th:block>
+            </th:block>
+          </td>
+        </th:block>
+      </tr>
+    </table>
+
+  </div>
+  <div sec:authorize="!isAuthenticated()">
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.14.3/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/1.3.8/FileSaver.min.js"></script>
+  <script src="https://cdn.rawgit.com/rainabba/jquery-table2excel/1.1.0/dist/jquery.table2excel.min.js"></script>
+
+  <th:block layout:fragment="script">
+    <script th:inline="javascript">
+      $(".numberType").each((index, item)=>{
+        let text =$(item).text().trim();
+        text = text.replace(/(^02.{0}|^01.{1}|^050.{1}|^[0-9]{3})([0-9]*)([0-9]{4})/, "$1-$2-$3");
+        $(item).text(text)
+      })
+      /* <![CDATA[ */
+      function onLoadSubmit() {
+        console.log('commonCode: ', [[ ${commonCode} ]] )
+        let CONT = [[ ${content} ]]
+        if(CONT&&CONT.length>0){
+          let now = new Date();
+          now.setUTCHours(now.getUTCHours()+9);
+          let toDay = now.toJSON().split('T')[0];
+          FILENAME= `${toDay}_${CONT[0].bizInstrNm}_배정시뮬레이션.xlsx`;
+          exportExcel()
+        }else{
+          alert('조회된 사업신청서가 없습니다.');
+          window.close();
+        }
+      }
+
+      async function exportExcel(){
+        // sheetJS
+        var wb = XLSX.utils.book_new();
+        var newWorksheet = excelHandler.getWorksheet();
+        XLSX.utils.book_append_sheet(wb, newWorksheet, excelHandler.getSheetName());
+        var wbout = XLSX.write(wb, {bookType:'xlsx',  type: 'binary'});
+        await saveAs(new Blob([s2ab(wbout)],{type:"application/octet-stream"}), excelHandler.getExcelFileName());
+        setTimeout(()=>{
+          window.close()
+        },5000)
+      }
+      let FILENAME='모집공고.xlsx';
+      let SHEETNAME='배정시뮬레이션';
+      var excelHandler = {
+        getExcelFileName : function(){
+          return FILENAME;	//파일명
+        },
+        getSheetName : function(){
+          return SHEETNAME;	//시트명
+        },
+        getExcelData : function(){
+          return document.getElementById('excelDownload'); 	//TABLE id
+        },
+        getWorksheet : function(){
+          return XLSX.utils.table_to_sheet(this.getExcelData());
+        }
+      }
+
+      function s2ab(s) {
+        var buf = new ArrayBuffer(s.length); //convert s to arrayBuffer
+        var view = new Uint8Array(buf);  //create uint8array as viewer
+        for (var i=0; i<s.length; i++) view[i] = s.charCodeAt(i) & 0xFF; //convert to octet
+        return buf;
+      }
+      /* ]]> */
+
+    </script>
+  </th:block>
+</div>
+</body>
+</html>

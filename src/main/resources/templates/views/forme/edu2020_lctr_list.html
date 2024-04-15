@@ -1,0 +1,156 @@
+<!-- FORME 강의확인서 목록 -->
+<th:block layout:fragment="style">
+  <style>
+    #forme_lec_history_pop .transcolor.odd td{background:#fff;}
+    #forme_lec_history_pop .transcolor.even td{background:#f9f9f9;}
+    #edu2020_lctr_history_list_wrap tr.active td{ background: #b4daff !important;}
+  </style>
+</th:block>
+<div id="edu2020_lctr_history">
+
+  <div class="bl_boardCtrls">
+    <div class="bl_boardCtrls_lft">
+      <h3 class="subTitle"><span id="edu2020_lctr_history_title_user" style="color:red;"></span> 언론인교육센터 강의이력</h3>
+    </div>
+    <div class="bl_boardCtrls_rgt">
+      <select class="common_select no-change-event" data-list="countSortList"></select>
+    </div>
+  </div>
+  <div class="tableResponsive overflowMulti">
+    <table class="table">
+      <thead>
+      <tr>
+        <th scope="col">번호</th>  <!--crsRqstSeq-->
+        <th scope="col">과정대분류</th> <!--crsCls1Nm-->
+        <th scope="col">과정중분류</th> <!--crsCls2Nm-->
+        <th scope="col">과정번호</th> <!--crsNm-->
+        <th scope="col">과정명</th> <!--crsFrmtoDt-->
+        <th scope="col">과정기간</th> <!--crsRqstStatNm-->
+        <th scope="col">강의명</th> <!--cmpltDt2-->
+        <th scope="col">강의일자</th> <!--cmpltDt2-->
+        <th scope="col">강의시간</th>
+        <th scope="col">강사명</th>
+        <th scope="col">강의료</th>
+        <th scope="col">CRS_NO</th>
+      </tr>
+      </thead>
+      <tbody id="edu2020_lctr_history_list_wrap">
+      <tr>
+        <td>번호</td>
+        <td>과정대분류</td>
+        <td>과정중분류</td>
+        <td>과정번호</td>
+        <td>과정명</td>
+        <td>과정기간</td>
+        <td>강의명</td>
+        <td>강의일자</td>
+        <td>강의시간</td>
+        <td>강사명</td>
+        <td>강의료</td>
+        <td>CRS_NO</td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+  <div id="edu2020_lctr_history_list_wrap_paginate" class="bl_paginate"></div>
+</div>
+
+<th:block layout:fragment="script">
+  <script th:inline="javascript">
+    function initialEdu2020LecInfo(lectrNo, originData) {
+      if( lectrNo == undefined ){
+        $("#edu2020_count").text('0건');
+        $("#edu2020_lctr_history_title_user").text('');
+        $('#edu2020_lctr_history_list_wrap').html( `<tr><td class="text-center" colspan="12" style="color:red">언론인교육센터에 연결되는 강사정보를 찾을 수 없습니다.</td></tr>` );
+        return false;
+      }
+      let pageInfo = {
+        page: 0,
+        size: $("#edu2020_lctr_history .common_select").val() || 20,
+        lectrNo: lectrNo,//userId
+        onClick: function (pageIndex) {
+          if (pageIndex !== undefined) {
+            pageInfo.page = pageIndex;
+            getFormeEdu2020HistoryList(lectrNo, (pageIndex - 1));
+          }
+        }
+      }
+
+      $(document).ready(function(){
+        $("#edu2020_lctr_history .common_select").off("change").change(function(e){
+          e.preventDefault();
+          pageInfo.size = $("#edu2020_lctr_history .common_select").val() || 20;
+          getFormeEdu2020HistoryList(lectrNo, 0)
+        });
+      });
+
+
+      function formePaginationInfo(data) {
+        let result = {
+          page: data.pageable.pageNumber,
+          size: $("#edu2020_lctr_history .common_select").val(),
+          totalPages: data.totalPages,
+          first: data.first,
+          last: data.last,
+          totalElements: data.totalElements
+        }
+        return result;
+      }
+
+      function getFormeEdu2020HistoryList(userId, pageIndex = 0) {
+        if (pageIndex != undefined) {
+          pageInfo.page = pageIndex;
+        }
+        $.ajax({
+          type: "get",
+          headers: {'Content-Type': 'application/json'},
+          url: "/api/user/instructor/lctrhistory",
+          data: pageInfo,
+          dataType: "json",
+          success: function (data) {
+            if (data && data.content && data.content) formeLecHistoryListMakeItem(data.content, data);
+            pageInfo = Object.assign(pageInfo, formePaginationInfo(data));
+            paginationAjax($("#edu2020_lctr_history_list_wrap_paginate").get(0), pageInfo);
+          }
+        });
+      }
+
+      function formeLecHistoryListMakeItem(list, data) {
+        let frag = $(document.createDocumentFragment());
+        if ($("#edu2020_count").length && data) {
+          $("#edu2020_count").text(data.totalElements + '건');
+          $("#edu2020_lctr_history_title_user").text(lectrNo+"님");
+        }
+        list.forEach(function (item) {
+          let tr = $(`
+                    <tr>
+                      <td>${ctsUtil.checkNull(item.lctrNo,'')}</td>
+                      <td>${ctsUtil.checkNull(item.crsCls1Nm,'')}</td>
+                      <td>${ctsUtil.checkNull(item.crsCls2Nm,'')}</td>
+                      <td>${ctsUtil.checkNull(item.crsNo,'')}</td>
+                      <td>${ctsUtil.checkNull(item.crsNm,'')}</td>
+                      <td>${ctsUtil.checkNull(item.crsFrmtoDt,'')}</td>
+                      <td>${ctsUtil.checkNull(item.lctrNm,'')}</td>
+                      <td>${ctsUtil.checkNull(item.lctrDt,'')}</td>
+                      <td>${ctsUtil.checkNull(item.lctrFrmToTime,'')}</td>
+                      <td>${ctsUtil.checkNull(item.lectrNm,'')}</td>
+                      <td>${ctsUtil.checkNull(item.lctrPay,'').toLocaleString('ko-KR')}</td>
+                      <td>${ctsUtil.checkNull(item.crsNo,'')}</td>
+                    </tr>
+                    `);
+          tr.click(function (e) {
+            tr.addClass("active").siblings().removeClass("active");
+          });
+          frag.append(tr);
+        });
+        if( !list.length ){
+          let tr = $(`<tr><td class="text-center" colspan="12">강의 이력이 없습니다.</td></tr>`);
+          frag.html(tr);
+        }
+        $('#edu2020_lctr_history_list_wrap').empty().append(frag);
+      }
+
+      getFormeEdu2020HistoryList(lectrNo);
+    }
+  </script>
+</th:block>

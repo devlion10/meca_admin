@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="edu-3-6">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>화상교육 수료관리</h2>
+        </div>
+
+        <div class="tableLeftResponsive">
+            <table class="tableLeft">
+                <colgroup>
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                </colgroup>
+                <tbody>
+                <tr>
+                    <th scope="row">과정명</th>
+                    <td colspan="3">
+                        <div class="d-flex-2">
+                            <select class="common_select" id="categoryCode">
+                                <option value="" th:selected="${true}">전체</option>
+                                <th:block th:each="commonCode : ${commonCode}" th:if="${commonCode.code} == 'CTS_CTGR'">
+                                    <option th:each="categoryCode : ${commonCode.subCode}" th:value="${categoryCode.code}" th:text="${categoryCode.codeName}"></option>
+                                </th:block>
+                            </select>
+                            <input id="curriculumName" type="text" class="hp_w600" placeholder="과정명을 입력해주세요.">
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">지사</th>
+                    <td>
+                        <select id="province" class="common_select">
+                            <option value="0">전체</option>
+                            <option value="HEAD">본사</option>
+                            <option value="SEDA">세종대전</option>
+                            <option value="BU">부산</option>
+                            <option value="GW">광주</option>
+                            <option value="DA">대구</option>
+                        </select>
+                    </td>
+                    <th scope="row">연도/기수</th>
+                    <td>
+                        <div class="d-flex-start">
+                            <select id="yearOfEducationPlan" class="common_select" data-list="yearList"></select>
+                            <div class="blank">/</div>
+                            <select id="yearOfEducationPlanStep" class="common_select" data-list="numList2"></select>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">교육시작일</th>
+                    <td colspan="3">
+                        <div class="bl_dateRange">
+                            <input type="text" class="el_datePicker sdate" id="applyBeginDateTime">
+                            <span class="blank">~</span>
+                            <input type="text" class="el_datePicker edate" id="applyEndDateTime">
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- GRID : BUTTON -->
+        <div class="bl_gridBtns">
+            <div class="bl_gridBtns_md">
+                <a class="btn btnDefault btnSearch" onclick="goSearch()">검색</a>
+                <a class="btn btnDefault download_excel download_search" href="/api/education/application/e-lecture/complete/excel">excel 다운로드</a>
+            </div>
+        </div>
+
+        <!-- BOARD : CONTROLLER -->
+        <div class="bl_boardCtrls">
+            <div class="bl_boardCtrls_lft">
+                <p class="bl_boardCtrls_total">총: <strong th:text="${pageable.totalElements}"></strong>건</p>
+            </div>
+            <div class="bl_boardCtrls_rgt">
+                <select class="common_select" data-list="countSortList"></select>
+            </div>
+        </div>
+
+        <div class="tableResponsive overflowMulti">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th scope="col">번호</th>
+                    <th scope="col">구분</th>
+                    <th scope="col">과정명</th>
+                    <th scope="col">년도</th>
+                    <th scope="col">기수</th>
+                    <th scope="col">담당부서</th>
+                    <th scope="col">담당자</th>
+                    <th scope="col">교육기간</th>
+                    <th scope="col">정원</th>
+                    <th scope="col">수강인원</th>
+                    <th scope="col">수료인원</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${content.size > 0}" th:each="item, stat:${content}">
+                    <td th:text="${pageable.totalElements - ((pageable.page * pageable.size) + stat.index)}">1</td>
+                    <td th:switch="${item.curriculumMaster.categoryCode}">
+                        <th:block th:each="commonCode : ${commonCode}" th:if="${commonCode.code} == 'CTS_CTGR'">
+                                <span th:each="categoryCode : ${commonCode.subCode}"
+                                      th:if="${categoryCode.code == item.curriculumMaster.categoryCode}"
+                                      th:value="${categoryCode.code}" th:text="${categoryCode.codeName}"></span>
+                        </th:block>
+                    </td>
+                    <td th:text="${item.curriculumMaster.curriculumName}">과정명이 들어갑니다.</td>
+                    <td th:text="${item.yearOfEducationPlan}">2022</td>
+                    <td th:text="${item.yearOfEducationPlanStep}">01</td>
+                    <td>
+                        <span th:if="${item.province != null}">
+                            <th:block th:each="commonCode : ${commonCode}" th:if="${commonCode.code} == 'PROVINCE_CD'">
+                                <th:block th:each="province_cd: ${commonCode.subCode}">
+                                    <span th:if="${province_cd.code==item.province}" th:text="${province_cd.codeName}">HEAD</span>
+                                </th:block>
+                            </th:block>
+                        </span>
+                        <span th:unless="${item.province != null}">(미지정)</span>
+                    </td>
+                    <td th:text="${item.curriculumMaster.managerName}">01</td>
+                    <td>
+                        <span th:text="${#strings.substring(item.operationBeginDateTime,0,10)}">2022.09.01</span> ~
+                        <span th:text="${#strings.substring(item.operationEndDateTime,0,10)}">2022.09.30</span>
+                    </td>
+                    <td th:text="${item.numberOfPeople}">20</td>
+                    <td>
+                        <th:block th:if="${item.currentApprovalNumberOfPeople == 0}">
+                            <span th:text="${item.currentApprovalNumberOfPeople}">20</span>
+                        </th:block>
+                        <th:block th:unless="${item.currentApprovalNumberOfPeople == 0}" th:text="${item.currentApprovalNumberOfPeople}"></th:block>
+                    </td>
+                    <td>
+                        <span th:if="${item.currentApprovalNumberOfPeople == 0}" th:text="${item.currentCompleteNumberOfPeople}">20</span>
+                        <a th:unless="${item.currentApprovalNumberOfPeople == 0}"
+                           th:href="@{/education/application/e-lecture/complete/{educationPlanCode}(educationPlanCode=${item.educationPlanCode})}"
+                           th:text="${item.currentCompleteNumberOfPeople}">20</a>
+                    </td>
+                </tr>
+                </tbody>
+                <tbody th:unless="${content != null && content.size > 0}">
+                <tr class="empty_data"><td colspan="11">조회된 내용이 없습니다.</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="bl_paginate"></div>
+
+        <!-- POPUP : 개별 입과 -->
+        <div class="iframe_wrap">
+            <iframe id="forPopEach" src="about:blank" width="800" style="display:block; min-height: 741px;"></iframe>
+        </div>
+
+        <!-- POPUP : 일괄 입과 -->
+        <div class="iframe_wrap">
+            <iframe id="forPopEvery" src="about:blank" width="600" style="display:block; min-height: 297px;"></iframe>
+        </div>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            /** 집합교육 신청 내역 조회 */
+            function goSearch() {
+                const params = {};
+                if(document.querySelector("#categoryCode").value != 0 && document.querySelector("#categoryCode").value) {
+                    params.categoryCode = document.querySelector("#categoryCode").value;
+                }
+                params.curriculumName = document.querySelector("#curriculumName").value;
+                if(document.querySelector("#yearOfEducationPlan").value != 0 && document.querySelector("#yearOfEducationPlan").value) {
+                    params.yearOfEducationPlan = document.querySelector("#yearOfEducationPlan").value;
+                }
+                if(document.querySelector("#yearOfEducationPlanStep").value != 0 && document.querySelector("#yearOfEducationPlanStep").value) {
+                    params.yearOfEducationPlanStep = document.querySelector("#yearOfEducationPlanStep").value;
+                }
+                if(document.querySelector("#applyBeginDateTime").value || document.querySelector("#applyEndDateTime").value) {
+                    if(document.querySelector("#applyBeginDateTime").value && document.querySelector("#applyEndDateTime").value) {
+                        params.startDate = document.querySelector("#applyBeginDateTime").value;
+                        params.endDate = document.querySelector("#applyEndDateTime").value;
+                    } else {
+                        alert("교육시작일 검색 시작일과 종료일을 모두 선택해주세요.")
+                    }
+                }
+                if(document.querySelector("#province").value != 0 && document.querySelector("#province").value) {
+                    params.province = document.querySelector("#province").value;
+                }
+
+                const queryParams = Object.entries(params).filter(data => data[1] != null && data[1] !== '').map(data => data.join('=')).join('&')
+                window.location.assign(window.location.pathname+"?"+queryParams)
+            }
+            /* <![CDATA[ */
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+                pagination([[ ${pageable} ]], false)
+
+                const params = new URLSearchParams(decodeURIComponent(window.location.search).replace("?", ""));
+                if(params.get("curriculumName")) { document.querySelector("#curriculumName").value = params.get("curriculumName"); }
+                if(params.get("yearOfEducationPlan")) { document.querySelector("#yearOfEducationPlan").value = params.get("yearOfEducationPlan"); }
+                if(params.get("yearOfEducationPlanStep")) { document.querySelector("#yearOfEducationPlanStep").value = params.get("yearOfEducationPlanStep"); }
+                if(params.get("startDate")) { document.querySelector("#applyBeginDateTime").value = params.get("startDate").replaceAll("-","."); }
+                if(params.get("endDate")) { document.querySelector("#applyEndDateTime").value = params.get("endDate").replaceAll("-","."); }
+                if(params.get("categoryCode")) { document.querySelector("#categoryCode").value = params.get("categoryCode"); }
+                if(params.get("province")) { document.querySelector("#province").value = params.get("province"); }
+            }
+            /* ]]> */
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="user-6-2">
+  <div sec:authorize="isAuthenticated()">
+    <div class="title">
+      <h2>강의 이력(언론인교육센터)</h2>
+    </div>
+
+    <div class="tableLeftResponsive">
+      <table class="tableLeft">
+        <colgroup>
+          <col style="width: 200px">
+          <col style="width: auto">
+          <col style="width: 200px">
+          <col style="width: auto">
+        </colgroup>
+        <tbody class="search">
+        <tr>
+          <th scope="row">과정명</th>
+          <td>
+            <input id="crsNm" name="crsNm" type="text">
+          </td>
+          <th scope="row">강의명</th>
+          <td>
+            <input id="lctrNm" name="lctrNm" type="text">
+          </td>
+        </tr>
+        <tr>
+          <th scope="row">강사명</th>
+          <td>
+            <input id="lectrNm" name="lectrNm" type="text">
+          </td>
+
+          <th scope="row">강의대분류/강의소분류</th>
+          <td>
+            <input class="hp_w200" id="crsCls1Nm" name="crsCls1Nm" type="text" style="width: calc(50% - 20px);margin-right:5px;">
+            /
+            <input class="hp_w200" id="crsCls2Nm" name="crsCls2Nm" type="text" style="width: calc(50% - 20px);margin-left:5px;">
+          </td>
+        </tr>
+        <tr>
+          <th scope="row">과정번호</th>
+          <td>
+            <input id="crsNo" name="crsNo" type="text">
+          </td>
+          <th scope="row">
+            강의일자
+          </th>
+          <td>
+            <div class="bl_dateRange">
+              <input type="text" id="startDate" class="el_datePicker sdate">
+              <span class="blank">~</span>
+              <input type="text" id="endDate" class="el_datePicker edate">
+            </div>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- GRID : BUTTON -->
+    <div class="bl_gridBtns">
+      <div class="bl_gridBtns_md">
+        <div class="btn btnDefault btnReset">리셋</div>
+        <a class="btn btnDefault bg-secondary text-white btnSearch" onclick="searchUser()">검색</a>
+      </div>
+    </div>
+    <th:block layout:fragment="style">
+      <style>
+        #forme_lec_history_pop .transcolor.odd td{background:#fff;}
+        #forme_lec_history_pop .transcolor.even td{background:#f9f9f9;}
+        #edu2020_lctr_history_list_wrap tr.active td{ background: #b4daff !important;}
+      </style>
+    </th:block>
+    <!-- BOARD : CONTROLLER -->
+    <div class="bl_boardCtrls">
+      <div class="bl_boardCtrls_lft">
+        <p class="bl_boardCtrls_total">
+          총: <strong th:text="${pageable.totalElements}"></strong>건
+        </p>
+      </div>
+      <div class="bl_boardCtrls_rgt">
+        <select class="common_select" data-list="countSortList"></select>
+      </div>
+    </div>
+
+    <div class="tableResponsive overflowMulti">
+      <table class="table">
+        <thead>
+        <tr>
+          <th scope="col">번호</th>  <!--crsRqstSeq-->
+          <th scope="col">과정대분류</th> <!--crsCls1Nm-->
+          <th scope="col">과정중분류</th> <!--crsCls2Nm-->
+          <th scope="col">과정번호</th> <!--crsNm-->
+          <th scope="col">과정명</th> <!--crsFrmtoDt-->
+          <th scope="col">과정기간</th> <!--crsRqstStatNm-->
+          <th scope="col">강의명</th> <!--cmpltDt2-->
+          <th scope="col">강의일자</th> <!--cmpltDt2-->
+          <th scope="col">강의시간</th>
+          <th scope="col">강사명</th>
+          <th scope="col">강의료</th>
+          <th scope="col">CRS_NO</th>
+        </tr>
+        </thead>
+        <tbody id="edu2020_lctr_history_list_wrap">
+        <tr>
+          <td>번호</td>
+          <td>과정대분류</td>
+          <td>과정중분류</td>
+          <td>과정번호</td>
+          <td>과정명</td>
+          <td>과정기간</td>
+          <td>강의명</td>
+          <td>강의일자</td>
+          <td>강의시간</td>
+          <td>강사명</td>
+          <td>강의료</td>
+          <td>CRS_NO</td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="bl_paginate"></div>
+  </div>
+  <div sec:authorize="!isAuthenticated()"></div>
+
+  <th:block layout:fragment="script">
+    <script th:inline="javascript">
+      function searchUser(){
+        let searchQuery = {}
+        $("tbody.search input[type=text]").each((index, item)=>{
+          if(item.value !=""){
+            searchQuery[$(item).attr("id")] = item.value;
+          }
+        })
+
+        searchJson(searchQuery)
+
+      }
+
+      /* <![CDATA[ */
+      let CONT =  [[ ${content} ]];
+      function onLoadSubmit() {
+        console.log('commonCode: ', [[ ${commonCode} ]] )
+        pagination([[ ${pageable} ]]);
+        initialEdu2020LecInfo()
+      }
+      /* ]]> */
+
+      function initialEdu2020LecInfo() {
+
+        function getFormeEdu2020HistoryList() {
+           if (CONT ) formeLecHistoryListMakeItem(CONT);
+        }
+
+        function formeLecHistoryListMakeItem(list) {
+          let frag = $(document.createDocumentFragment());
+          list.forEach(function (item) {
+            let tr = $(`
+                    <tr>
+                      <td>${ctsUtil.checkNull(item.lctrNo,'')}</td>
+                      <td>${ctsUtil.checkNull(item.crsCls1Nm,'')}</td>
+                      <td>${ctsUtil.checkNull(item.crsCls2Nm,'')}</td>
+                      <td>${ctsUtil.checkNull(item.crsNo,'')}</td>
+                      <td>${ctsUtil.checkNull(item.crsNm,'')}</td>
+                      <td>${ctsUtil.checkNull(item.crsFrmtoDt,'')}</td>
+                      <td>${ctsUtil.checkNull(item.lctrNm,'')}</td>
+                      <td>${ctsUtil.checkNull(item.lctrDt,'')}</td>
+                      <td>${ctsUtil.checkNull(item.lctrFrmToTime,'')}</td>
+                      <td>${ctsUtil.checkNull(item.lectrNm,'')}</td>
+                      <td>${ctsUtil.checkNull(item.lctrPay,'').toLocaleString('ko-KR')}</td>
+                      <td>${ctsUtil.checkNull(item.crsNo,'')}</td>
+                    </tr>
+                    `);
+            tr.click(function (e) {
+              tr.addClass("active").siblings().removeClass("active");
+            });
+            frag.append(tr);
+          });
+          if( !list.length ){
+            let tr = $(`<tr><td class="text-center" colspan="12">강의 이력이 없습니다.</td></tr>`);
+            frag.html(tr);
+          }
+          $('#edu2020_lctr_history_list_wrap').empty().append(frag);
+        }
+
+        getFormeEdu2020HistoryList();
+      }
+    </script>
+  </th:block>
+</div>
+</body>
+</html>

@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="homepage-5">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>교육후기방 관리</h2>
+        </div>
+        
+        <div class="tableLeftResponsive">
+            <table class="tableLeft">
+                <colgroup>
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                </colgroup>
+                <tbody>
+                    <tr>
+                        <th scope="row">구분</th>
+                        <td>
+                            <select class="common_select" name="category" id="category" onchange="typesVisible(this.value)">
+                                <option value="" th:selected="${true}">전체</option>
+                                <th:block th:each="commonCode : ${commonCode}" th:if="${commonCode.code} == 'TEAM_CTGR'" >
+                                    <option th:each="subCtgr : ${commonCode.subCode}" th:value="${subCtgr.code}"
+                                            th:text="${subCtgr.codeName}" th:selected="${false}"></option>
+                                </th:block>
+                            </select>
+                        </td>
+                        <th scope="row">작성일</th>
+                        <td>
+                            <div class="bl_dateRange">
+                                <input type="text" id="startDate" class="el_datePicker sdate">
+                                <span class="blank">~</span>
+                                <input type="text" id="endDate" class="el_datePicker edate">
+                            </div>
+                        </td>
+                    </tr>
+                    <tr class="ctgr_journal">
+                        <th scope="row">유형</th>
+                        <td colspan="3">
+                            <th:block th:each="commonCode : ${commonCode}" th:if="${commonCode.code} == 'EDU_REVIEW_TYPE'">
+                                <th:block th:each="types : ${commonCode.subCode}">
+                                    <div class="chk_box">
+                                        <input th:id="${types.code}" name="types" type="checkbox" th:value="${types.code}">
+                                        <label th:for="${types.code}">
+                                            <span></span>
+                                            <div th:text="${types.codeName}"></div>
+                                        </label>
+                                    </div>
+                                </th:block>
+                            </th:block>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">검색</th>
+                        <td colspan="3">
+                            <div class="d-flex gap-2">
+                                <select id="containTextType" class="common_select">
+                                    <option value="1">제목+내용</option>
+                                    <option value="2">제목</option>
+                                    <option value="3">내용</option>
+                                </select>
+                                <input id="containText" type="text" class="hp_w600">
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- GRID : BUTTON -->
+        <div class="bl_gridBtns">
+            <div class="bl_gridBtns_md">
+                <div class="btn btnDefault btnReset">리셋</div>
+                <div class="btn btnDefault btnSearch" onclick="searchReview()">검색</div>
+                <a class="btn btnDefault btnRegister" href="/homepage/review/">등록</a>
+            </div>
+        </div>
+
+        <!-- BOARD : CONTROLLER -->
+        <div class="bl_boardCtrls">
+            <div class="bl_boardCtrls_lft">
+                <p class="bl_boardCtrls_total">총: <strong th:text="${pageable.totalElements}"></strong>건</p>
+                <div class="bl_boardCtrls_rgt">
+                    <select class="common_select" data-list="countSortList"></select>
+                </div>
+            </div>
+        </div>
+
+        <div class="tableResponsive overflowMulti">
+            <table class="table table_fixed">
+                <colgroup>
+                    <col style="width: 100px">
+                    <col style="width: 200px">
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                    <col style="width: 200px">
+                    <col style="width: 200px">
+                    <col style="width: 100px">
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th scope="col">번호</th>
+                        <th scope="col">구분</th>
+                        <th scope="col">유형</th>
+                        <th scope="col">제목</th>
+                        <th scope="col">작성자</th>
+                        <th scope="col">작성일</th>
+                        <th scope="col">조회수</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:if="${content.size > 0}" th:each="item, stat: ${content}">
+                        <td th:if="${pageable.size > 0}" th:text="${pageable.totalElements - ((pageable.page * pageable.size) + stat.index)}">1</td>
+                        <td>
+                            <span th:if="${item.category != null}">
+                                <th:block th:each="commonCode : ${commonCode}" th:if="${commonCode.code} == 'TEAM_CTGR'">
+                                    <span th:each="teamCategory : ${commonCode.subCode}" th:if="${item.category == teamCategory.code}"
+                                        th:text="${teamCategory.codeName}">
+                                    </span>
+                                </th:block>
+                            </span>
+                        </td>
+                        <td>
+                            <span th:if="${item.type != null}">
+                                <th:block th:each="commonCode : ${commonCode}" th:if="${commonCode.code} == 'EDU_REVIEW_TYPE'">
+                                    <span th:each="eduReviewType : ${commonCode.subCode}" th:if="${item.type == eduReviewType.code}"
+                                          th:text="${eduReviewType.codeName}">
+                                    </span>
+                                </th:block>
+                            </span>
+                        </td>
+                        <td>
+                            <a th:if="${item.sequenceNo != null}" th:href="@{/homepage/review/{id}(id=${item.sequenceNo})}" class="d-flex">
+                                <span class="hp_ellipsis" th:if="${item.title != null}" th:text="${item.title}">제목입니다.</span>
+                            </a>
+                        </td>
+                        <td>
+                            <span th:if="${item.adminUser.userName != null}" th:text="${item.adminUser.userName}">홍길동</span>
+                            (<span th:if="${item.adminUser.userId != null}" th:text="${item.adminUser.userId}">test12</span>)
+                        </td>
+                        <td th:if="${item.createDateTime != null}" th:text="${#strings.substring(item.createDateTime, 0, 10)}">2022.01.01</td>
+                        <td th:if="${item.viewCount != null}" th:text="${item.viewCount}">10</td>
+                    </tr>
+                    <tr th:unless="${content.size > 0}" class="empty_data">
+                        <td colspan="7">등록된 데이터가 없습니다.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="bl_paginate"></div>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            var typesVisible = function(value) {
+                if (value == '2') {
+                    $(".ctgr_journal").show();
+                } else {
+                    $(".ctgr_journal").hide();
+                }
+            }
+
+            function searchReview() {
+                let searchQuery = {};
+                let category = $('#category').val();
+                let startDate = $('#startDate').val();
+                let endDate = $('#endDate').val();
+                let containText = $("#containText").val();
+                let containTextType = $("#containTextType").val();
+                let flagWriter = $("#flagWriter").val();
+                let textWriter = $("#textWriter").val();
+                if(startDate && endDate) {
+                    searchQuery.startDate = startDate;
+                    searchQuery.endDate = endDate;
+                } else if(startDate || endDate) {
+                    alert('작성일 검색은 시작일과 종료일을 모두 입력해야 합니다.')
+                }
+
+                let types=$("input[name=types]:checked").length>0 ? new Array(  $("input[name=types]:checked").length ) :"0";
+                $("input[name=types]:checked").each(function(index, item) {
+                    if($(this).val()!="0" &&types!="0"){
+                        types[index] = $(this).val();
+                    }else{
+                        types = "0";
+                    }
+                })
+                if(types&&types!="0"){
+                    searchQuery.types = types.toString();
+                }
+                if(category){
+                    searchQuery.category = category;
+                }
+                if(containText){
+                    searchQuery.containText = containText;
+                    searchQuery.containTextType = containTextType;
+                }
+                if(flagWriter=='2'){
+                    if(textWriter){
+                        searchQuery.userId = textWriter;
+                    }
+                }else{
+                    if(textWriter){
+                        searchQuery.userName = textWriter;
+                    }
+                }
+                searchJson(searchQuery)
+            }
+
+            /* <![CDATA[ */
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+                pagination([[ ${pageable} ]], false)
+                if ($('#category').val() == '2') {
+                    $(".ctgr_journal").show();
+                } else {
+                    $(".ctgr_journal").hide();
+                }
+
+                let searchParams = new URLSearchParams(window.location.search);
+                if(searchParams.has('startDate') && searchParams.has('endDate')) {
+                    $('#startDate').val(searchParams.get('startDate'));
+                    $('#endDate').val(searchParams.get('endDate'));
+                }
+                if(searchParams.has('#containText')){
+                    $('#containTextType').val(searchParams.get('#containTextType')).prop("selected", true);
+                    $('#containText').val(searchParams.get('#containText'));
+                }
+                if(searchParams.has('userName')){
+                    $('#flagWriter').val('1').prop("selected", true);
+                    $('#textWriter').val(searchParams.get('userName'))
+                }else if(searchParams.has('userId')){
+                    $('#flagWriter').val('2').prop("selected", true);
+                    $('#textWriter').val(searchParams.get('userId'))
+                }
+            }
+            /* ]]> */
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

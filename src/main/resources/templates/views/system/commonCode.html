@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="system-2">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>공통코드 관리</h2>
+        </div>
+
+        <div class="d-flex justify-content-between">
+            <!-- 공통코드 트리 -->
+            <div class="contents_lft">
+                <div id="jsTree"></div>
+            </div>
+
+            <div class="contents_rgt">
+                <div class="tableLeftResponsive">
+                    <table class="tableLeft">
+                        <colgroup>
+                            <col style="width: 200px">
+                            <col style="width: auto">
+                        </colgroup>
+                        <tbody>
+                            <tr class="d-none">
+                                <th scope="row">individualCode</th>
+                                <td>
+                                    <input type="text" id="individualCode" class="hp_w600">
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row">코드</th>
+                                <td>
+                                    <input type="text" id="code" class="hp_w600" disabled>
+                                </td>
+                            </tr>
+                            <tr class="d-none">
+                                <th scope="row">upIndividualCode</th>
+                                <td>
+                                    <input type="text" id="upIndividualCode" class="hp_w600" value="-">
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row">상위코드</th>
+                                <td>
+                                    <input type="text" id="parentCode" class="hp_w600" value="-" disabled>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row">코드명</th>
+                                <td>
+                                    <input type="text" id="codeName" class="hp_w600">
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row">코드설명</th>
+                                <td>
+                                    <input type="text" id="codeComments" class="hp_w600">
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row">순서</th>
+                                <td>
+                                    <input type="text" id="codeSort" class="hp_w600" disabled>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="bl_gridBtns">
+                    <div class="bl_gridBtns_rgt">
+                        <div id="subRegisterBtn" class="btn btnDefault" onclick="dataReset($('#code').val())">하위등록</div>
+                        <div class="btn btnDefault" onclick="update()">저장</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            /* <![CDATA[ */
+            const CONT = [[ ${content} ]];
+            let resData = [];
+            function makeData(){
+                for(let i=0; i<CONT.length; i++){
+                    let tempObj = {};
+                    tempObj.individualCode = CONT[i].individualCode;
+                    tempObj.code = CONT[i].code;
+                    tempObj.upIndividualCode = CONT[i].upIndividualCode;
+                    tempObj.text = CONT[i].codeName;
+                    tempObj.codeComments = CONT[i].codeComments;
+                    tempObj.order = CONT[i].codeSort;
+                    tempObj.depth = CONT[i].codeDepth;
+
+                    //children
+                    function makeChildren(PARENT, PARENTOBJ) {
+                        if(PARENT.subCommonCodeMaster.length > 0) {
+                            PARENTOBJ.children = [];
+                            
+                            for (let j = 0; j < PARENT.subCommonCodeMaster.length; j++) {
+                                let tempObjChildren = {};
+                                tempObjChildren.individualCode = PARENT.subCommonCodeMaster[j].individualCode;
+                                tempObjChildren.code = PARENT.subCommonCodeMaster[j].code;
+                                tempObjChildren.upIndividualCode = PARENT.subCommonCodeMaster[j].upIndividualCode;
+                                tempObjChildren.text = PARENT.subCommonCodeMaster[j].codeName;
+                                tempObjChildren.codeComments = PARENT.subCommonCodeMaster[j].codeComments;
+                                tempObjChildren.order = PARENT.subCommonCodeMaster[j].codeSort;
+                                tempObjChildren.depth = PARENT.subCommonCodeMaster[j].codeDepth;
+                                PARENTOBJ.children.push(tempObjChildren);
+                            }
+                        }
+                    }
+                    makeChildren(CONT[i], tempObj)
+
+                    resData.push(tempObj);
+                }
+            }
+            makeData();
+
+
+            let $tree1 = $('#jsTree');
+            // 클릭 이벤트(렌더링)
+            $tree1.bind('select_node.jstree', function(event, data){
+                var individualCode = data.instance.get_node(data.selected).original.individualCode;
+                var code = data.instance.get_node(data.selected).original.code;
+                var upIndividualCode = data.instance.get_node(data.selected).original.upIndividualCode;
+                var codeName = data.instance.get_node(data.selected).text;
+                var codeComments = data.instance.get_node(data.selected).original.codeComments;
+                var codeSort = data.instance.get_node(data.selected).original.order;
+
+                $('#individualCode').val(individualCode);
+                $('#code').val(code);
+                if (individualCode == upIndividualCode) { // 1 depth
+                    $('#upIndividualCode').val(upIndividualCode);
+                    $('#parentCode').val('-');
+                    // 하위등록 버튼 노출
+                    $('#subRegisterBtn').show();
+                } else { // 2 depth
+                    const result = CONT.filter(data => data.individualCode == upIndividualCode);
+                    const parentCode = result[0].code;
+                    $('#upIndividualCode').val(upIndividualCode);
+                    $('#parentCode').val(parentCode);
+                    // 하위등록 버튼 숨김
+                    $('#subRegisterBtn').hide();
+                }
+                $('#codeName').val(codeName);
+                $('#codeComments').val(codeComments);
+                $('#codeSort').val(codeSort);
+
+                // 초기화
+                createFlag = false;
+                $('#code').attr('disabled', true);
+            })
+            // 드래그 앤 드롭 이벤트(순서 변경)
+            .bind("move_node.jstree", function(ev, node) {
+                let params = {};
+                params.code = node.node.original.code;
+                params.codeComments = node.node.original.codeComments;
+                params.codeDepth = node.node.original.depth;
+                params.codeName = node.node.original.text;
+                params.codeSort = node.position;
+                params.individualCode = node.node.original.individualCode;
+                params.upIndividualCode = node.node.original.upIndividualCode;
+
+                $.ajax({
+                    type: "put",
+                    headers: {'Content-Type' : 'application/json'},
+                    url: "/api/system/code/sort", //값을 가져올 경로
+                    data: JSON.stringify(params),
+                    dataType: "json",
+                    success: function (data){ },
+                    error: function (e){
+                        alert('순서 변경 중 에러가 발생했습니다.');
+                    }
+                })
+            }).jstree({
+                "json_data": {},
+                "plugins": ["json_data", "dnd", "search"],
+                "core": {
+                    "themes": {"icons": true, "dots": true, "stripes" : true},
+                    "check_callback": true, "multiple": true, "data": resData
+                },
+                "dnd": {
+                    check_while_dragging: true
+                },
+                "search": {
+                    "show_only_matches" : true,
+                    "show_only_matches_children" : true,
+                }
+            });
+
+            // 개발자 검색용
+            var searchCode = function (val) {
+                $tree1.jstree(true).search(val);
+            }
+            
+            // 공통 코드 정보 생성/업데이트
+            let createFlag = false;
+            function update() {
+                let params = getFormData($('#individualCode').val(), $('#upIndividualCode').val());
+                if (createFlag) { // 생성
+                    params.codeDepth = params.codeDepth + 1;
+                    params.individualCode = '';
+
+                    $.ajax({
+                        type: "post", //http method
+                        url: "/api/system/code/create", //값을 가져올 경로
+                        headers: {'Content-Type': 'application/json'},
+                        data: JSON.stringify(params),
+                        dataType: "json",
+                        success: function(data) {
+                            window.location.reload();
+                        },
+                        error: function(e) { }
+                    })
+                } else { //업데이트
+                    params.codeDepth = params.codeDepth;
+
+                    $.ajax({
+                        type: "put", //http method
+                        url: "/api/system/code/update", //값을 가져올 경로
+                        headers: {'Content-Type': 'application/json'},
+                        data: JSON.stringify(params),
+                        dataType: "json",
+                        success: function(data) {
+                            window.location.reload();
+                        },
+                        error: function() { }
+                    })
+                }
+                createFlag = false;
+            }
+
+            // 하위등록 버튼 클릭시 데이터 리셋
+            function dataReset(code) {
+                $('#code').val('');
+                $('#parentCode').val(code);
+                $('#codeName').val('');
+                $('#codeComments').val('');
+                $('#codeSort').val('');
+
+                // setting
+                $('#code').removeAttr('disabled');
+                createFlag = true;
+            }
+
+            function getFormData(id, parentId) {
+                let params = {};
+                let result;
+                if (id == parentId) {
+                    result = CONT.filter(data => data.individualCode == id);
+                } else {
+                    result = CONT.filter(data => data.individualCode == parentId)[0].subCommonCodeMaster
+                                        .filter(subData => subData.individualCode == id);
+                }
+
+                params.code = $('#code').val();
+                params.codeComments = $('#codeComments').val();
+                params.codeDepth = result[0].codeDepth;
+                params.codeName = $('#codeName').val();
+                params.codeSort = Number($('#codeSort').val());
+                params.individualCode = $('#individualCode').val();
+                params.upIndividualCode = $('#upIndividualCode').val();
+                return params;
+            }
+
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+            }
+            /* ]]> */
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

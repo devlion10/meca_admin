@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="business-1">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>사업공고 관리</h2>
+        </div>
+
+        <div class="tableResponsive overflowMulti">
+            <table class="table">
+                <colgroup>
+                    <col style="width: 50px">
+                    <col>
+                    <col>
+                    <col>
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th scope="col">번호</th>
+                        <th scope="col">사업 구분</th>
+                        <th scope="col">신청서양식</th>
+                        <th scope="col">활성화</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1</td>
+                        <td>기본형</td>
+                        <td>businessForm0.html</td>
+                        <td>
+                            <a href="/business/pbanc/list/0" class="btn btnDefault">사업 공고</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td>미디어교육 평생교실</td>
+                        <td>businessForm1.html</td>
+                        <td>
+                            <a href="/business/pbanc/list/1" class="btn btnDefault">사업 공고</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>3</td>
+                        <!-- businessForm2.html / businessForm3.html / 사용자 CommonBusinessRepositoryImpl line 641 확인 -->
+                        <td>미디어교육 운영학교</td>
+<!--                        <td>미디어교육 운영학교(중복 불가)</td>-->
+                        <td>businessForm2.html</td>
+                        <td>
+                            <a href="/business/pbanc/list/2" class="btn btnDefault">사업 공고</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>4</td>
+                        <td>자유학기제 미디어교육지원</td>
+<!--                        <td>미디어교육 운영학교(중복 가능)</td>-->
+                        <td>businessForm3.html</td>
+                        <td>
+                            <a href="/business/pbanc/list/3" class="btn btnDefault">사업 공고</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>5</td>
+                        <td>팩트체크 교실</td>
+                        <td>businessForm4.html</td>
+                        <td>
+                            <a href="/business/pbanc/list/4" class="btn btnDefault">사업 공고</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>6</td>
+                        <td>자유형</td>
+                        <td>businessForm5.html</td>
+                        <td>
+                            <a href="/business/pbanc/list/5" class="btn btnDefault">사업 공고</a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="sch_box">
+            <select id="bizPbancYr" class="common_select" data-list="yearList"></select>
+            <select id="bizPbancType" class="common_select" data-list="businessTemp"></select>
+            <select id="bizPbancRnd" class="common_select" data-list="numList"></select>
+            <select id="containTextType" class="common_select">
+                <option value="1">전체</option>
+                <option value="2">사업명</option>
+                <option value="3">사업내용</option>
+            </select>
+            <input id="containText" type="text" class="hp_w400">
+            <div>
+                <a class="btn btnDefault btnSearch" th:onclick="searchPbanc()">검색</a>
+                <a class="btn btnDefault btnReset">리셋</a>
+            </div>
+        </div>
+
+        <!-- BOARD : CONTROLLER -->
+        <div class="bl_boardCtrls">
+            <div class="bl_boardCtrls_lft">
+                <p class="bl_boardCtrls_total">총: <strong th:text="${pageable.totalElements}"></strong>건</p>
+            </div>
+            <div class="bl_boardCtrls_rgt">
+                <select class="common_select" data-list="countSortList"></select>
+            </div>
+        </div>
+
+        <div class="tableResponsive overflowMulti">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">번호</th>
+                        <th scope="col">년도</th>
+                        <th scope="col">사업명</th>
+                        <th scope="col">차수</th>
+                        <th scope="col">사업접수기간</th>
+                        <th scope="col">접수기관</th>
+                        <th scope="col">선정결과공고</th>
+                        <th scope="col">상태</th>
+                        <th scope="col">관리</th>
+                    </tr>
+                </thead>
+                <tbody th:if="${content != null && content.size > 0}">
+                    <tr th:each = "item, stat : ${content}">
+                        <td>
+                            <img th:if="${item.isTop == 'Y'}" th:src="@{/assets/images/icons/board_top.png}" alt="Top" width="16px">
+                            <span th:unless="${item.isTop == 'Y'}" th:text="${pageable.totalElements - ((pageable.page * pageable.size) + stat.index)}"></span>
+                        </td>
+                        <td th:text="${item.bizPbancYr}"></td>
+                        <td>
+                            <a th:href="@{/business/pbanc/list/{type}/{id}(type=${item.bizPbancType} ,id=${item.bizPbancNo})}" th:text="${item.bizPbancNm}"></a>
+                        </td>
+                        <td th:text="${item.bizPbancRnd}"></td>
+                        <td><span th:text="${item.bizPbancRcptBgng}"></span> - <span th:text="${item.bizPbancRcptEnd}"></span></td>
+                        <td>
+                            <th:block th:if="${item.bizPbancType!=5}">
+                                총 : <a href="#bizOrgAply" th:id="${item.bizPbancNo}" th:onclick="openPop('', '/popup/organization/apply/'+this.id, 'pbancApplyHistory')" th:text="${item.bizOrganizationAplyCount + item.bizOrganizationAprvCount}"></a> /
+                                임시 : <a href="#bizOrgAply" th:id="${item.bizPbancNo}" th:onclick="openPop('', '/popup/organization/apply/'+this.id+'?bizOrgAplyPbancList=0', 'pbancApplyHistory')" th:text="${item.bizOrganizationAplyCount}"></a>
+                                승인 : <a href="#bizOrgAply" th:id="${item.bizPbancNo}" th:onclick="openPop('', '/popup/organization/apply/'+this.id+'?bizOrgAplyPbancList=1', 'pbancApplyHistory')" th:text="${item.bizOrganizationAprvCount}"></a>
+                            </th:block>
+                            <th:block th:if="${item.bizPbancType==5}">
+                                총 : <span th:id="${item.bizPbancNo}" th:text="${item.bizOrganizationAplyCount + item.bizOrganizationAprvCount}"></span> /
+                                임시 : <span th:id="${item.bizPbancNo}" th:text="${item.bizOrganizationAplyCount}"></span>
+                                승인 : <span th:id="${item.bizPbancNo}" th:text="${item.bizOrganizationAprvCount}"></span>
+                            </th:block>
+                        </td>
+                        <td th:if="${item.bizPbancRsltNo == null}">미공고</td>
+                        <td th:unless="${item.bizPbancRsltNo == null}">공고</td>
+                        <td >
+                            <span th:if="${item.bizPbancStts == 0}">모집중</span>
+                            <span th:if="${item.bizPbancStts == 1}">모집마감</span>
+                            <span th:if="${item.bizPbancStts == 9}">임시저장</span>
+                        </td>
+                        <td>
+                            <a th:if="${item.bizPbancStts == 1}" th:href="@{/business/pbanc/list/result/{id}(id=${item.bizPbancNo})}" class="btn btnDefault">결과공고</a>
+                            <a th:unless="${item.bizPbancStts == 1}" class="btn btnDefault disabled">결과공고</a>
+                            <a th:href="@{/business/pbanc/list/{type}/{id}(type=${item.bizPbancType} ,id=${item.bizPbancNo})}" class="btn btnDefault btnModify icon_none">수정</a>
+                            <span th:if="${item.bizOrganizationAprvCount > 0}" onclick="alert('사업 신청서가 있어서 삭제가 불가능합니다.')">
+                                <button class="btn btnDefault disabled">삭제</button>
+                            </span>
+                            <a th:unless="${item.bizOrganizationAprvCount > 0}" th:href="@{/api/business/pbanc/list/delete/{id}(id=${item.bizPbancNo})}" th:value="${stat.index}" class="btn btnDefault btnDelete icon_none">삭제</a>
+                        </td>
+                    </tr>
+                </tbody>
+                <tbody th:unless="${content != null && content.size > 0}">
+                <tr class="empty_data"><td colspan="9">조회된 내용이 없습니다.</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="bl_paginate"></div>
+
+        <div class="iframe_wrap">
+            <iframe id="pbancApplyHistory" src="about:blank" width="800"></iframe>
+        </div>
+        <!-- POPUP : 접수 기관 리스트 -->
+        <article class="pop_wrapper ui-modal" id="popReceivingAgency">
+            <div class="pop_wrap pop_secondary">
+                <div class="pop_cont">
+                    <div class="tableResponsive overflowMulti">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">번호</th>
+                                    <th scope="col">기관명</th>
+                                    <th scope="col">교육기간</th>
+                                    <th scope="col">교육시간</th>
+                                    <th scope="col">신청자</th>
+                                </tr>
+                            </thead>
+                            <tbody id="popupRandPoint">
+                                <tr>
+                                    <td>1</td>
+                                    <td>기관명</td>
+                                    <td>2022.08.01 ~ 2022.08.08</td>
+                                    <td>24.0</td>
+                                    <td>홍길동</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="bl_paginate"></div>
+                </div>
+                <button type="button" class="pop_close pop-close">닫기</button>
+            </div>
+        </article>
+
+        <th:block layout:fragment="script">
+            <script th:inline="javascript">
+                function searchPbanc(){
+                    let searchQuery = {}
+                    let name = $("#containText").val();
+                    let year = $("#bizPbancYr").val();
+                    let rnd = $("#bizPbancRnd").val();
+                    let type = $("#containTextType").val();
+                    let bizPbancType = $("#bizPbancType").val();
+                    if(name){
+                        searchQuery.containText = name
+                        searchQuery.containTextType = type
+                    }
+                    if(year && year!=0){
+                        searchQuery.bizPbancYr = year
+                    }
+                    if(rnd && rnd!=0){
+                        searchQuery.bizPbancRnd =rnd
+                    }
+                    if(bizPbancType){
+                        searchQuery.bizPbancType = bizPbancType
+                    }
+                    searchJson(searchQuery)
+                }
+                /* <![CDATA[ */
+                const CONT = [[ ${content} ]];
+                $('.btnDelete').bind("click",function (e){
+                    e.preventDefault();
+                    if(confirm('정말 삭제하시겠습니까?')){
+                        let index = $(this).attr("value");
+                        index = parseInt(index);
+                        let item = CONT[index];
+                        let tmpl={};
+                        let pbancNo = item.bizPbancNo
+                        if(item.bizPbancType==0){
+                            tmpl=item.bizPbancTmpl0;
+                        }else if(item.bizPbancType==1){
+                            tmpl=item.bizPbancTmpl1;
+                        }else if(item.bizPbancType==2){
+                            tmpl=item.bizPbancTmpl2;
+                        }else if(item.bizPbancType==3){
+                            tmpl=item.bizPbancTmpl3;
+                        }else if(item.bizPbancType==4){
+                            tmpl=item.bizPbancTmpl4;
+                        }else if(item.bizPbancType==5){
+                            tmpl=item.bizPbancTmpl5;
+                        }
+                        if(item.bizOrganizationAplyCount>0 || item.bizOrganizationAprvCount>0){
+                            return alert("사업 신청서가 있어서 삭제가 불가능합니다.")
+                        }else{
+                            $.ajax({
+                                type: "delete", //http method
+                                url: this.href, //값을 가져올 경로
+                                headers: {'Content-Type': 'application/json'},
+                                data: JSON.stringify(item),
+                                dataType: "json",
+                                success: function(data) {
+                                    //템플릿 삭제
+                                    $.ajax({
+                                        type: "delete", //http method
+                                        url: `/api/business/pbanc/list/tmpl/${item.bizPbancType}/delete/${pbancNo}`, //값을 가져올 경로
+                                        headers: {'Content-Type': 'application/json'},
+                                        data: JSON.stringify(tmpl),
+                                        dataType: "json",
+                                        success:function (data){
+                                            //파일 삭제
+                                            if(item.fileMasters.length==0){
+                                                alert("삭제되었습니다.");
+                                                window.location.replace(window.location.href);
+                                            }else{
+                                                for(var i =0 ; i<item.fileMasters.length; i++){
+                                                    $.ajax({
+                                                        type: "delete", //http method
+                                                        url: `/api/common/upload/delete/${item.fileMasters[i].fileSn}`, //값을 가져올 경로
+                                                        headers: {'Content-Type': 'application/json'},
+                                                        data: JSON.stringify(item.fileMasters[i]),
+                                                        dataType: "json"
+                                                    })
+                                                    if((item.fileMasters.length-1)==i){
+                                                        alert("삭제되었습니다.");
+                                                        setTimeout(()=>{window.location.replace(window.location.href);}, 1000)
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        error:function (e){ }
+                                    })
+                                },
+                                error:function (e){ }
+                            })
+                        }
+                    }else{
+                        return false;
+                    }
+                })
+                function onLoadSubmit() {
+                    console.log('commonCode: ', [[ ${commonCode} ]] )
+                    pagination([[ ${pageable} ]])
+                }
+
+                function popupMake(index, key){
+                    data = CONT[index][key];
+                    const randerPoint = document.getElementById('popupRandPoint');
+                    randerPoint.innerText = '';
+
+                    if(data.length > 0){
+                        data.forEach((item, index) => {
+                            const TR = document.createElement('tr');
+                            const TD1 = document.createElement('td');
+                            TD1.innerText = index + 1;
+                            const TD2 = document.createElement('td');
+                            TD2.innerText = item.organizationInfo.organizationName;
+                            const TD3 = document.createElement('td');
+                            TD3.innerText = `${item.bizOrgAplyLsnPlanBgng} ~ ${item.bizOrgAplyLsnPlanEnd}`;
+                            const TD4 = document.createElement('td');
+                            TD4.innerText = item.bizOrgAplyTime;
+                            const TD5 = document.createElement('td');
+                            TD5.innerText = item.bizOrgAplyPicNm;
+                            TR.appendChild(TD1)
+                            TR.appendChild(TD2)
+                            TR.appendChild(TD3)
+                            TR.appendChild(TD4)
+                            TR.appendChild(TD5)
+                            randerPoint.appendChild(TR);
+                        })
+                    } else {
+                        const TR = document.createElement('tr');
+                        const TD = document.createElement('td');
+                        TD.innerText = '데이터가 없습니다.'
+                        TD.setAttribute('colspan','5');
+                        TR.appendChild(TD);
+                        randerPoint.appendChild(TD);
+                    }
+                }
+                /* ]]> */
+            </script>
+        </th:block>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+</div>
+</body>
+</html>

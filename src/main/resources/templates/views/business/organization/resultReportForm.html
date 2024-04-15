@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="business-5-2">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>결과보고서 관리</h2>
+        </div>
+
+        <h3 class="subTitle">사업개요</h3>
+        <div class="tableLeftResponsive">
+            <table class="tableLeft">
+                <colgroup>
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                </colgroup>
+                <tbody>
+                    <tr>
+                        <th scope="row">담당자(기관)</th>
+                        <td><span th:text="${content[0].bizOrganizationAply.bizOrgAplyPicNm}">담당자명</span>(<span th:text="${content[0].organizationInfo.organizationName}">기관명</span>)</td>
+                        <th scope="row">파견강사</th>
+                        <td id="instrNm">
+
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">사업명</th>
+                        <td>
+                            <span th:text="${content[0].bizOrganizationAply.bizPbancMaster.bizPbancNm}">사업명</span>
+                        </td>
+                        <th scope="row">사업기간</th>
+                        <td>
+                            <span th:text="${content[0].bizOrganizationAply.bizPbancMaster.bizPbancSprtBgng}">2022-05-28</span> ~
+                            <span th:text="${content[0].bizOrganizationAply.bizPbancMaster.bizPbancSprtEnd}">2022-10-01</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">강의시간</th>
+                        <td th:text="${content[0].bizOrganizationAply.bizOrgAplyTime}">20.0</td>
+                        <th scope="row">수강인원</th>
+                        <td><span th:text="${content[0].bizOrganizationAply.bizOrgAplyLsnPlanNope}"></span>명</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h3 class="subTitle">강의일지</h3>
+        <div class="tableLeftResponsive overflowMulti mb-0 table_text_center">
+            <table class="table tableLeft">
+                <colgroup>
+                    <col style="width: 100px">
+                    <col>
+                    <col>
+                    <col>
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th scope="col" rowspan="2">차시</th>
+                        <th scope="col">일시</th>
+                        <th scope="col">강사</th>
+                        <th scope="col">시간</th>
+                    </tr>
+                    <tr>
+                        <th scope="col" colspan="3">내용</th>
+                    </tr>
+                </thead>
+                <tbody th:each="identify:${content[0].bizInstructorIdentifies}">
+                    <th:block th:each="item:${identify.bizInstructorIdentifyDtls}">
+                    <tr>
+                        <th scope="row" rowspan="2" th:text="${item.bizOrganizationAplyDtl.bizOrgAplyLsnDtlRnd}">1</th>
+                        <td th:text="${item.bizOrganizationAplyDtl.bizOrgAplyLsnDtlYmd}">2022-10-05</td>
+                        <td th:text="${identify.userName?:'-'}">한은진</td>
+                        <td>
+                            <span th:text="${item.bizOrganizationAplyDtl.bizOrgAplyLsnDtlBgngTm}">15:00</span> ~
+                            <span th:text="${item.bizOrganizationAplyDtl.bizOrgAplyLsnDtlEndTm}">18:00</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="3" class="bizInstrIdntyDtlCn" style="white-space: normal;" th:utext="${item.bizInstrIdntyDtlCn}">
+                        </td>
+                    </tr>
+                    </th:block>
+                </tbody>
+                <tbody th:if="${#lists.isEmpty(content[0].bizInstructorIdentifies)}">
+                    <tr class="empty_data">
+                        <td colspan="4">
+                            강의확인서를 찾을 수 없습니다.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h3 class="subTitle">사업 성과</h3>
+        <div class="mb-20">
+            <textarea name="" id="bizOrgRsltRptRslt" cols="30" rows="10" th:text="${content[0].bizOrgRsltRptRslt}">내용</textarea>
+        </div>
+
+        <h3 class="subTitle">우수 사례</h3>
+        <div class="mb-20">
+            <textarea name="" id="bizOrgRsltRptExmp" cols="30" rows="10" th:text="${content[0].bizOrgRsltRptExmp}">내용</textarea>
+        </div>
+
+        <h3 class="subTitle">건의사항 및 개선사항</h3>
+        <div class="mb-20">
+            <textarea name="" id="bizOrgRsltRptDmnd" cols="30" rows="10" th:text="${content[0].bizOrgRsltRptDmnd}">내용</textarea>
+        </div>
+
+        <div class="bl_uploadGrid">
+            <div class="bl_upload hp_lg_w462">
+                <input id="fileName" type="text" class="bl_upload_path js_path" readonly th:if="${content != null} and ${content[0].bizOrgRsltRptFile == null}">
+                <input id="fileName" type="text" class="bl_upload_path js_path" readonly th:if="${content != null} and ${content[0].bizOrgRsltRptFile != null}" th:value="${content[0].bizOrgRsltRptFile.split('/')[content[0].bizOrgRsltRptFile.split('/').length-1]}">
+                <label for="formFile" class="btn btnDefault bg-secondary text-white bl_upload_btn">파일선택</label>
+                <input id="formFile" type="file" name="file" class="bl_upload_file js_file">
+            </div>
+            <a class="btn btnDefault bg_blue download_ajax" th:href="@{/api/business/organization/report/download(attachFilePath=${content[0].bizOrgRsltRptFile})}">다운로드</a>
+        </div>
+        <p class="guide_text mt-2">업로드 가능한 파일 확장자: gif, jpg, png, pdf, hwp, doc, docx, ppt, pptx, xls, xlsx, zip / 파일 용량 : 10MB 미만</p>
+
+        <div class="bl_gridBtns">
+            <div class="bl_gridBtns_rgt">
+                <a th:href="@{/business/organization/report(bizOrgRsltRptStts=${content[0].bizOrgRsltRptStts})}" class="btn btnDefault btnList">목록</a>
+                <a onclick="update()" class="btn btnDefault btnModify">수정</a>
+                <a th:if="${content[0].bizOrgRsltRptStts==1}" onclick="updateStts(2)" class="btn btn_type1 btn_blue">승인</a>
+                <a th:if="${content[0].bizOrgRsltRptStts==1}" onclick="updateStts(9)" class="btn btn_type1 btn_red">반려</a>
+            </div>
+        </div>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            $("#formFile").bind("change", function (e){
+                if( this.files[0].name){
+                    $("#fileName").val(this.files[0].name);
+                }
+            })
+
+            $(".bizInstrIdntyDtlCn").each((idx,item)=>{$(item).html($(item).text().replace(/\n|\\n/g,'<br>'))})
+            function update(){
+                if(confirm('정말로 결과보고서 내용을 수정하시겠습니까?')){
+                    let params = getFormData();
+                    $.ajax({
+                        type: "put", //http method
+                        url: `/api/business/organization/report/update`, //값을 가져올 경로
+                        headers: {'Content-Type': 'application/json'},
+                        data: JSON.stringify(params),
+                        dataType: "json",
+                        async:false,
+                        success: function(data) {
+                            if($("#bizOrgRsltRptFile")[0].files.length>0){
+                                let form = new FormData();
+                                form.append( "attachFile", $("#bizOrgRsltRptFile")[0].files[0] );
+                                $.ajax({
+                                    type:"put", //http method
+                                    url:`/api/business/organization/report/upload/${data.bizOrgRsltRptNo}`, //값을 가져올 경로
+                                    processData : false,
+                                    contentType : false,
+                                    data: form,
+                                    async:false,
+                                    success: function(data) {   //요청 성공시 실행될 메서드
+                                        alert("결과보고서 내용을 수정하였습니다.");
+                                        window.location.reload();
+                                    }, error: function(e) {
+                                        alert(e.responseJSON.resultMessage);
+                                    }
+                                })
+                            }else{
+                                alert("결과보고서 내용을 수정하였습니다.");
+                                window.location.reload();
+                            }
+                        },
+                        error: function(e) {
+                            alert("결과보고서 수정에 실패했습니다.");
+                        }
+                    })
+                }
+            }
+            function updateStts(stts){
+                if(confirm(stts==1?"정말로 승인하시겠습니까?":"정말로 반려하시겠습니까?")){
+                    let params ={}
+                    params.bizOrgRsltRptNos = new Array(1)
+                    params.bizOrgRsltRptNos[0] =CONT[0].bizOrgRsltRptNo
+                    params.bizOrgRsltRptStts = stts;
+                    sendUpdate(params)
+                }
+            }
+            function sendUpdate(params){
+                $.ajax({
+                    type: "put", //http method
+                    url: `/api/business/organization/report/update/stts`, //값을 가져올 경로
+                    headers: {'Content-Type': 'application/json'},
+                    data: JSON.stringify(params),
+                    dataType: "json",
+                    async:false,
+                    success: function(data) {
+                        alert("결과보고서 상태를 수정하였습니다.");
+                        window.location.reload();
+                    },
+                    error: function(e) {
+                        alert("결과보고서 수정에 실패했습니다.");
+                    }
+                })
+            }
+            function getFormData(){
+                let params = CONT[0];
+                params.bizOrgRsltRptRslt = $("#bizOrgRsltRptRslt").val();
+                params.bizOrgRsltRptExmp = $("#bizOrgRsltRptExmp").val();
+                params.bizOrgRsltRptDmnd = $("#bizOrgRsltRptDmnd").val();
+                console.log(params);
+                return params;
+            }
+            /* <![CDATA[ */
+            let CONT =  [[ ${content} ]];
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+                console.log('content: ', [[ ${content} ]] )
+                let instrNm = [];
+                if(CONT[0].bizOrganizationAply&&CONT[0].bizOrganizationAply.bizInstructorAsgnms&&CONT[0].bizOrganizationAply.bizInstructorAsgnms.length>0){
+                    for(let i = 0; i<CONT[0].bizOrganizationAply.bizInstructorAsgnms.length; i++){
+                        if(CONT[0].bizOrganizationAply.bizInstructorAsgnms[i].bizInstructorAply){
+                            instrNm.push(CONT[0].bizOrganizationAply.bizInstructorAsgnms[i].bizInstructorAply.bizInstrAplyInstrNm)
+                        }
+                    }
+                }
+                $("#instrNm").text(instrNm.toString())
+            }
+            /* ]]> */
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

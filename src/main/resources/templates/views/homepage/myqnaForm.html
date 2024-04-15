@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="homepage-3">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>1:1문의 관리</h2>
+        </div>
+
+        <div class="tableLeftResponsive">
+            <table class="tableLeft">
+                <colgroup>
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                </colgroup>
+                <tbody>
+                    <tr>
+                        <th scope="row">작성자</th>
+                        <td><span th:text="${content[0].lmsUser.userName}">홍길동</span>(<span th:text="${content[0].lmsUser.userId}">test1234</span>)</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">제목</th>
+                        <td th:text="${content[0].reqTitle}">
+                            제목입니다.
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">내용</th>
+                        <td>
+                            <textarea cols="30" rows="10" th:utext="${content[0].reqContents}" readonly>내용입니다.</textarea>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">파일첨부</th>
+                        <td>
+                            <a th:if="${content[0].reqAttachFilePath !=null}" class="btn_type5 btn_file" th:href="@{/api/homepage/my-qna/download(attachFilePath=${content[0].reqAttachFilePath}, fileType='req')}" th:text="${content[0].reqAttachFilePath.split('/')[content[0].reqAttachFilePath.split('/').length-1]}">파일명1.hwp</a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="tableLeftResponsive">
+            <table class="tableLeft">
+                <colgroup>
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                </colgroup>
+                <tbody>
+                    <tr>
+                        <th scope="row">답변 제목</th>
+                        <td>
+                            <input th:if="${content[0].resTitle==null}" id="resTitle" type="text" class="hp_w600" not_null="true" alert_name="답변 제목" th:value="${'Re: '+content[0].reqTitle}">
+                            <input th:unless="${content[0].resTitle==null}" th:value="${content[0].resTitle}" id="resTitle" type="text" class="hp_w600" not_null="true" alert_name="답변 제목">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">내용</th>
+                        <td>
+                            <textarea th:if="${content[0].resContents==null}" id="contents" name="contents" class="ckeditor" style="width:100%; height:200px"></textarea>
+                            <textarea th:unless="${content[0].resContents==null}" th:utext="${content[0].resContents}" id="contents" name="contents" class="ckeditor" style="width:100%; height:200px"></textarea>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">파일첨부</th>
+                        <td>
+                            <div class="bl_uploadGrid">
+                                <div class="bl_upload js_upload hp_lg_w462" th:if="${content[0].resAttachFilePath==null}">
+                                    <input type="text" class="bl_upload_path js_path" readonly>
+                                    <label class="btn btnDefault bg-secondary text-white bl_upload_btn">파일선택</label>
+                                    <input id="formFile" type="file" name="file" class="bl_upload_file js_file">
+                                </div>
+                                <div class="bl_upload hp_lg_w462" th:unless="${content[0].resAttachFilePath==null}">
+                                    <input id="fileName" type="text" class="bl_upload_path js_path" th:value="${content[0].resAttachFilePath}" readonly>
+                                    <label for="formFile" class="btn btnDefault bg-secondary text-white bl_upload_btn">파일선택</label>
+                                    <input id="formFile" type="file" name="file" class="bl_upload_file js_file">
+                                </div>
+                                <a th:unless="${content[0].resAttachFilePath==null}" class="btn btnDefault bg_blue download_ajax" th:href="@{/api/homepage/my-qna/download(attachFilePath=${content[0].resAttachFilePath}, fileType='res')}">다운로드</a>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="bl_gridBtns">
+            <div class="bl_gridBtns_rgt">
+                <a href="/homepage/my-qna" class="btn btnDefault btnList">목록</a>
+                <a th:if="${content[0].resTitle==null}" onclick="create()" class="btn btnDefault btnRegister">등록</a>
+                <a th:unless="${content[0].resTitle==null}" onclick="create()" class="btn btnDefault btnRegister">수정</a>
+            </div>
+        </div>
+    </div>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            $("#formFile").bind("change", function (e){
+                if( this.files[0].name){
+                    $("#fileName").val(this.files[0].name);
+                }
+            })
+
+            function create(){
+                if(nullCheck()){
+                    let params = getFormData()
+                    $.ajax({
+                        type: "put",
+                        headers: {'Content-Type' : 'application/json'},
+                        url: "/api/homepage/my-qna/update",
+                        data: JSON.stringify(params),
+                        dataType: "json",
+                        success: function (data){
+                            if($("#formFile")[0].files.length>0){
+                                let form = new FormData();
+                                form.append( "attachFile", $("#formFile")[0].files[0] );
+                                $.ajax({
+                                    type:"put", //http method
+                                    url:`/api/homepage/my-qna/upload/${data.sequenceNo}`, //값을 가져올 경로
+                                    processData : false,
+                                    contentType : false,
+                                    data: form,
+                                    success: function(data) {
+                                        alert('1:1문의 답변이 등록되었습니다.')
+                                        window.location.replace('/homepage/my-qna')
+                                    }, error: function(e) {
+                                        alert(e.responseJSON.resultMessage);
+                                    }
+                                })
+                            } else {
+                                alert('1:1문의 답변이 등록되었습니다.')
+                                window.location.replace('/homepage/my-qna')
+                            }
+                        },
+                        error: function (e){
+                            alert(e.responseJSON.resultMessage);
+                        }
+                    })
+                }
+            }
+            /* <![CDATA[ */
+
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+                let CONT =  [[ ${content} ]]
+                let params = CONT[0];
+                if(params.qnaState=='1'){
+                    params.qnaState = '2'
+                    $.ajax({
+                        type: "put",
+                        headers: {'Content-Type' : 'application/json'},
+                        url: "/api/homepage/my-qna/update",
+                        data: JSON.stringify(params),
+                        dataType: "json"
+                    })
+                }
+            }
+            function getFormData(){
+                let CONT =  [[ ${content} ]]
+                let params = CONT[0];
+                params.qnaState = '3'
+                params.resContents =CKEDITOR.instances.contents.getData();
+                params.resTitle=$("#resTitle").val()
+                return params;
+            }
+            /* ]]> */
+
+
+        </script>
+    </th:block>
+
+    <div sec:authorize="!isAuthenticated()"></div>
+</div>
+</body>
+</html>

@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="business-5-3">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>강사료 정산</h2>
+        </div>
+
+        <div class="bl_tab2 js_tab">
+            <ul class="bl_tab2_menu">
+                <li class="is_active">
+                    <a href="/business/instructor/calculate">정산마감일</a>
+                </li>
+                <li>
+                    <a href="/business/instructor/calculate/target">정산요청 목록</a>
+                </li>
+                <li>
+                    <a href="/business/instructor/calculate/list?groupType=instr">정산금액 조회</a>
+                </li>
+                <li>
+                    <a href="/business/instructor/calculate/distance/amount">이동거리 기준단가</a>
+                </li>
+            </ul>
+
+            <!-- BOARD : CONTROLLER -->
+            <div class="bl_boardCtrls">
+                <div class="bl_boardCtrls_lft">
+                    <p class="bl_boardCtrls_total">
+                        총: <strong th:text="${pageable.totalElements}"></strong>건
+                    </p>
+                </div>
+                 <div class="bl_boardCtrls_rgt">
+                     <a href="/business/instructor/calculate/" class="btn btnDefault btnRegister">등록</a>
+                     <a href="/api/business/instructor/calculate/excel" class="btn btnDefault download_excel download_search">excel 다운로드</a>
+                     <select class="common_select" data-list="countSortList"></select>
+                </div>
+            </div>
+
+            <div class="tableResponsive overflowMulti">
+                <table class="table">
+                    <colgroup>
+                        <col style="width: 50px">
+                        <col>
+                        <col>
+                        <col>
+                        <col>
+                    </colgroup>
+                    <thead>
+                        <tr>
+                            <th scope="col">번호</th>
+                            <th scope="col">년월</th>
+                            <th scope="col">정산마감일</th>
+                            <th scope="col">강의확인서 건수</th>
+                            <th scope="col">관리</th>
+                        </tr>
+                    </thead>
+                    <tbody th:if="${content != null && content.size > 0}">
+                        <tr th:each="item, stat : ${content}">
+                            <td th:text="${pageable.totalElements - ((pageable.page * pageable.size) + stat.index)}"></td>
+                            <td>
+                                <span th:text="${item.bizInstrClclnDdlnYr}"></span><span th:if="${item.bizInstrClclnDdlnMm < 10}" th:text="'0'+${item.bizInstrClclnDdlnMm}"></span><span th:unless="${item.bizInstrClclnDdlnMm < 10}" th:text="${item.bizInstrClclnDdlnMm}"></span>
+                            </td>
+                            <td><span th:text="${item.bizInstrClclnDdlnValue}"></span> <span th:text="${item.bizInstrClclnDdlnTm}"></span></td>
+                            <td>
+                                <div th:if="${item.bizInstructorIdentifiesSize != null}">
+                                    <span th:if="${item.bizInstrClclnDdlnMm != 12}">
+                                        <a th:if="${item.bizInstrClclnDdlnMm < 10}" th:href="@{/business/instructor/calculate/target?year={year}&month=0{month}(year=${item.bizInstrClclnDdlnYr}, month=${item.bizInstrClclnDdlnMm})}">
+                                            <span th:text="${item.bizInstructorIdentifiesSize}+'건'"></span>
+                                        </a>
+                                        <a th:unless="${item.bizInstrClclnDdlnMm < 10}" th:href="@{/business/instructor/calculate/target?year={year}&month={month}(year=${item.bizInstrClclnDdlnYr}, month=${item.bizInstrClclnDdlnMm})}">
+                                            <span th:text="${item.bizInstructorIdentifiesSize}+'건'"></span>
+                                        </a>
+                                    </span>
+                                    <span th:unless="${item.bizInstrClclnDdlnMm != 12}">
+                                        <a th:href="@{/business/instructor/calculate/target?year={year}&month={month}(year=${(item.bizInstrClclnDdlnYr+1)}, month=${item.bizInstrClclnDdlnMm})}">
+                                            <span th:text="${item.bizInstructorIdentifiesSize}+'건'"></span>
+                                        </a>
+                                    </span>
+                                </div>
+                                <div th:unless="${item.bizInstructorIdentifiesSize != null}">
+                                    <span th:if="${item.bizInstrClclnDdlnMm != 12}">
+                                        <a th:if="${item.bizInstrClclnDdlnMm < 10}" th:href="@{/business/instructor/calculate/target?year={year}&month=0{month}(year=${item.bizInstrClclnDdlnYr}, month=${item.bizInstrClclnDdlnMm})}">0건</a>
+                                    <a th:unless="${item.bizInstrClclnDdlnMm < 10}" th:href="@{/business/instructor/calculate/target?year={year}&month={month}(year=${item.bizInstrClclnDdlnYr}, month=${item.bizInstrClclnDdlnMm})}">0건</a>
+                                    </span>
+                                    <span th:unless="${item.bizInstrClclnDdlnMm != 12}">
+                                        <a th:href="@{/business/instructor/calculate/target?year={year}&month={month}(year=${(item.bizInstrClclnDdlnYr+1)}, month=${item.bizInstrClclnDdlnMm})}">0건</a>
+                                    </span>
+                                </div>
+                            </td>
+                            <td>
+                                <a th:href="@{/business/instructor/calculate/{id}(id=${item.bizInstrClclnDdlnNo})}" class="btn btnDefault btnModify icon_none">수정</a>
+                                <div onclick="deleteDeadline(this)" th:value="${stat.index}" class="btn btnDefault btnDelete icon_none">삭제</div>
+                            </td>
+                        </tr>
+                    </tbody>
+                    <tbody th:unless="${content != null && content.size > 0}">
+                    <tr class="empty_data"><td colspan="5">조회된 내용이 없습니다.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="bl_paginate"></div>
+        </div>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            /* <![CDATA[ */
+            function deleteDeadline(btn){
+                let CONT = [[ ${content} ]];
+                let dataIndex = parseInt($(btn).attr("value"));
+                if(confirm('정말로 삭제하시겠습니까?')&&dataIndex>=0){
+                    let params = CONT[dataIndex];
+                    $.ajax({
+                        type: "delete", //http method
+                        url: `/api/business/instructor/calculate/delete/${params.bizInstrClclnDdlnMm}`, //값을 가져올 경로
+                        headers: {'Content-Type': 'application/json'},
+                        data: JSON.stringify(params),
+                        dataType: "json",
+                        async:false,
+                        success: function(data) {
+                            alert("정산마감일을 삭제하였습니다.");
+                            window.location.reload();
+                        },
+                        error: function(e) {
+                            alert("정산마감일 삭제에 실패했습니다.");
+                        }
+                    })
+                }else {
+                    alert('삭제하는 과정에서 오류가 발생했습니다. 데이터를 찾을 수 없습니다.')
+                }
+            }
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+                pagination([[ ${pageable} ]], false)
+
+                /** 연도 고정값 기능(정산금액조회만) */
+                let YYYY=new Date.getFullYear();
+                $("div.bl_tab2 a[href*='/business/instructor/calculate/list?groupType']").each((index, item) => {
+                    let url = $(item).attr("href")
+                    $(item).attr("href", url+"&year="+YYYY)
+                })
+            }
+            /* ]]> */
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

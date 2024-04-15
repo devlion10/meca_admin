@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+    <head>
+        <th:block th:replace="fragments/include :: include"></th:block>
+        <!-- LOGIN CSS -->
+        <link th:href="@{/css/custom/login.css}" rel="stylesheet" />
+    </head>
+    <body class="text-center">
+        <main class="form-signin w-100 m-auto">
+            <form action="/loginProcess" method="POST">
+                <h1 class="h3 mb-3 fw-normal">로그인</h1>
+
+                <div class="form-floating">
+                    <input type="text" name="username" class="form-control" id="floatingInput" placeholder="ID" />
+                </div>
+                <div class="form-floating mt-2">
+                    <input type="password" name="password" class="form-control" id="floatingPassword" placeholder="Password" />
+                </div>
+
+                <div class="auth">
+                    <div class="auth_time">인증시간 : <span class="font_roboto">00</span>분 <span class="font_roboto">00</span>초 남음</div>
+                    <input type="text" placeholder="인증번호">
+                </div>
+
+                <button class="login_btn w-100 btn btn-primary" type="submit">로그인</button>
+            </form>
+        </main>
+    </body>
+
+    <!-- POPUP : 인증번호 발송 -->
+    <article class="pop_wrapper ui-modal" id="popAuth">
+        <div class="pop_wrap pop_secondary hp_mw500">
+            <div class="pop_cont">
+                등록된 휴대전화번호로 인증번호를 발송하였습니다.
+                <div class="bl_gridBtns">
+                    <div class="bl_gridBtns_md">
+                        <a class="btn btnDefault pop-close" href="">확인</a>
+                    </div>
+                </div>
+            </div>
+
+            <button type="button" class="pop_close pop-close">닫기</button>
+        </div>
+    </article>
+
+    <!-- POPUP : 인증 아이피 아닐 때 -->
+    <article class="pop_wrapper ui-modal" id="popAuthIP">
+        <div class="pop_wrap pop_secondary hp_mw500">
+            <div class="pop_cont">
+                인증된 아이피가 아닙니다.<br/>
+                관리자(<span>033.749.5323</span>)에게 문의하세요.
+                <div class="bl_gridBtns">
+                    <div class="bl_gridBtns_md">
+                        <a class="btn btnDefault pop-close" href="">확인</a>
+                    </div>
+                </div>
+            </div>
+
+            <button type="button" class="pop_close pop-close">닫기</button>
+        </div>
+    </article>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            /* <![CDATA[ */
+            window.onload = function () {
+                if ([[ ${errorMessage}]]) {
+                    alert([[ ${errorMessage}]]);
+                }
+            }
+
+            $('#popAuth .pop-close').click(function(){
+                $('.auth').show();
+            })
+            /* ]]> */
+        </script>
+    </th:block>
+    <form id="joinForm" action="/anonymous/join" method="post" style="visibility: hidden" />
+</html>

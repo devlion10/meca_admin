@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/pop_layout}">
+<body>
+<div layout:fragment="pop">
+    <!-- POPUP : 출석 -->
+    <article class="pop_page">
+        <div class="pop_secondary">
+            <div class="pop_head">
+                <div class="tit">교육관리 일괄출석</div>
+            </div>
+            <div class="pop_cont">
+                <div class="tableResponsive overflowMulti">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th scope="col">차시명</th>
+                                <th scope="col">교육기간</th>
+                                <th scope="col">출석</th>
+                            </tr>
+                        </thead>
+                        <tbody th:if="${content != null && content.size > 0}">
+                            <tr th:if="${content[0] != null && content[0].curriculumApplicationLectureList.size > 0}" th:each="item, stat: ${content[0].curriculumApplicationLectureList}">
+                                <td style="display: none;" th:text="${item.applicationNo}"></td>
+                                <td th:text="${item.lectureMaster.lectureTitle}">차시명</td>
+                                <td>
+                                    <span th:text="${item.lectureMaster.operationBeginDateTime + ' ~ ' + item.lectureMaster.operationEndDateTime}">2022.08.01 12:00</span>
+                                </td>
+                                <td>
+                                    <select id="attendState" class="common_select">
+                                        <option value="Y" th:selected="${item.isAttend == true}">Y</option>
+                                        <option value="N" th:selected="${item.isAttend == false}">N</option>
+                                    </select>
+                                </td>
+                            </tr>
+                        </tbody>
+                        <tbody th:unless="${content != null && content.size > 0}">
+                            <tr class="empty_data"><td colspan="5">조회된 내용이 없습니다.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="bl_gridBtns">
+                    <div class="bl_gridBtns_md">
+                        <div class="btn btnDefault" onclick="saveAttend()">저장</div>
+                    </div>
+                </div>
+            </div>
+    
+            <button type="button" class="pop_close pop-close" onclick="parent.window.closePop()">닫기</button>
+        </div>
+    </article> <!-- //POPUP : 출석 -->
+
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            /* <![CDATA[ */
+            const content = [[ ${content} ]];
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+            }
+
+            /** 교육 출석 상태 수정 */
+            function saveAttend() {
+                const params = content[0];
+                params.applicationList = [];
+
+                $(".common_select").each((index,item)=>{
+                    params.applicationList.push({
+                        applicationNo: content[0].curriculumApplicationLectureList[index].applicationNo,
+                        lectureCode: content[0].curriculumApplicationLectureList[index].lectureCode,
+                        isAttend: (item.value=='Y') ? true:false,
+                        userId: content[0].curriculumApplicationLectureList[index].userId
+                    })
+                })
+
+                if (params.applicationList.length > 0) {
+                    /** 교육 신청 상태 수정 */
+                    $.ajax({ //jquery ajax
+                        type: "put", //http method
+                        url: "/api/education/application/update-lecture-complete", //값을 가져올 경로
+                        headers: {'Content-Type': 'application/json'},
+                        data: JSON.stringify(params),
+                        dataType: "json", //html, xml, text, script, json, jsonp 등 다양하게 쓸 수 있음
+                        success: function (data) {   //요청 성공시 실행될 메서드
+                            alert("교육 출석 상태 수정이 완료되었습니다.");
+                            window.location.reload();
+                        },
+                        error: function (e) {		 //요청 실패시 에러 확인을 위함
+                            alert(e.responseJSON.resultMessage);
+                        }
+                    });
+                }
+            }
+
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

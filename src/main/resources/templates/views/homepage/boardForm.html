@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="homepage-1">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>게시판 관리</h2>
+        </div>
+
+        <div class="tableLeftResponsive">
+            <table class="tableLeft">
+                <colgroup>
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                </colgroup>
+                <tbody>
+                    <tr>
+                        <th scope="row">게시판명</th>
+                        <td>
+                            <input type="text" class="hp_w600">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">코드</th>
+                        <td>
+                            <input type="text" class="hp_w600">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">비밀글 사용여부</th>
+                        <td>
+                            <div class="radio_box">
+                                <input id="boardLockY" type="radio" name="boardLock" checked>
+                                <label for="boardLockY">
+                                    <span></span>
+                                    사용
+                                </label>
+                            </div>
+                            <div class="radio_box">
+                                <input id="boardLockN" type="radio" name="boardLock">
+                                <label for="boardLockN">
+                                    <span></span>
+                                    사용안함
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">상단공지 사용여부</th>
+                        <td>
+                            <div class="radio_box">
+                                <input id="boardTopNoticeY" type="radio" name="boardTopNotice" checked>
+                                <label for="boardTopNoticeY">
+                                    <span></span>
+                                    사용
+                                </label>
+                            </div>
+                            <div class="radio_box">
+                                <input id="boardTopNoticeN" type="radio" name="boardTopNotice">
+                                <label for="boardTopNoticeN">
+                                    <span></span>
+                                    사용안함
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">파일첨부 사용여부</th>
+                        <td>
+                            <div class="radio_box">
+                                <input id="boardFileY" type="radio" name="boardFile" checked>
+                                <label for="boardFileY">
+                                    <span></span>
+                                    사용
+                                </label>
+                            </div>
+                            <div class="radio_box">
+                                <input id="boardFileN" type="radio" name="boardFile">
+                                <label for="boardFileN">
+                                    <span></span>
+                                    사용안함
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">답글 사용여부</th>
+                        <td>
+                            <div class="radio_box">
+                                <input id="boardReplyY" type="radio" name="boardReply" checked>
+                                <label for="boardReplyY">
+                                    <span></span>
+                                    사용
+                                </label>
+                            </div>
+                            <div class="radio_box">
+                                <input id="boardReplyN" type="radio" name="boardReply">
+                                <label for="boardReplyN">
+                                    <span></span>
+                                    사용안함
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">카테고리</th>
+                        <td>
+                            <div class="tableResponsive mb-0">
+                                <table class="table" style="border: 1px solid #ddd">
+                                    <colgroup>
+                                        <col style="width: auto"/>
+                                        <col style="width: 120px"/>
+                                        <col style="width: 120px"/>
+                                    </colgroup>
+                                    <tbody>
+                                        <tr>
+                                            <td><input type="text"></td>
+                                            <td class="text-center">
+                                                <a href="#none" style="text-decoration: none">▲</a>
+                                                <a href="#none" style="text-decoration: none">▼</a>
+                                            </td>
+                                            <td class="text-center">
+                                                <a href="javascript: void(0)" class="btn btnDefault btn_del" onclick="removeList(this)">삭제</a>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="text-end">
+                                <a href="javascript: void(0)" class="btn btnDefault btn_add mt-2" onclick="addList(this)">카테고리 추가</a>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="bl_gridBtns">
+            <div class="bl_gridBtns_rgt">
+                <a class="btn btnDefault btnList" href="/homepage">목록</a>
+                <div class="btn btnDefault btnRegister">등록</div>
+            </div>
+        </div>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+</div>
+</body>
+</html>

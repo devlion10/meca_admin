@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="user-5">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>매체 관리</h2>
+        </div>
+
+        <div class="tableLeftResponsive">
+            <table class="tableLeft">
+                <colgroup>
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                </colgroup>
+                <tbody>
+                <tr>
+                    <th scope="row">대분류</th>
+                    <td colspan="3">
+                        <select id="mediaClsName1s" class="common_select">
+                            <option value="">전체</option>
+                            <option value="신문">신문</option>
+                            <option value="방송">방송</option>
+                            <option value="인터넷">인터넷</option>
+                            <option value="통신">통신</option>
+                            <option value="잡지">잡지</option>
+                            <option value="기타">기타</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">매체사명</th>
+                    <td>
+                        <input id="organizationName" type="text">
+                    </td>
+                    <th scope="row">매체명</th>
+                    <td>
+                        <input id="mediaName"  type="text">
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">상태</th>
+                    <td colspan="3">
+                        <div class="radio_box">
+                            <input id="state_all" type="radio" name="isUsable" checked="">
+                            <label for="state_all">
+                                <span></span>
+                                전체
+                            </label>
+                        </div>
+                        <div class="radio_box">
+                            <input id="state_use" type="radio" name="isUsable" value="true">
+                            <label for="state_use">
+                                <span></span>
+                                사용
+                            </label>
+                        </div>
+                        <div class="radio_box">
+                            <input id="state_n_use" type="radio" name="isUsable" value="false">
+                            <label for="state_n_use">
+                                <span></span>
+                                사용안함
+                            </label>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- GRID : BUTTON -->
+        <div class="bl_gridBtns">
+            <div class="bl_gridBtns_md">
+                <div class="btn btnDefault btnReset">리셋</div>
+                <a class="btn btnDefault btnSearch" onclick="searchOrg()">검색</a>
+                <a class="btn btnDefault download_excel download_search" href="/api/user/organization/media/excel">excel 다운로드</a>
+                <a class="btn btnDefault btnRegister" href="javascript:managerMedia('insert')">등록</a>
+            </div>
+        </div>
+
+        <!-- BOARD : CONTROLLER -->
+        <div class="bl_boardCtrls">
+            <div class="bl_boardCtrls_lft">
+                <p class="bl_boardCtrls_total">총: <strong th:text="${pageable.totalElements}"></strong>건</p>
+            </div>
+            <div class="bl_boardCtrls_rgt">
+                <select class="common_select" data-list="countSortList"></select>
+            </div>
+        </div>
+
+        <div class="tableResponsive overflowMulti">
+            <table class="table">
+                <colgroup>
+                    <col style="width: 50px">
+                    <col style="width: 85px">
+                    <col style="width: 70px">
+                    <col style="width: 120px">
+                    <col>
+                    <col>
+                    <col>
+                    <col style="width: 75px">
+                    <col style="width: 75px">
+                </colgroup>
+                <thead>
+                <tr>
+                    <th scope="col">번호</th>
+                    <th scope="col">매체코드</th>
+                    <th scope="col">매체 대분류</th>
+                    <th scope="col">매체 중분류</th>
+                    <th scope="col">매체사명</th>
+                    <th scope="col">매체명</th>
+                    <th scope="col">지역</th>
+                    <th scope="col">사용여부</th>
+                    <th scope="col">관리</th>
+                </tr>
+                </thead>
+                <tbody th:if="${content != null && content.size > 0}">
+                <tr th:each="item,stat:${content}">
+                    <td th:text="${pageable.totalElements - ((pageable.page * pageable.size) + stat.index)}"></td>
+                    <td><span th:text="${item.mediaCode}"></span></td>
+                    <td><span th:text="${item.mediaClsName1}"></span></td>
+                    <td><span th:text="${item.mediaClsName2}"></span></td>
+                    <td>
+                        <span th:if="${item.organizationCode != null}" th:text="${item.organizationInfo?.organizationName}"></span>
+                        <span th:unless="${item.organizationCode != null}"></span>
+                    </td>
+                    <td><span th:text="${item.mediaName}"></span></td>
+                    <td><span th:text="${item.mediaArea}"></span></td>
+                    <td>
+                        <span class="color_blue" th:if="${item.isUsable}">사용</span>
+                        <span class="color_red" th:unless="${item.isUsable}">사용안함</span>
+                    </td>
+                    <td>
+                        <button th:onclick="managerMedia([[${item.mediaCode}]])" class="btn btnDefault btnView icon_none">관리</button>
+                    </td>
+                </tr>
+                </tbody>
+                <tbody th:unless="${content != null && content.size > 0}">
+                <tr class="empty_data"><td colspan="9">조회된 내용이 없습니다.</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="bl_paginate"></div>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+
+    <!-- POPUP : 진도 -->
+    <article class="pop_wrapper ui-modal" id="popProgress">
+        <div class="pop_wrap pop_secondary" style="max-width: 600px;">
+            <div class="pop_cont">
+                <form id="popProgressForm" class="tableResponsive overflowMulti">
+                    <table class="tableLeft">
+                        <colgroup>
+                            <col style="width: 150px">
+                            <col>
+                        </colgroup>
+                        <thead>
+                            <tr>
+                                <th scope="col">구분</th>
+                                <th scope="col">내용</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <th scope="row"><span class="el_required">*</span>매체분류</th>
+                                <td>
+                                    <select class="common_select" id="mediaClsName1" name="mediaClsName1" data-key="mediaClsName1"><option>매체 대분류</option></select>
+                                    <select class="common_select" id="mediaClsName2" name="mediaClsName2" data-key="mediaClsName2"><option>매체 중분류</option></select>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row">매체사</th>
+                                <td>
+                                    <div class="d-flex">
+                                        <input type="text" data-key="organizationName" readonly />
+                                        <button id="searchOrgBtn" class="btn btnDefault btnView icon_none" style="padding: 15px 13px;border-radius: 0px;margin-left: 5px;">매체사검색</button>
+                                    </div>
+                                    <input type="hidden" name="organizationCode" id="organizationCode" data-key="organizationCode"/>
+                                </td>
+                            </tr>
+                            <tr data-insert-hide>
+                                <th scope="row">매체 코드</th>
+                                <td><input type="text" data-key="mediaCode" name="mediaCode" id="mediaCode" readonly/></td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><span class="el_required">*</span>매체명</th>
+                                <td><input type="text" name="mediaName" id="mediaName" data-key="mediaName"/></td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><span class="el_required">*</span>지역</th>
+                                <td><select class="common_select" id="mediaArea" name="mediaArea" data-key="mediaArea" data-list="mediaArea"></select></td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><span class="el_required">*</span>사용여부</th>
+                                <td><select class="common_select" id="isUsable" name="isUsable" data-key="isUsable"><option value="true">사용</option><option value="false">사용안함</option></select></td>
+                            </tr>
+                            <tr data-insert-hide>
+                                <th scope="row">등록일</th>
+                                <td><span id="createDateTime" data-key="createDateTime"></span></td>
+                            </tr>
+                            <tr data-insert-hide>
+                                <th scope="row">등록자</th>
+                                <td><span id="registUserId" data-key="registUserId"></span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="text-center">
+                        <a class="btn btnDefault bg-secondary text-white btnRegister" href="javascript:submit();" id="popup_submit_btn">등록</a>
+                        <a class="btn btnDefault btnRegister" href="javascript:closePopup()">닫기</a>
+                    </div>
+
+                </form>
+            </div>
+            <button type="button" class="pop_close pop-close">닫기</button>
+        </div>
+    </article>
+
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            /* <![CDATA[ */
+            let listItem, popupMode;
+            const MEDIA_CODE_LIST = [
+                {
+                    "code": "MEM0061000",
+                    "name": "신문",
+                    "list": [
+                        {
+                            "code": "MEM0061011",
+                            "name": "전국종합일간"
+                        },
+                        {
+                            "code": "MEM0061013",
+                            "name": "경제일간"
+                        },
+                        {
+                            "code": "MEM0061014",
+                            "name": "영자일간"
+                        },
+                        {
+                            "code": "MEM0061015",
+                            "name": "전문일간"
+                        },
+                        {
+                            "code": "MEM0061016",
+                            "name": "지역일간"
+                        },
+                        {
+                            "code": "MEM0061017",
+                            "name": "전문주간"
+                        },
+                        {
+                            "code": "MEM0061019",
+                            "name": "지역주간"
+                        },
+                        {
+                            "code": "MEM0061020",
+                            "name": "일반주간"
+                        }
+                    ]
+                },
+                {
+                    "code": "MEM0062000",
+                    "name": "방송",
+                    "list": [
+                        {
+                            "code": "MEM0062014",
+                            "name": "케이블PP"
+                        },
+                        {
+                            "code": "MEM0062015",
+                            "name": "케이블SO"
+                        },
+                        {
+                            "code": "MEM0062017",
+                            "name": "지상파-공영"
+                        },
+                        {
+                            "code": "MEM0062018",
+                            "name": "지상파-민영"
+                        },
+                        {
+                            "code": "MEM0062019",
+                            "name": "지상파-특수방송"
+                        }
+                    ]
+                },
+                {
+                    "code": "MEM0063000",
+                    "name": "인터넷",
+                    "list": [
+                        {
+                            "code": "MEM0063011",
+                            "name": "온라인신문"
+                        },
+                        {
+                            "code": "MEM0063012",
+                            "name": "인터넷신문"
+                        },
+                        {
+                            "code": "MEM0063013",
+                            "name": "인터넷"
+                        }
+                    ]
+                },
+                {
+                    "code": "MEM0064000",
+                    "name": "통신",
+                    "list": [
+                        {
+                            "code": "MEM0064011",
+                            "name": "통신"
+                        }
+                    ]
+                },
+                {
+                    "code": "MEM0065000",
+                    "name": "잡지",
+                    "list": [
+                        {
+                            "code": "MEM0065011",
+                            "name": "잡지"
+                        }
+                    ]
+                },
+                {
+                    "code": "MEM0066000",
+                    "name": "기타",
+                    "list": [
+                        {
+                            "code": "MEM0066011",
+                            "name": "기타"
+                        }
+                    ]
+                }
+            ];
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+                listItem = [[ ${content} ]];
+                // 페이징 공통 스크립트 호출
+                pagination([[ ${pageable} ]]);
+                intialized();
+                bindEvents();
+
+                let searchParams = new URLSearchParams(window.location.search);
+                let mediaClsName1 = searchParams.get("mediaClsName1");
+                if(mediaClsName1){
+                    $("#mediaClsName1s").val(mediaClsName1).prop('selected',true)
+                }
+            }
+            /* ]]> */
+
+            function searchOrg(){
+                let searchQuery = {}
+                let mediaName = $("#mediaName").val();
+                let name = $("#organizationName").val();
+                let type = $("#mediaClsName1s").val();
+                let state = $('input:radio[name=isUsable]:checked').attr("value")=="true"?'true':$('input:radio[name=isUsable]:checked').attr("value")=="false"?'false':null;
+
+                if(mediaName){
+                    searchQuery.mediaName = mediaName
+                }
+                if(name){
+                    searchQuery.organizationName = name
+                }
+                if(type && type!="0"){
+                    searchQuery.mediaClsName1 = type
+                }
+                if(state){
+                    searchQuery.isUsable = state
+                }
+                searchJson(searchQuery)
+            }
+
+            //페이지 - 초기화
+            function intialized(){
+                let target = $("#mediaClsName1");
+                target.empty();
+                target.append('<option value="">매체 대분류</option>');
+                MEDIA_CODE_LIST.forEach(function(item){
+                    target.append(`<option value="${item.name}">${item.name}</option>`);
+                });
+
+
+                $(document.body).append(`<div sec:authorize="isAuthenticated()" class="iframe_wrap" style="z-index:99999;">
+                        <iframe id="findCompany" src="about:blank" width="1000" height="717"></iframe>
+                    </div>`);
+            }
+
+            //페이지 - 이벤트 바인딩
+            function bindEvents(){
+                $("#mediaClsName1").change(function(e){
+                    let targetValue = e.target.value;
+                    if (targetValue != "")
+                        setClsType2(targetValue);
+                });
+
+                $("#searchOrgBtn").click(function(e){
+                    e.preventDefault();
+                    openPop('', '/popup/find/company', 'findCompany');
+                });
+
+                //전송
+                $("#popProgressForm").submit(function(e){
+                    e.preventDefault();
+                    let formData = $(this).serializeObject();
+                    if( !formData.mediaClsName1 ) return alert('매체 대분류을(를) 입력해주세요.');
+                    if( !formData.mediaClsName2 ) return alert('매체 소분류을(를) 입력해주세요.');
+                    if( !formData.mediaName ) return alert('매체명을(를) 입력해주세요.');
+                    if( !formData.mediaArea ) return alert('지역을(를) 입력해주세요.');
+
+                    let params = {};
+                    if(formData.mediaName) params.mediaName = formData.mediaName;
+                    if(formData.mediaArea) params.mediaArea = formData.mediaArea;
+                    if(formData.mediaClsName1) params.mediaClsName1 = formData.mediaClsName1;
+                    if(formData.mediaClsName2) params.mediaClsName2 = formData.mediaClsName2;
+                    if(formData.mediaArea) params.mediaArea = formData.mediaArea;
+                    if(formData.isUsable) params.isUsable = formData.isUsable;
+                    if(formData.organizationCode) params.organizationCode = formData.organizationCode;
+                    if(popupMode=="update") params.mediaCode = formData.mediaCode;
+                    $.ajax({
+                        type: popupMode=="create" ? "post" : "put",
+                        url: "/api/user/media/"+popupMode,
+                        headers: {'Content-Type': 'application/json'},
+                        data: JSON.stringify(params),
+                        dataType: "json",
+                        success: function (data) {
+                            alert((popupMode=="create" ? "등록" : "수정") + "이 완료되었습니다.");
+                            window.location.reload();
+                        },
+                        error: function(e) {
+                            alert(e.responseJSON.resultMessage);
+                        }
+                    });
+                });
+            }
+
+            function validatorCheck(formData){
+
+            }
+
+            //매체 중분류 출력
+            function setClsType2(targetValue , selectValue){
+                let target = $("#mediaClsName2");
+                let targetList = _.find( MEDIA_CODE_LIST, { name : targetValue});
+                target.empty();
+                target.append(`<option value="">매체 중분류</option>`);
+                if( targetList.list ){
+                    targetList.list?.forEach(function(item){
+                        target.append(`<option value="${item.name}">${item.name}</option>`);
+                    });
+                }else{
+                    target.append(`<option value="">매체사 중분류</option>`);
+                }
+                (selectValue) ? target.val(selectValue) : target.val("");
+            }
+
+            //매체 정보 상세 팝업
+            let modalTarget = $("#popProgress");
+
+            function submit(){
+                $("#popProgressForm").submit();
+            }
+
+            function closePopup(){
+                modalTarget.closeModal();
+            }
+
+            //매체 정보 상세 팝업 출력
+            function managerMedia(mediaCode){
+                let target = _.find(listItem, { mediaCode:mediaCode});
+                if( mediaCode == "insert" ){
+                    $("#popup_submit_btn").text("등록");
+                    popupMode="create";
+                    modalTarget.find("[data-key=organizationCode]").val('');
+                    modalTarget.find("[data-key=organizationName]").val('');
+                    modalTarget.find("[data-key=mediaName]").val('');
+                    modalTarget.find("[data-key=mediaClsName1]").val('');
+                    modalTarget.find("[data-key=mediaArea]").val('');
+                    modalTarget.find("[data-key=isUsable]").val('true');
+                    modalTarget.find("[data-insert-hide]").hide();
+                    modalTarget.openModal();
+                }else if( target ){
+                    $("#popup_submit_btn").text("수정");
+                    popupMode="update";
+                    modalTarget.find("tbody tr").show();
+                    for(var key in target){
+                        let item = modalTarget.find(`[data-key=${key}]`);
+                        if(item.length){
+                            if( item.get(0).nodeName == "INPUT" || item.get(0).nodeName == "SELECT" || item.get(0).nodeName == "CHECKBOX" || item.get(0).nodeName == "RADIO" || item.get(0).nodeName == "TEXTAREA"){
+                                item.val(target[key]);
+                            }else{
+                                item.html(target[key]);
+                            }
+                        }
+                    }
+                    setClsType2(target.mediaClsName1, target.mediaClsName2);
+                    if( target.organizationInfo ) modalTarget.find("[data-key=organizationName]").val(target.organizationInfo.organizationName)
+                    modalTarget.find("#isUsable").val(target.isUsable+"")
+                    modalTarget.openModal();
+                }else{
+                    alert('데이터가 올바르지 않습니다.');
+                }
+            }
+
+            //매체사 선택
+            function setPopData(data) {
+                modalTarget.find("[data-key=organizationCode]").val(data.organizationCode);
+                modalTarget.find("[data-key=organizationName]").val(data.organizationName);
+            }
+
+            //매체사 수신 이벤트 함수
+            function handleDocHeightMsg(eventObj) { // 메시지 수신 처리를 위한 함수
+                setPopData(eventObj.data);
+            }
+            //매체사 팝업 이벤트 message 핸들러
+            window.addEventListener('message', handleDocHeightMsg, false); // 메시지 수신 이벤트 등록
+        </script>
+    </th:block>
+</div>
+
+</body>
+</html>

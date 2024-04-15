@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="contents-1-1">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>콘텐츠 관리</h2>
+        </div>
+    
+        <div class="tableLeftResponsive">
+            <table class="tableLeft">
+                <colgroup>
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                </colgroup>
+                <tbody>
+                    <tr>
+                        <th scope="row"><span class="el_required">*</span>구분</th>
+                        <td>
+                            <select id="categoryCode" class="common_select">
+                                <option value="">구분</option>
+                                <th:block th:each="commonCode : ${commonCode}" th:if="${commonCode.code} == 'CTS_CTGR'">
+                                    <option th:each="categoryCode : ${commonCode.subCode}" th:value="${categoryCode.code}"
+                                            th:text="${categoryCode.codeName}" th:selected="${content != null ? content[0].categoryCode == categoryCode.code : false}"></option>
+                                </th:block>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><span class="el_required">*</span>콘텐츠명</th>
+                        <td><input id="contentsName" type="text"></td>
+                    </tr>
+                    <tr>
+                        <th scope="row">콘텐츠 크기</th>
+                        <td>
+                            <div class="d-flex">
+                                <div class="d-flex align-items-center">
+                                    <span class="me-2">넓이</span>
+                                    <input id="width" type="text" class="hp_w120 me-1">
+                                    <span>px</span>
+                                </div>
+                                <div class="d-flex align-items-center">
+                                    <span class="ms-3 me-2">높이</span>
+                                    <input id="height" type="text" class="hp_w120 me-1">
+                                    <span>px</span>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">재생시간</th>
+                        <td>
+                            <input id="educationPerMinute" type="text" class="hp_w120 me-1">분
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><span class="el_required">*</span>상태</th>
+                        <td>
+                            <select id="isUsable" class="common_select">
+                                <option value= "">선택</option>
+                                <option value = true>사용</option>
+                                <option value = false>사용안함</option>
+                            </select>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="bl_gridBtns">
+            <div class="bl_gridBtns_rgt">
+                <a href="/contents/list" class="btn btnDefault btnList">목록</a>
+                <a class="btn btnDefault btnRegister" th:onclick="regist()">등록</a>
+            </div>
+        </div>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            /* <![CDATA[ */
+            const params = {};
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+            }
+
+            // 미입력된 필수 정보가 있을 경우 alert
+            function requiredChk() {
+                /** 카테고리 체크 */
+                if(!document.querySelector('#categoryCode').value) {
+                    alert('카테고리는 필수입니다.'); return false;
+                } else params.categoryCode = document.querySelector('#categoryCode').value;
+
+                /** 콘텐츠명 */
+                if(!document.querySelector('#contentsName').value) {
+                    alert('콘텐츠 명은 필수입니다.'); return false;
+                } else params.contentsName = document.querySelector('#contentsName').value;
+
+                /** 콘텐츠 넓이 */
+                params.width = document.querySelector('#width').value;
+                /** 콘텐츠 높이 */
+                params.height = document.querySelector('#height').value;
+                /** 재생시간 */
+                params.educationPerMinute = document.querySelector('#educationPerMinute').value;
+
+                /** 상태 */
+                if(document.querySelector('#isUsable').value === "") {
+                    alert('상태는 필수입니다.'); return false;
+                } else {
+                    params.isUsable = document.querySelector('#isUsable').value;
+                }
+
+                return true;
+            }
+
+            /** 콘텐츠 등록 */
+            function regist() {
+                /** 필수 값 체크 */
+                if(!requiredChk()) return;
+                /** 콘텐츠 수정 */
+                $.ajax({ //jquery ajax
+                    type:"post", //http method
+                    url:"/api/contents/list/create", //값을 가져올 경로
+                    headers: {'Content-Type': 'application/json'},
+                    data: JSON.stringify(params),
+                    dataType:"json", //html, xml, text, script, json, jsonp 등 다양하게 쓸 수 있음
+                    success: function(data) {   //요청 성공시 실행될 메서드
+                        alert("콘텐츠 정보 생성이 완료되었습니다.");
+                        window.location.replace('/contents/list');
+                    },
+                    error: function(e){		 //요청 실패시 에러 확인을 위함
+                        alert(e.responseJSON.resultMessage);
+                    }
+                })
+            }
+            /* ]]> */
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

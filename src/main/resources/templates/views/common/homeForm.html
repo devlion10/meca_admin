@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content">
+    <div sec:authorize="isAuthenticated()">
+        <style>
+            .d-flex{
+
+            }
+
+            #mobileMessagePop .cts-grid{
+                height:500px;
+            }
+            #mobileMessagePop .cts-grid-left{
+
+            }
+            #mobileMessagePop .cts-grid-table{
+
+            }
+            #mobileMessagePop .tableResponsive.cts-grid{
+                overflow: hidden;
+            }
+            #mobileMessagePop .tableResponsive.cts-grid .cts-grid-table{
+                border:1px solid #ccc;
+                position: relative;
+                height:445px;
+                overflow-y: auto;
+            }
+            #mobileMessagePop .tableResponsive.cts-grid .cts-grid-table .cts-sms-table thead>tr:first-child th{
+                border-top:0px;
+            }
+            #mobileMessagePop .cts-sms-table tbody td:last-child{
+                padding:5px 7px;
+            }
+
+            #mobileMessagePop .tableResponsive.cts-grid .cts-sms-form td{
+                border-top:0px;
+                background: #fff;
+            }
+            #mobileMessagePop .tableResponsive.cts-grid .cts-sms-form td.td-head{
+                background-color: #e8f2fc;
+                border-right: 1px solid #ddd;
+                border-bottom: 1px solid #ddd;
+                padding: 5px;
+                font-weight: 400;
+            }
+            #mobileMessagePop #_sms_popup_text_maxlength{
+                position: absolute;
+                bottom: 11px;
+                right: 25px;
+            }
+            #mobileMessagePop .tableResponsive.cts-grid .cts-sms-form textarea{
+                height:100%;
+                resize: none;
+            }
+
+            #mobileMessagePop .cts-sms-table [scope=empty] td{
+                color:#999;
+                border-bottom:none;
+                padding: 190px 0px !important;
+            }
+        </style>
+    </div>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+
+            /* <![CDATA[ */
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+                console.log('imsi: ', [[ ${imsi} ]] )
+            }
+            /* ]]> */
+        </script>
+    </th:block>
+    <form id="submitForm" action="#" style="visibility: hidden">
+        <input type="text" id="searchStartDate" name="searchStartDate" />
+        <input type="text" id="searchEndDate" name="searchEndDate" />
+        <input type="text" id="number" name="number" />
+        <input type="text" id="size" name="size" />
+    </form>
+</div>
+</body>
+</html>

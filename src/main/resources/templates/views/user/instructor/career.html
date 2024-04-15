@@ -1,0 +1,126 @@
+<!-- FORME 강의확인서 목록 -->
+<th:block layout:fragment="style">
+    <style>
+        #career_list_wrap tr.active td{ background: #b4daff !important;}
+    </style>
+</th:block>
+<div id="careers">
+
+    <div class="bl_boardCtrls">
+        <div class="bl_boardCtrls_lft">
+            <h3 class="subTitle">강의이력</h3>
+        </div>
+        <div class="bl_boardCtrls_rgt">
+            <select class="common_select no-change-event" data-list="countSortList"></select>
+        </div>
+    </div>
+    <div class="tableResponsive overflowMulti">
+        <table class="table">
+            <thead>
+            <tr>
+                <th scope="col">순번</th>
+                <th scope="col">구분</th>
+                <th scope="col">사업/교육명</th>
+                <th scope="col">진행기간</th>
+                <th scope="col">진행일시</th>
+                <th scope="col">총액</th>
+            </tr>
+            </thead>
+            <tbody id="career_list_wrap">
+            <tr>
+                <td>순번</td>
+                <td>구분</td>
+                <td>사업/교육명</td>
+                <td>진행기간</td>
+                <td>진행일시</td>
+                <td>총액</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+    <div id="career_list_wrap_paginate" class="bl_paginate"></div>
+</div>
+
+<th:block layout:fragment="script">
+    <script th:inline="javascript">
+        function initialCareers(categories, userId, serialNo) {
+            let pageInfo = {
+                page: 0,
+                size: $("#careers .common_select").val() || 20,
+                instrCtgr: categories,//categories
+                userId: userId,//userId
+                instrSerialNo: serialNo,//serialNo
+                onClick: function (pageIndex) {
+                    if (pageIndex !== undefined) {
+                        pageInfo.page = pageIndex;
+                        getCareerList(serialNo, (pageIndex - 1));
+                    }
+                }
+            }
+
+            $(document).ready(function(){
+                $("#careers .common_select").off("change").change(function(e){
+                    e.preventDefault();
+                    pageInfo.size = $("#careers .common_select").val() || 50;
+                    getCareerList(serialNo, 0)
+                });
+            });
+
+            function careerPaginationInfo(data) {
+                let result = {
+                    page: data.pageable.pageNumber,
+                    size: $("#careers .common_select").val(),
+                    totalPages: data.totalPages,
+                    first: data.first,
+                    last: data.last,
+                    totalElements: data.totalElements
+                }
+                return result;
+            }
+
+            function getCareerList(serialNo, pageIndex = 0) {
+                if (pageIndex != undefined) {
+                    pageInfo.page = pageIndex;
+                }
+                $.ajax({
+                    type: "get",
+                    headers: {'Content-Type': 'application/json'},
+                    url: "/api/user/instructor/career",
+                    data: pageInfo,
+                    dataType: "json",
+                    success: function (data) {
+                        if (data && data.content && data.content) careerListMakeItem(data.content, data);
+                        pageInfo = Object.assign(pageInfo, careerPaginationInfo(data));
+                        paginationAjax($("#career_list_wrap_paginate").get(0), pageInfo);
+                    }
+                });
+            }
+
+            function careerListMakeItem(list, data) {
+                let frag = $(document.createDocumentFragment());
+                if ($("#career_count").length && data) {
+                    $("#career_count").text(data.totalElements + '건');
+                }
+                list.forEach(function (item, index) {
+                    let tr = $(`
+                    <tr>
+                        <td>${data.totalElements - ((data.number * data.size) + index)}</td>
+                        <td>${ctsUtil.checkNull(item.categoryNm, '')}</td>
+                        <td>${ctsUtil.checkNull(item.title, '')}</td>
+                        <td>${ctsUtil.checkNull(item.periodBgng, '') + " ~ " + ctsUtil.checkNull(item.periodEnd, '')}</td>
+                        <td>${ctsUtil.checkNull(item.date).toString().replace(/,/g,"<br>", '')}</td>
+                        <td>${ctsUtil.checkNull(item.pay, '').toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</td>
+                    </tr>
+                    `);
+                    frag.append(tr);
+                });
+                if( !list.length ){
+                    let tr = $(`<tr><td class="text-center" colspan="6">강의이력이 없습니다.</td></tr>`);
+                    frag.html(tr);
+                }
+                $('#career_list_wrap').empty().append(frag);
+            }
+            getCareerList(serialNo, 0);
+        }
+    </script>
+</th:block>

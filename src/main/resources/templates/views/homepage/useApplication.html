@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="homepage-14">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>교육장 사용신청 관리</h2>
+        </div>
+        
+        <div class="tableLeftResponsive">
+            <table class="tableLeft">
+                <colgroup>
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                </colgroup>
+                <tbody>
+                    <tr>
+                        <th scope="row">작성일</th>
+                        <td>
+                            <div class="bl_dateRange">
+                                <input type="text" id="startDate" class="el_datePicker sdate">
+                                <span class="blank">~</span>
+                                <input type="text" id="endDate" class="el_datePicker edate">
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">검색</th>
+                        <td>
+                            <div class="d-flex gap-2">
+                                <select id="containTextType" class="common_select">
+                                    <option value="1">제목+내용</option>
+                                    <option value="2">제목</option>
+                                    <option value="3">내용</option>
+                                </select>
+                                <input type="text" id="containText" class="hp_w600">
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">작성자</th>
+                        <td>
+                            <div class="d-flex gap-2">
+                                <select id="containTextType2" class="common_select">
+                                    <option value="1">이름</option>
+                                    <option value="2">아이디</option>
+                                </select>
+                                <input type="text" id="containText2" class="hp_w600">
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">연락처</th>
+                        <td>
+                            <input type="text" id="aplyPhone" class="hp_w400">
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="bl_gridBtns">
+            <div class="bl_gridBtns_md">
+                <div class="btn btnDefault btnReset">리셋</div>
+                <div class="btn btnDefault btnSearch">검색</div>
+            </div>
+        </div>
+
+        <!-- BOARD : CONTROLLER -->
+        <div class="bl_boardCtrls">
+            <div class="bl_boardCtrls_lft">
+                <p class="bl_boardCtrls_total">총: <strong th:text="${pageable.totalElements}"></strong>건</p>
+                <select class="common_select" data-list="countSortList"></select>
+            </div>
+        </div>
+
+        <div class="tableResponsive overflowMulti">
+            <table class="table">
+                <colgroup>
+                    <col style="width: 50px">
+                    <col>
+                    <col>
+                    <col>
+                    <col>
+                    <col>
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th scope="col">번호</th>
+                        <th scope="col">제목</th>
+                        <th scope="col">신청서</th>
+                        <th scope="col">연락처</th>
+                        <th scope="col">작성자</th>
+                        <th scope="col">작성일</th>
+                    </tr>
+                </thead>
+                <tbody th:if="${content != null && content.size > 0}">
+                    <tr th:if="${content.size > 0}" th:each="item, stat: ${content}">
+                        <td>
+                            <span th:text="${pageable.totalElements - ((pageable.page * pageable.size) + stat.index)}"></span>
+                        </td>
+                        <td>
+                            <a th:if="${item.sequenceNo != null}" th:href="@{/homepage/edu-center/{id}(id=${item.sequenceNo})}" class="d-flex">
+                                <span class="hp_ellipsis" th:if="${item.title != null}" th:text="${item.title}">제목입니다.</span>
+                            </a>
+                        </td>
+                        <td>
+                            <div class="btn_type5 btn_file" th:if="${item.atchFilePath != null} and ${item.atchFilePath != ''}" style="width: 14px; height: 14px; padding: 0"></div>
+                        </td>
+                        <td th:if="${item.aplyPhone != null}" th:text="${item.aplyPhone}">010-1234-1234</td>
+                        <td>
+                            <span th:if="${item.aplyUserNm != null}" th:text="${item.aplyUserNm}">홍길동</span>
+                            (<span th:if="${item.registUserId != null}" th:text="${item.registUserId}">test</span>)
+                        </td>
+                        <td th:if="${item.createDateTime != null}" th:text="${#strings.substring(item.createDateTime,0,10)}">2022.01.01</td>
+                    </tr>
+                </tbody>
+                <tbody th:unless="${content != null && content.size > 0}">
+                <tr class="empty_data"><td colspan="6">조회된 내용이 없습니다.</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="bl_paginate"></div>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            /* <![CDATA[ */
+            $(".btnSearch").on('click',function (){
+                let searchQuery = {};
+                let startDate = $("#startDate").val();
+                let endDate = $("#endDate").val();
+                let containText = $("#containText").val(); //검색
+                let containTextType = $("#containTextType").val();
+                let containText2 = $("#containText2").val(); //작성자
+                let containTextType2 = $("#containTextType2").val();
+                let aplyPhone = $("#aplyPhone").val();
+                if (startDate && endDate) {
+                    searchQuery.startDate = startDate;
+                    searchQuery.endDate = endDate;
+                } else if (startDate || endDate) {
+                    alert('검색 시작일과 종료일을 모두 입력해야 합니다.')
+                }
+                if (containText) {
+                    searchQuery.containText = containText;
+                    searchQuery.containTextType =containTextType;
+                }
+                if (containText2) {
+                    if (containTextType2 == 1) {
+                        searchQuery.aplyUserNm = containText2;
+                    } else if (containTextType2 == 2) {
+                        searchQuery.userId = containText2;
+                    }
+                }
+                if (aplyPhone) {
+                    searchQuery.aplyPhone = aplyPhone;
+                }
+                searchJson(searchQuery)
+            });
+
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+                pagination([[ ${pageable} ]], false)
+
+                let searchParams = new URLSearchParams(window.location.search);
+                if (searchParams.has('startDate')){
+                    $("#startDate").val(searchParams.get('startDate'));
+                    $("#endDate").val(searchParams.get('endDate'));
+                }
+                if (searchParams.has('containText')){
+                    $("#containText").val(searchParams.get('containText'));
+                    $("#containTextType").val(searchParams.get('containTextType'));
+                }
+                if (searchParams.has('aplyUserNm')) {
+                    $("#containTextType2").val(1);
+                    $("#containText2").val(searchParams.get('aplyUserNm'));
+                }
+                if (searchParams.has('userId')) {
+                    $("#containTextType2").val(2);
+                    $("#containText2").val(searchParams.get('userId'));
+                }
+                if (searchParams.has('aplyPhone')) {
+                    $("#aplyPhone").val(searchParams.get('aplyPhone'));
+                }
+            }
+            /* ]]> */
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

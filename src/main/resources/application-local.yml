@@ -1,0 +1,80 @@
+spring:
+  config:
+    import: classpath:application-db-mysql-local.yml
+  devtools:
+    livereload:
+      enabled: true
+    restart:
+      enabled: true
+  thymeleaf:
+    cache: false
+  servlet:
+    multipart:
+      max-file-size: 1GB
+      max-request-size: 1GB
+  #이메일 properties
+  mail:
+    default-encoding: UTF-8
+    host: smtp.gmail.com
+    port: 587
+    #발신자 이메일 주소
+    username:
+    #발신자 이메일 앱 비밀번호
+    password:
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+        debug: true
+        mime:
+          charset: UTF-8
+        transport:
+          protocol: smtp
+
+server:
+  port: 8088
+  servlet:
+    session:
+      timeout: 3600
+app-config:
+  web-domain: http://localhost:8080
+  qr-code-path: /education/schedule/lecture/qr-code
+  security:
+    debug: false
+    encrypt-key: 4B6150645367566B5970337336763979244226452948404D6251655468576D5A
+  web-connection:
+    http-connect-timeout: 50000
+    http-read-timeout: 10000
+  upload-file:
+    upload-context-path: C:/Users/Public/upload
+    contents-context-path: C:/Users/Public/contents
+    reference-folder: /reference
+    user-folder: /user
+    instr-folder: /instructor
+    application-folder: /application
+    my-qna-folder: /myqna
+    notice-folder: /notice
+    lms-data-folder: /lmsdata
+    event-folder: /event
+    press-folder: /press
+    edu-place-folder: /eduplace
+    banner-folder: /banner
+    thumbnail-folder: /thumbnail
+    qr-code-folder: /qr-code
+    exam-folder: /exam
+    assignment-folder: /assignment
+    upload-folder: /file
+    class-guide-folder: /class-guide
+    biz-aply-folder: /biz-aply
+    biz-organization-aply-folder: /biz-organization-aply
+    biz-pbanc-result-folder: /biz-pbanc-result
+    biz-instr-folder: /biz-instr
+    biz-instr-dist-folder: /biz-instr-dist
+    biz-organization-rslt-rpt-folder: /biz-organization-rslt-rpt
+  # 비즈뿌리오
+  biz-p-purio:
+    url: dev-api.bizppurio.com
+    id: kpfmeca
+    password: kpf21906006!

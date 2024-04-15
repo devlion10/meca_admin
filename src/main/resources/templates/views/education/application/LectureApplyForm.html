@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="edu-3-3">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title d-flex-between">
+            <h2>화상/집합교육 신청관리</h2>
+            <div class="text-end">
+                <a class="btn btnDefault" href="/education/application/lecture/apply">뒤로가기</a>
+            </div>
+        </div>
+
+        <div class="tableLeftResponsive">
+            <table class="tableLeft">
+                <colgroup>
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                </colgroup>
+                <tbody>
+                    <tr>
+                        <th scope="row">과정명</th>
+                        <td colspan="3" th:if="${content!=null && #lists.size(content) !=0}" th:text="${content[0].educationPlan.curriculumMaster.curriculumName}">과정명 입니다.</td>
+                        <td colspan="3" th:unless="${content!=null && #lists.size(content) !=0}"> </td>
+                    </tr>
+                    <tr th:if="${content!=null && #lists.size(content) !=0 && content[0].educationPlan.curriculumMaster.educationTarget=='3'}">
+                        <th scope="row">과정번호(교원)</th>
+                        <td colspan="3">
+                            <span th:text="${content[0].educationPlan.programNumber}">2022</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">교육방식</th>
+                        <td>
+                            <th:block th:each="commonCode : ${commonCode}" th:if="${commonCode.code} == 'EDU_TYPE'">
+                                <th:block th:each="educationType : ${commonCode.subCode}" th:if="${educationType.code != '3'}">
+                                    <span th:if="${content != null && #lists.size(content) != 0 && educationType.code == content[0].educationPlan.curriculumMaster.educationType}" th:text="${educationType.codeName}"></span>
+                                </th:block>
+                            </th:block>
+                        </td>
+                        <th scope="row">연도/기수</th>
+                        <td>
+                            <span th:if="${content!=null && #lists.size(content) !=0}" th:text="${content[0].educationPlan.yearOfEducationPlan}">2022</span> /
+                            <span th:if="${content!=null && #lists.size(content) !=0}" th:text="${content[0].educationPlan.yearOfEducationPlanStep}">01</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">신청일</th>
+                        <td>
+                            <div class="bl_dateRange">
+                                <input id="applyBeginDateTime" type="text" class="el_datePicker sdate">
+                                <span class="blank">~</span>
+                                <input id="applyEndDateTime" type="text" class="el_datePicker edate">
+                            </div>
+                        </td>
+                        <th scope="row">상태</th>
+                        <td>
+                            <div class="radio_box">
+                                <input id="state_all" type="radio" name="state" checked>
+                                <label for="state_all">
+                                    <span></span>
+                                    전체
+                                </label>
+                            </div>
+                            <div class="radio_box">
+                                <input id="state1" type="radio" name="state">
+                                <label for="state1">
+                                    <span></span>
+                                    승인대기
+                                </label>
+                            </div>
+                            <div class="radio_box">
+                                <input id="state2" type="radio" name="state">
+                                <label for="state2">
+                                    <span></span>
+                                    승인
+                                </label>
+                            </div>
+                            <div class="radio_box">
+                                <input id="state3" type="radio" name="state">
+                                <label for="state3">
+                                    <span></span>
+                                    취소
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">검색</th>
+                        <td colspan="3">
+                            <div class="d-flex-2">
+                                <select id="containType" class="common_select">
+                                    <option value="1">전체</option>
+                                    <option value="2">이름</option>
+                                    <option value="3">아이디</option>
+                                </select>
+                                <input id="containText" type="text" class="hp_w600">
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- GRID : BUTTON -->
+        <div class="bl_gridBtns">
+            <div class="bl_gridBtns_md">
+                <div onclick="goSearch()" class="btn btnDefault btnSearch">검색</div>
+                <a class="btn btnDefault download_excel" href="/api/education/application/parallel/excel">excel 다운로드</a>
+            </div>
+        </div>
+
+        <!-- BOARD : CONTROLLER -->
+        <div class="bl_boardCtrls">
+            <div class="bl_boardCtrls_lft">
+                <p class="bl_boardCtrls_total">
+                    총:  <strong th:text="${pageable.totalElements}"></strong>건
+                </p>
+            </div>
+            <div class="bl_boardCtrls_rgt">
+                <select class="common_select" data-list="countSortList"></select>
+            </div>
+        </div>
+
+        <div class="tableResponsive">
+            <table class="table table_fixed_2">
+                <colgroup>
+                    <col width="30px">
+                    <col width="60px">
+                    <col width="60px">
+                    <col>
+                    <col width="40px">
+                    <col>
+                    <col>
+                    <col>
+                    <col>
+                    <col width="60px" th:if="${content != null && #lists.size(content) != 0 && content[0].educationPlan.curriculumMaster.educationType=='4'}">
+                    <col width="55px" th:unless="${content != null && #lists.size(content) != 0 && content[0].educationPlan.curriculumMaster.educationType=='1'}">
+                    <col>
+                    <col>
+                    <col>
+                    <col>
+                    <col width="68px">
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th scope="col">
+                            <div class="chk_box">
+                                <input id="all_check" type="checkbox" name="list">
+                                <label for="all_check">
+                                    <span class="me-0"></span>
+                                </label>
+                            </div>
+                        </th>
+                        <th scope="col">번호</th>
+                        <th scope="col">회원유형</th>
+                        <th scope="col">이름<br/>(아이디)</th>
+                        <th scope="col">성별</th>
+                        <th scope="col">소속명</th>
+                        <th scope="col">부서/직급/직책</th>
+                        <th scope="col">NEIS 번호</th>
+                        <th scope="col">학습기간</th>
+                        <th scope="col" th:if="${content != null && #lists.size(content) != 0 && content[0].educationPlan.curriculumMaster.educationType=='4'}">교육방식</th>
+                        <th scope="col" th:unless="${content != null && #lists.size(content) != 0 && content[0].educationPlan.curriculumMaster.educationType=='1'}">숙박여부</th>
+                        <th scope="col">신청일</th>
+                        <th scope="col">연락처</th>
+                        <th scope="col">이메일</th>
+                        <th scope="col">신청서</th>
+                        <th scope="col">상태</th>
+                    </tr>
+                </thead>
+                <tbody>
+                <th:block th:if="${content != null && #lists.size(content) != 0}">
+                    <tr th:each="item, stat : ${content}">
+                        <td style="display: none;">
+                            <span th:text="${item.sequenceNo}"></span>
+                        </td>
+                        <td>
+                            <div class="chk_box item_chk">
+                                <input th:id="|list${stat.index}|" type="checkbox" name="checkItem" th:data-userdata='|{"userName": "${item.lmsUser.userName}", "phone": "${item.lmsUser.phone}"}|'>
+                                <label th:for="|list${stat.index}|">
+                                    <span class="me-0"></span>
+                                </label>
+                            </div>
+                        </td>
+                        <td th:text="${pageable.totalElements - ((pageable.page * pageable.size) + stat.index)}">1</td>
+                        <td>
+                            <span th:if="${item.lmsUser.roleGroup == 'TEACHER'}">일반<br/>(교원)</span>
+                            <span th:if="${item.lmsUser.roleGroup == 'STUDENT'}">일반<br/>(학생)</span>
+                            <span th:if="${item.lmsUser.roleGroup == 'PARENTS'}">일반<br/>(학부모)</span>
+                            <span th:if="${item.lmsUser.roleGroup == 'JOURNALIST'}">언론인</span>
+                            <span th:if="${item.lmsUser.roleGroup == 'GENERAL'}">일반인</span>
+                            <span th:if="${item.lmsUser.roleGroup == 'SUPER'}">관리자</span>
+                        </td>
+                        <td>
+                            <span th:text="${item.lmsUser.userName}">홍길동</span><br/>
+                            <span th:text="${'('+ item.lmsUser.userId+')'}">(hong12)</span>
+                        </td>
+                        <td>
+                            <span th:if="${item.lmsUser.gender!=null}">
+                                <span th:if="${item.lmsUser.gender=='1' || item.lmsUser.gender=='2'}">
+                                    <span th:if="${item.lmsUser.gender=='1'}">남성</span>
+                                    <span th:if="${item.lmsUser.gender=='2'}">여성</span>
+                                </span>
+                                <span th:unless="${item.lmsUser.gender=='1' || item.lmsUser.gender=='2'}">(확인필요)</span>
+                            </span>
+                            <span th:unless="${item.lmsUser.gender!=null}">(확인필요)</span>
+                        </td>
+                        <td>
+                            <div th:if="${item.lmsUser.organizationInfo != null}" th:text="${item.lmsUser.organizationInfo.organizationName}"></div>
+                            <div th:if="${item.lmsUser.mediaInfo != null}" th:text="${item.lmsUser.mediaInfo.mediaName}"></div>
+                        </td>
+                        <td>
+                            <div th:if="${item.lmsUser.department != null}" th:text="${item.lmsUser.department}"></div>
+                            <div>
+                                <span th:if="${item.lmsUser.rank != null}" th:text="${item.lmsUser.rank}"></span>
+                                <span th:if="${not #strings.isEmpty(item.lmsUser.rank) && not #strings.isEmpty(item.lmsUser.position)}"> / </span>
+                                <span th:if="${item.lmsUser.position != null}" th:text="${item.lmsUser.position}"></span>
+                            </div>
+                        </td>
+                        <td th:text="${item.lmsUser.personalNiceNo}">A123456789</td>
+                        <td>
+                            <span th:text="${#strings.substring(item.educationPlan.operationBeginDateTime, 0, 10)}">2022.09.01</span> ~<br/>
+                            <span th:text="${#strings.substring(item.educationPlan.operationEndDateTime, 0, 10)}">2022.09.30</span>
+                        </td>
+                        <td th:if="${content != null && #lists.size(content) != 0 && content[0].educationPlan.curriculumMaster.educationType=='4'}">
+                            <span th:if="${item.setEducationType == '1'}">화상교육</span>
+                            <span th:if="${item.setEducationType == '2'}">집합교육</span>
+                        </td>
+                        <td th:unless="${content != null && #lists.size(content) != 0 && content[0].educationPlan.curriculumMaster.educationType=='1'}">
+                            <span th:if="${item.isAccommodation == true}" class="color_blue">Y</span>
+                            <span th:unless="${item.isAccommodation == true}" class="color_red">N</span>
+                        </td>
+                        <td>
+                            <span th:text="${#strings.substring(item.createDateTime, 0, 10)}">2022.09.01</span><br/>
+                            <span th:text="${#strings.substring(item.createDateTime, 11, 19)}">14:23:36</span>
+                        </td>
+                        <td th:text="${item.lmsUser.phone}">010-1234-1234</td>
+                        <td th:text="${item.lmsUser.email}">test12@naver.com</td>
+                        <td><a th:if="${item.applicationFilePath}" th:href="@{/api/common/upload/download(attachFilePath=${item.applicationFilePath})}" class="btn_file download_ajax">신청서</a></td>
+                        <td>
+                            <span class="state state__green" th:if="${item.adminApprovalState == '2'}">승인</span>
+                            <span class="state state__blue" th:if="${item.adminApprovalState == '1'}">승인대기</span>
+                            <span class="state state__red" th:if="${item.adminApprovalState == '3'}">승인거절(취소)</span>
+                            <span class="state state__gray" th:if="${item.adminApprovalState == '4'}">신청취소</span>
+                        </td>
+                    </tr>
+                </th:block>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- GRID : BUTTON -->
+        <div class="bl_gridBtns">
+            <div class="bl_gridBtns_lft">
+                <div class="btn btnDefault" onclick="checkSMS()">SMS 발송</div>
+            </div>
+            <div class="bl_gridBtns_rgt" style="flex-basis: auto">
+                <div class="d-flex-1" th:unless="${content != null && #lists.size(content) != 0 && content[0].educationPlan.curriculumMaster.educationType=='1'}">
+                    선택한 항목의 숙박여부를
+                    <select id="accommodationState" class="common_select">
+                        <option value="Y">Y</option>
+                        <option value="N">N</option>
+                    </select>
+                    (으)로
+                    <div onclick="modify('accomm')" class="btn btnDefault">변경</div>
+                </div>
+                <div class="d-flex-1" th:if="${content != null && #lists.size(content) != 0 && content[0].educationPlan.curriculumMaster.educationType=='4'}">
+                    선택한 항목의 교육방식을
+                    <select id="choiceEducationType" class="common_select">
+                        <option value="1">화상</option>
+                        <option value="2">집합</option>
+                    </select>
+                    (으)로
+                    <div onclick="modify('eduType')" class="btn btnDefault">변경</div>
+                </div>
+                <div class="d-flex-1">
+                    선택한 항목의 상태를
+                    <select id="adminApprovalState" class="common_select">
+                        <option value="1">승인대기</option>
+                        <option value="3">취소</option>
+                        <option value="2">승인</option>
+                    </select>
+                    (으)로
+                    <div onclick="modify('state')" class="btn btnDefault">변경</div>
+                </div>
+            </div>
+        </div>
+        <div class="bl_paginate"></div>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+
+    <th:block layout:fragment="script">
+    <script th:inline="javascript">
+        $("#list_all").bind('click',function (e){
+            if($(this).is(":checked")){
+                $(`input:checkbox[name=checkItem]`).prop("checked", true);
+            }else{
+                $(`input:checkbox[name=checkItem]`).prop("checked", false);
+            }
+        })
+        /* <![CDATA[ */
+        const content = [[ ${content} ]];
+        function onLoadSubmit() {
+            console.log('commonCode: ', [[ ${commonCode} ]] )
+            pagination([[ ${pageable} ]], false)
+            checkBox();
+
+            const params = new URLSearchParams(decodeURIComponent(window.location.search).replace("?", ""));
+            if(params.get("startDate")) { document.querySelector("#applyBeginDateTime").value = params.get("startDate").replaceAll("-","."); }
+            if(params.get("endDate")) { document.querySelector("#applyEndDateTime").value = params.get("endDate").replaceAll("-","."); }
+            if(params.get("educationType")) { Array.from($("[name=educationType]")).filter(data => data.value == params.get("educationType")).forEach(data => data.setAttribute('checked', true)); }
+            if(params.get("adminApprovalState")) { Array.from($("[name=adminApprovalState]")).filter(data => data.value == params.get("adminApprovalState")).forEach(data => data.setAttribute('checked', true)); }
+
+            if(params.get("containTextType") == '1') { document.getElementById('containType').value = "1"; document.querySelector('#containText').value = params.get("containText"); }
+            if(params.get("containTextType") == '2') { document.getElementById('containType').value = "2"; document.querySelector('#containText').value = params.get("containText"); }
+            if(params.get("containTextType") == '3') { document.getElementById('containType').value = "3"; document.querySelector('#containText').value = params.get("containText"); }
+
+            let output = window.location.pathname.split('/').pop();
+            let search = window.location.search;
+            if(search && search!=""){
+                $(".download_excel").attr('href', `/api/education/application/parallel/excel`+search+`&educationPlanCode=${output}`);
+            }else{
+                $(".download_excel").attr('href', `/api/education/application/parallel/excel?educationPlanCode=${output}`);
+            }
+
+        }
+
+        /** 집합 교육 신청 내역 조회 */
+        function goSearch() {
+            const params = {};
+            if(document.querySelector("#applyBeginDateTime").value && document.querySelector("#applyEndDateTime").value) {
+                params.startDate = document.querySelector("#applyBeginDateTime").value;
+                params.endDate = document.querySelector("#applyEndDateTime").value;
+            }
+            else if(document.querySelector("#applyBeginDateTime").value || document.querySelector("#applyEndDateTime").value){
+                alert('신청일 검색은 시작일과 종료일을 모두 입력해야 합니다. ')
+            }
+            if($("[name=adminApprovalState]:checked").attr('value')) params.adminApprovalState = $("[name=adminApprovalState]:checked").attr('value');
+            if(document.getElementById('containType').value == "1") {
+                //전체
+                params.containTextType = "1";
+                params.containText = document.querySelector('#containText').value;
+            } else if(document.getElementById('containType').value == "2") {
+                //이름
+                params.containTextType = "2";
+                params.containText = document.querySelector('#containText').value;
+            } else if(document.getElementById('containType').value == "3") {
+                //아이디
+                params.containTextType = "3";
+                params.containText = document.querySelector('#containText').value;
+            }
+            searchJson(params);
+        }
+
+        /** 교육 신청 정보 수정 */
+        function modify(type) {
+            const params = {};
+            params.applicationList = [];
+            let chkState=0;
+
+            $("[name=checkItem]:checked").each(function (index, value, list) {
+                const sequenceNo = value.parentElement.parentElement.parentElement.children[0].children[0].textContent;
+                if (sequenceNo) {
+                    content.filter(data => String(data.sequenceNo) === String(sequenceNo))
+                        .forEach(data => {
+                            params.applicationList.push({
+                                sequenceNo: data.sequenceNo,
+                                applicationNo: data.applicationNo,
+                                educationPlanCode: data.educationPlanCode,
+                                curriculumCode: data.curriculumCode,
+                                userId: data.userId,
+                                adminApprovalState: type == 'state' ? document.querySelector("#adminApprovalState").value : data.adminApprovalState,
+                                setEducationType: type == 'eduType' ? document.querySelector("#choiceEducationType").value : data.setEducationType,
+                                isAccommodation: type == 'accomm' ? document.querySelector("#accommodationState").value == 'Y' ? true : false : data.isAccommodation
+                            })
+                            if (type == 'state' && document.querySelector("#adminApprovalState").value != '2') chkState += 1;
+                        });
+                }
+            });
+
+            if (params.applicationList.length > 0) {
+                if(chkState === 0) {
+                    $.ajax({ //jquery ajax
+                        type: "put", //http method
+                        url: type == 'state' ? "/api/education/application/update-approval-state" :
+                            type == 'eduType' ? "/api/education/application/update-education-type" :
+                                type == 'accomm' ? "/api/education/application/update-accommodation-state" : "", //값을 가져올 경로
+                        headers: {'Content-Type': 'application/json'},
+                        data: JSON.stringify(params),
+                        dataType: "json", //html, xml, text, script, json, jsonp 등 다양하게 쓸 수 있음
+                        success: function (data) {   //요청 성공시 실행될 메서드
+                            type == 'state' ? alert("교육 신청 상태 수정이 완료되었습니다.") :
+                                type == 'eduType' ? alert("신청 교육 유형 수정이 완료되었습니다.") :
+                                    type == 'accomm' ? alert("숙박 여부 수정이 완료되었습니다.") : alert('잘못된 접근입니다.');
+                            window.location.reload();
+                        },
+                        error: function (e) {		 //요청 실패시 에러 확인을 위함
+                            alert(e.responseJSON.resultMessage);
+                        }
+                    });
+                } else {
+                    if (confirm("승인된 내역을 취소하면 진도 기록이 초기화 됩니다. 진행하시겠습니까?")) {
+                        $.ajax({ //jquery ajax
+                            type: "put", //http method
+                            url: type == 'state' ? "/api/education/application/update-approval-state" :
+                                type == 'eduType' ? "/api/education/application/update-education-type" :
+                                    type == 'accomm' ? "/api/education/application/update-accommodation-state" : "", //값을 가져올 경로
+                            headers: {'Content-Type': 'application/json'},
+                            data: JSON.stringify(params),
+                            dataType: "json", //html, xml, text, script, json, jsonp 등 다양하게 쓸 수 있음
+                            success: function (data) {   //요청 성공시 실행될 메서드
+                                type == 'state' ? alert("교육 신청 상태 수정이 완료되었습니다.") :
+                                    type == 'eduType' ? alert("신청 교육 유형 수정이 완료되었습니다.") :
+                                        type == 'accomm' ? alert("숙박 여부 수정이 완료되었습니다.") : alert('잘못된 접근입니다.');
+                                window.location.reload();
+                            },
+                            error: function (e) {		 //요청 실패시 에러 확인을 위함
+                                alert(e.responseJSON.resultMessage);
+                            }
+                        });
+                    }
+                }
+            }
+        }
+
+        function checkSMS() {
+            let params = new Array($("[name=checkItem]:checked").length);
+            $("[name=checkItem]:checked").each(function(index, value, list) {
+                const sequenceNo = value.parentElement.parentElement.parentElement.children[0].children[0].textContent;
+                if(sequenceNo) {
+                    content.filter(data => String(data.sequenceNo) === String(sequenceNo))
+                        .forEach(data => {
+                            if (data.lmsUser.phone && data.lmsUser.phone.length > 0) {
+                                params.push({
+                                    userName: data.lmsUser.userName,
+                                    phone: data.lmsUser.phone
+                                })
+                            }
+                        });
+                }
+            });
+
+            if (params && params.length > 0) {
+                CommonUI.sendSMS(params)
+            } else {
+                alert("발송 대상을 선택해 주세요.")
+            }
+        }
+        /* ]]> */
+    </script>
+</th:block>
+</div>
+</body>
+</html>

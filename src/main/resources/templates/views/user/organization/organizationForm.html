@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="user-4">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>기관 관리</h2>
+        </div>
+
+        <div class="tableLeftResponsive">
+            <table class="tableLeft">
+                <colgroup>
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                </colgroup>
+                <tbody>
+                    <tr>
+                        <th scope="row"><span class="el_required">*</span>구분</th>
+                        <td>
+                            <select id="organizationType" class="common_select" th:if="${content == null}" not_null="true" alert_name="구분">
+                                <option value="1">매체사</option>
+                                <option value="2">기관</option>
+                                <option value="3">학교</option>
+                            </select>
+                            <select id="organizationType" class="common_select" th:unless="${content == null}" not_null="true" alert_name="구분">
+                                <option value="1" th:selected="${content[0].organizationType == '1'}">매체사</option>
+                                <option value="2" th:selected="${content[0].organizationType == '2'}">기관</option>
+                                <option value="3" th:selected="${content[0].organizationType == '3'}">학교</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><span class="el_required">*</span>기관명</th>
+                        <td>
+                            <input id="organizationName" type="text" class="hp_w400" th:if="${content == null}" not_null="true" alert_name="기관명">
+                            <input id="organizationName" type="text" class="hp_w400" th:unless="${content == null}" th:value="${content[0].organizationName}"not_null="true" alert_name="기관명">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">사업자번호</th>
+                        <td>
+                            <div class="d-flex align-items-center hp_w400 gap-2">
+                                <input id="bizNumber1" class="numberInput" type="text" placeholder="3글자" maxlength="3" >
+                                <span>-</span>
+                                <input id="bizNumber2" class="numberInput" type="text" placeholder="2글자" maxlength="2">
+                                <span>-</span>
+                                <input id="bizNumber3" class="numberInput" type="text" placeholder="5글자" maxlength="5">
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">대표번호</th>
+                        <td>
+                            <div class="d-flex align-items-center hp_w400 gap-2">
+                                <select name="" id="telNumber1" class="common_select" data-list="telList" reg_type="int"></select>
+                                <span>-</span>
+                                <input id="telNumber2" type="text" reg_type="int">
+                                <span>-</span>
+                                <input id="telNumber3" type="text" reg_type="int">
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><span class="el_required"></span>팩스번호</th>
+                        <td>
+                            <input id="organizationFaxNumber" type="text" class="hp_w400" th:if="${content == null}" >
+                            <input id="organizationFaxNumber" type="text" class="hp_w400" th:unless="${content == null}" th:value="${content[0].organizationFaxNumber}" >
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><span class="el_required">*</span>주소</th>
+                        <td>
+                            <div class="d-flex flex-column gap-2">
+                                <div class="d-flex align-items-center gap-2">
+                                    <input id="organizationZipCode" type="text" class="hp_w400" th:if="${content == null}"  not_null="true" alert_name="우편번호" reg_type="int">
+                                    <input id="organizationZipCode" type="text" class="hp_w400" th:unless="${content == null}" th:value="${content[0].organizationZipCode}" readonly  not_null="true" alert_name="우편번호" reg_type="int">
+                                    <div class="btn btnDefault" onclick="addrSearch()">우편번호</div>
+                                </div>
+                                <input id="organizationAddress1" type="text" class="hp_w600" th:if="${content == null}"  not_null="true" alert_name="주소" >
+                                <input id="organizationAddress1" type="text" class="hp_w600" th:unless="${content == null}" th:value="${content[0].organizationAddress1}" readonly not_null="true" alert_name="주소" >
+                                <input id="organizationAddress2" type="text" class="hp_w600" th:if="${content == null}">
+                                <input id="organizationAddress2" type="text" class="hp_w600" th:unless="${content == null}" th:value="${content[0].organizationAddress2}" readonly>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><span class="el_required">*</span>상태</th>
+                        <td>
+                            <select id="isUsable" class="common_select" th:if="${content == null}">
+                                <option value="1">사용</option>
+                                <option value="0">사용안함</option>
+                            </select>
+                            <select id="isUsable" class="common_select" th:unless="${content == null}">
+                                <option value="1" th:selected="${content[0].isUsable}">사용</option>
+                                <option value="0" th:selected="${!content[0].isUsable}">사용안함</option>
+                            </select>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- GRID : BUTTON -->
+        <div class="bl_gridBtns">
+            <div class="bl_gridBtns_rgt">
+                <a class="btn btnDefault btnList" href="/user/organization">목록</a>
+                <a class="btn btnDefault btnRegister" th:if="${content == null}" th:onclick="create()">등록</a>
+                <a class="btn btnDefault btnRegister" th:unless="${content == null}" th:onclick="update()">수정</a>
+            </div>
+        </div>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            function create(){
+                let params = getFormData();
+                if(nullCheck() && confirm("등록하시겠습니까?")){
+                    $.ajax({ //jquery ajax
+                        type: "post", //http method
+                        url: "/api/user/organization/create", //값을 가져올 경로
+                        headers: {'Content-Type': 'application/json'},
+                        data: JSON.stringify(params),
+                        dataType: "json",
+                        success: function(data) {
+                            alert("등록되었습니다.");
+                            window.location.replace("/user/organization")
+                        },
+                        error: function(e) {
+                            alert(e.responseJSON.resultMessage);
+                        }
+                    })
+                }
+            }
+
+            function update(){
+                let params = getFormData();
+                if(nullCheck() && confirm("정말로 수정하시겠습니까?")){
+                    $.ajax({ //jquery ajax
+                        type: "put", //http method
+                        url: "/api/user/organization/update", //값을 가져올 경로
+                        headers: {'Content-Type': 'application/json'},
+                        data: JSON.stringify(params),
+                        dataType: "json",
+                        success: function(data) {
+                            alert("수정이 완료되었습니다.");
+                        },
+                        error: function(e) {
+                            alert(e.responseJSON.resultMessage);
+                        }
+
+                    })
+                }
+            }
+            /* <![CDATA[ */
+            function getFormData(){
+                let params = {};
+                const CONT = [[ ${content} ]]
+                params.organizationCode = CONT? CONT[0].organizationCode :"100";
+                params.organizationName = $("#organizationName").val();
+                params.organizationZipCode = $("#organizationZipCode").val();
+                params.organizationAddress1 = $("#organizationAddress1").val();
+                params.organizationAddress2 = $("#organizationAddress2").val();
+                params.organizationFaxNumber = $("#organizationFaxNumber").val();
+                params.organizationType = $("#organizationType").val();
+                params.bizLicenseNumber = $("#bizNumber1").val()+$("#bizNumber2").val()+$("#bizNumber3").val();
+                params.isUsable = $("#isUsable").val() ==1 ? true :false;
+
+                if ($("#telNumber2").val() && $("#telNumber3").val()) {
+                    var organizationTelNumber = $("#telNumber1").val()+$("#telNumber2").val()+$("#telNumber3").val();
+                    let numberReg = /(^02.{0}|^01.{1}|^050.{1}|^[0-9]{3})([0-9]{3,4})([0-9]{4})/;
+                    if (CONT != null) {
+                        if (CONT[0].organizationTelNumber != organizationTelNumber) {
+                            if (!numberReg.test(organizationTelNumber)) {
+                                alert('잘못된 전화번호입니다. 전화번호 형식에 맞게 입력해주세요.')
+                                params.organizationTelNumber = '0';
+                            } else {
+                                params.organizationTelNumber = organizationTelNumber;
+                            }
+                        } else params.organizationTelNumber = CONT[0].organizationTelNumber;
+                    } else {
+                        if (!numberReg.test(organizationTelNumber)) {
+                            alert('잘못된 전화번호입니다. 전화번호 형식에 맞게 입력해주세요.')
+                            params.organizationTelNumber = '0';
+                        } else {
+                            params.organizationTelNumber = organizationTelNumber;
+                        }
+                    }
+                } else {
+                    params.organizationTelNumber = '0';
+                }
+                return params;
+            }
+
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+                const CONT = [[ ${content} ]]
+
+                if (CONT != null) {
+                    if (CONT[0].organizationTelNumber && CONT[0].organizationTelNumber.length > 0) {
+                        let convertTelNum = CONT[0].organizationTelNumber.replace(/(^02.{0}|^01.{1}|^050.{1}|^[0-9]{3,4})([0-9]*)([0-9]{4})/, "$1-$2-$3");
+                        if(convertTelNum&& convertTelNum.indexOf('-')>0){
+                            setSelected(convertTelNum.split('-')[0],'telNumber1');
+                            document.getElementById('telNumber2').setAttribute('value', convertTelNum.split('-')[1])
+                            document.getElementById('telNumber3').setAttribute('value', convertTelNum.split('-')[2])
+                        }
+                    }
+
+                    if (CONT[0].bizLicenseNumber && CONT[0].bizLicenseNumber.length > 0) {
+                        let bizLicenseNumber = CONT[0].bizLicenseNumber.replace(/([0-9]{3})([0-9]{2})([0-9]{5})/, "$1-$2-$3");
+                        if(bizLicenseNumber&& bizLicenseNumber.indexOf('-')>0){
+                            document.getElementById('bizNumber1').setAttribute('value', bizLicenseNumber.split('-')[0])
+                            document.getElementById('bizNumber2').setAttribute('value', bizLicenseNumber.split('-')[1])
+                            document.getElementById('bizNumber3').setAttribute('value', bizLicenseNumber.split('-')[2])
+                        }
+                    }
+                }
+            }
+
+            function addrSearch() {
+                var width = 500; //팝업의 너비
+                var height = 600; //팝업의 높이
+                new daum.Postcode({
+                    width: width, //생성자에 크기 값을 명시적으로 지정해야 합니다.
+                    height: height,
+                    oncomplete: function(data) {
+                        var zonecode = data.zonecode; // 우편번호 변수
+                        var addr = ''; // 주소 변수
+                        var addr2 = '';
+
+                        document.getElementById('organizationZipCode').value = zonecode;
+                        document.getElementById('organizationZipCode').setAttribute('readonly', 'readonly');
+
+                        //사용자가 선택한 주소 타입에 따라 해당 주소 값을 가져온다.
+                        if (data.userSelectedType === 'R') { // 사용자가 도로명 주소를 선택했을 경우
+                            addr = data.roadAddress;
+                            if (data.buildingName != '') {
+                                addr2 = data.buildingName;
+                            }
+                        } else { // 사용자가 지번 주소를 선택했을 경우(J)
+                            addr = data.jibunAddress;
+                        }
+                        document.getElementById("organizationAddress1").value = addr;
+                        if (addr2 != '') {
+                            document.getElementById("organizationAddress1").value += ' (' + addr2 + ')';
+                        }
+                        document.getElementById("organizationAddress1").setAttribute('readonly', 'readonly');
+                        document.getElementById("organizationAddress2").value = '';
+                        document.getElementById("organizationAddress2").removeAttribute('readonly');
+                    }
+                }).open({
+                    left: (window.screen.width / 2) - (width / 2),
+                    top: (window.screen.height / 2) - (height / 2)
+                });
+            }
+            /* ]]> */
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="business-4-3">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>강사지원 문의</h2>
+        </div>
+
+        <h3 class="subTitle">지원 문의</h3>
+        <div class="tableLeftResponsive">
+            <table class="tableLeft">
+                <colgroup>
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                </colgroup>
+                <tbody>
+                    <tr>
+                        <th scope="row">사업명</th>
+                        <td th:text="${content[0].bizPbancMaster.bizPbancNm}">사업명</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">수행기관</th>
+                        <td th:text="${content[0].bizOrganizationAply.organizationInfo.organizationName}">기관명</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">교육기간</th>
+                        <td>
+                            <span th:text="${content[0].bizOrganizationAply.bizOrgAplyLsnPlanBgng}">2021-08-25</span> ~ <span th:text="${content[0].bizOrganizationAply.bizOrgAplyLsnPlanEnd}">2021-11-26</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">강사명</th>
+                        <td th:text="${content[0].lmsUser.userName}">강사명</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">문의내용</th>
+                        <td th:text="${content[0].bizInstrQstnCn}">삭제 부탁합니다.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h3 class="subTitle">답변 관리</h3>
+        <div class="tableLeftResponsive">
+            <table class="tableLeft">
+                <colgroup>
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                </colgroup>
+                <tbody>
+                    <tr>
+                        <th scope="row"><span class="el_required">*</span>답변내용</th>
+                        <td>
+                            <textarea name="contents" class="ckeditor" style="width:100%; height:200px" th:if="${#lists.size(content[0].bizInstructorQuestionAnswer) == 0}"></textarea>
+                            <textarea name="contents" class="ckeditor" style="width:100%; height:200px" th:unless="${#lists.size(content[0].bizInstructorQuestionAnswer) == 0}" th:text="${content[0].bizInstructorQuestionAnswer[0].bizInstrQstnAnsCn}"></textarea>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- GRID : BUTTON -->
+        <div class="bl_gridBtns">
+            <div class="bl_gridBtns_lft">
+                <a th:unless="${#lists.isEmpty(content[0].bizInstructorQuestionAnswer)}" class="btn btnDefault btnDelete" th:onclick="del()" >삭제</a>
+            </div>
+            <div class="bl_gridBtns_rgt">
+                <a class="btn btnDefault btnList" href="/business/instructor/question">목록</a>
+                <a th:if="${#lists.isEmpty(content[0].bizInstructorQuestionAnswer)}" class="btn btnDefault btnRegister" th:onclick="create()">등록</a>
+                <a th:unless="${#lists.isEmpty(content[0].bizInstructorQuestionAnswer)}" class="btn btnDefault btnRegister" th:onclick="update()">수정</a>
+            </div>
+        </div>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            function create(){
+                if (nullCheck()) {
+                    let params = getFormData();
+                    console.log(params)
+                    if (params) {
+                        $.ajax({
+                            type: "post", //http method
+                            url: "/api/business/instructor/question/answer/create", //값을 가져올 경로
+                            headers: {'Content-Type': 'application/json'},
+                            data: JSON.stringify(params.ans),
+                            dataType: "json",
+                            success: function(data) {
+                                $.ajax({
+                                    type: "put", //http method
+                                    url: "/api/business/instructor/question/update", //값을 가져올 경로
+                                    headers: {'Content-Type': 'application/json'},
+                                    data: JSON.stringify(params.update),
+                                    dataType: "json",
+                                    success: function(data) {
+                                        alert("답변이 등록되었습니다.");
+                                        window.location.reload()
+                                    },
+                                    error: function(e) {
+                                        if(e && e.responseJSON && e.responseJSON.resultMessage){
+                                            alert(e.responseJSON.resultMessage);
+                                        }else{
+                                            alert('등록하는 과정에서 오류가 발생했습니다.');
+                                        }
+                                    }
+                                })
+                            },
+                            error: function(e) {
+                                if(e && e.responseJSON && e.responseJSON.resultMessage){
+                                    alert(e.responseJSON.resultMessage);
+                                }else{
+                                    alert('등록하는 과정에서 오류가 발생했습니다.');
+                                }
+                            }
+                        })
+                    } else alert('답변내용은 필수입니다.');
+                }
+            }
+            function update(){
+                if (nullCheck()) {
+                    let params = getFormData();
+                    if (params) {
+                        $.ajax({
+                            type: "put", //http method
+                            url: "/api/business/instructor/question/answer/update", //값을 가져올 경로
+                            headers: {'Content-Type': 'application/json'},
+                            data: JSON.stringify(params.ans),
+                            dataType: "json",
+                            success: function(data) {
+                                alert("답변이 수정되었습니다.");
+                                window.location.reload()
+                            },
+                            error: function(e) {
+                                if(e && e.responseJSON && e.responseJSON.resultMessage){
+                                    alert(e.responseJSON.resultMessage);
+                                }else{
+                                    alert('수정하는 과정에서 오류가 발생했습니다.');
+                                }
+                            }
+                        })
+                    } else alert('답변내용은 필수입니다.');
+                }
+            }
+            /* <![CDATA[ */
+            function getFormData(){
+                let params = getUpdateData();
+                let CONT = [[ ${content} ]];
+                params.update.bizInstrQstnStts =2
+
+                params.ans ={}
+                params.ans.bizInstrQstnAnsNo=CONT[0].bizInstructorQuestionAnswer[0]?CONT[0].bizInstructorQuestionAnswer[0].bizInstrQstnAnsNo : "1";
+                params.ans.bizInstrQstnNo=CONT[0].bizInstrQstnNo;
+                params.ans.bizInstrQstnStts=2
+                if (CKEDITOR.instances.contents.getData()) {
+                    params.ans.bizInstrQstnAnsCn = CKEDITOR.instances.contents.getData()
+                } else { params = null }
+                return params;
+            }
+            function getUpdateData(){
+                let params ={};
+                let CONT = [[ ${content} ]];
+
+                params.update = {};
+                params.update.bizInstrQstnCn = CONT[0].bizInstrQstnCn
+                params.update.bizInstrQstnNo = CONT[0].bizInstrQstnNo
+                params.update.bizOrgAplyNo  = CONT[0].bizOrgAplyNo
+                params.update.bizInstrQstnStts =CONT[0].bizInstrQstnStts
+                return params;
+            }
+            function del(){
+                let CONT =  [[ ${content} ]];
+                let params = CONT[0].bizInstructorQuestionAnswer[0];
+                if(confirm("정말로 삭제하시겠습니까?")){
+                    $.ajax({
+                        type: "delete", //http method
+                        url: `/api/business/instructor/question/answer/delete/${params.bizInstrQstnAnsNo}`, //값을 가져올 경로
+                        headers: {'Content-Type': 'application/json'},
+                        data: JSON.stringify(params),
+                        dataType: "json",
+                        success: function(data) {
+                            let updateData = getUpdateData();
+                            updateData.update.bizInstrQstnStts = 1
+                            $.ajax({
+                                type: "put", //http method
+                                url: "/api/business/instructor/question/update", //값을 가져올 경로
+                                headers: {'Content-Type': 'application/json'},
+                                data: JSON.stringify(updateData.update),
+                                dataType: "json",
+                                success: function(data) {
+                                    alert("답변이 삭제되었습니다.")
+                                    window.location.reload()
+                                },
+                                error: function(e) {
+                                    if(e && e.responseJSON && e.responseJSON.resultMessage){
+                                        alert(e.responseJSON.resultMessage);
+                                    }else{
+                                        alert('삭제하는 과정에서 오류가 발생했습니다.');
+                                    }
+                                }
+                            })
+                        },
+                        error: function(e) {
+                            if(e && e.responseJSON && e.responseJSON.resultMessage){
+                                alert(e.responseJSON.resultMessage);
+                            }else{
+                                alert('삭제하는 과정에서 오류가 발생했습니다.');
+                            }
+                        }
+                    })
+                }
+            }
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+            }
+            /* ]]> */
+
+            let updateData = getUpdateData();
+            if(updateData.update.bizInstrQstnStts==0 ){
+                updateData.update.bizInstrQstnStts = 1
+                $.ajax({
+                    type: "put", //http method
+                    url: "/api/business/instructor/question/update", //값을 가져올 경로
+                    headers: {'Content-Type': 'application/json'},
+                    data: JSON.stringify(updateData.update),
+                    dataType: "json",
+                    success: function(data) { },
+                    error: function(e) { }
+                })
+            }
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

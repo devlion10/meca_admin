@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="business-6-1">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>문항 관리</h2>
+        </div>
+
+        <div class="tableLeftResponsive">
+            <table class="tableLeft">
+                <colgroup>
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                </colgroup>
+                <tbody>
+                    <tr>
+                        <th scope="row">구분</th>
+                        <td>
+                            <select id="bizSurveyQitemCategory" class="common_select">
+                                <option value="">구분 전체</option>
+                                <option value="1">강사평가</option>
+                                <option value="2">기관평가</option>
+                            </select>
+                        </td>
+                        <th scope="row">유형</th>
+                        <td>
+                            <select id="bizSurveyQitemType" class="common_select">
+                                <option value="">유형 전체</option>
+                                <option value="0">단일선택</option>
+                                <option value="1">다중선택</option>
+                                <option value="2">단답형</option>
+                                <option value="3">서술형</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">문제</th>
+                        <td colspan="3">
+                            <input id="containText" type="text" class="hp_w600">
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="bl_gridBtns">
+            <div class="bl_gridBtns_md">
+                <div class="btn btnDefault btnReset">리셋</div>
+                <div class="btn btnDefault btnSearch" onclick="search()">검색</div>
+                <a class="btn btnDefault btnRegister" href="/business/survey/qitem/" >등록</a>
+            </div>
+        </div>
+
+        <!-- BOARD : CONTROLLER -->
+        <div class="bl_boardCtrls">
+            <div class="bl_boardCtrls_lft">
+                <p class="bl_boardCtrls_total">총: <strong th:text="${pageable.totalElements}"></strong>건</p>
+            </div>
+            <div class="bl_boardCtrls_rgt">
+                <a href="/api/business/survey/qitem/excel" class="btn btnDefault download_excel download_search">excel 다운로드</a>
+                <select class="common_select" data-list="countSortList"></select>
+            </div>
+        </div>
+
+        <div class="tableResponsive overflowMulti">
+            <table class="table">
+                <colgroup>
+                    <col style="width: 50px">
+                    <col>
+                    <col>
+                    <col>
+                    <col>
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th scope="col">번호</th>
+                        <th scope="col">구분</th>
+                        <th scope="col">유형</th>
+                        <th scope="col">문제</th>
+                        <th scope="col">등록일</th>
+                    </tr>
+                </thead>
+                <tbody th:if="${content != null && content.size > 0}">
+                    <tr th:each = "item, stat : ${content}">
+                        <td th:text="${pageable.totalElements - ((pageable.page * pageable.size) + stat.index)}"></td>
+                        <td>
+                            <span th:if="${item.bizSurveyQitemCategory == 1}">강사평가</span>
+                            <span th:if="${item.bizSurveyQitemCategory == 2}">기관평가</span>
+                        </td>
+                        <td>
+                            <span th:if="${item.bizSurveyQitemType == 0}">단일선택</span>
+                            <span th:if="${item.bizSurveyQitemType == 1}">다중선택</span>
+                            <span th:if="${item.bizSurveyQitemType == 2}">단답형</span>
+                            <span th:if="${item.bizSurveyQitemType == 3}">서술형</span>
+                        </td>
+                        <td>
+                            <a th:href="@{'/business/survey/qitem/' + ${item.bizSurveyQitemNo}}" th:text="${item.bizSurveyQitemName}">설문문항 제목이 들어갑니다.</a>
+                        </td>
+                        <td th:text="${item.createDateTime}">2022.09.01</td>
+                    </tr>
+                </tbody>
+                <tbody th:unless="${content != null && content.size > 0}">
+                <tr class="empty_data"><td colspan="5">조회된 내용이 없습니다.</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="bl_paginate"></div>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            function search(){
+                let searchQuery = {}
+                if($("#bizSurveyQitemCategory").val())searchQuery.bizSurveyQitemCategory=$("#bizSurveyQitemCategory").val();
+                if($("#bizSurveyQitemType").val())searchQuery.bizSurveyQitemType=$("#bizSurveyQitemType").val();
+                if($("#containText").val()){
+                    searchQuery.containText=$("#containText").val();
+                    searchQuery.containTextType=1;
+                }
+                searchJson(searchQuery);
+            }
+            /* <![CDATA[ */
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+                pagination([[ ${pageable} ]], false)
+            }
+            /* ]]> */
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

@@ -1,0 +1,19 @@
+@charset "UTF-8";
+
+
+
+.ui-sortable-helper{
+    display: table;
+    width:100%;
+    cursor:pointer;
+}
+.ui-state-highlight td{
+    background: #fffa90 !important;
+}
+.ui-sortable-helper{
+    border:1px solid #ccc;
+    box-shadow: 0 0 2px rgba(0,0,0,.5);
+}
+.ui-sortable-helper td{
+    background:#fff;
+}

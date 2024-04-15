@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="statistics-6">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>개인정보 수정이력</h2>
+        </div>
+
+        <div class="tableLeftResponsive">
+            <table class="tableLeft">
+                <colgroup>
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                </colgroup>
+                <tbody>
+                    <tr>
+                        <th scope="row">접속시간</th>
+                        <td>
+                            <div class="bl_dateRange">
+                                <input type="text" class="el_datePicker sdate" id="startDate">
+                                <span class="blank">~</span>
+                                <input type="text" class="el_datePicker edate" id="endDate">
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">대상자 검색</th>
+                        <td>
+                            <input type="text" class="hp_w600" id="target" placeholder="이름 또는 아이디를 입력해주세요.">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">취급자 검색</th>
+                        <td>
+                            <input type="text" class="hp_w600" id="containText" placeholder="이름 또는 아이디를 입력해주세요.">
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="bl_gridBtns">
+            <div class="bl_gridBtns_md">
+                <a class="btn btnDefault btnReset">리셋</a>
+                <a onclick="searchContent()" class="btn btnDefault btnSearch">검색</a>
+                <a href="/api/statistics/privacy/excel" class="btn btnDefault download_excel download_search">excel 다운로드</a>
+            </div>
+        </div>
+
+        <!-- BOARD : CONTROLLER -->
+        <div class="bl_boardCtrls">
+            <div class="bl_boardCtrls_lft">
+                <p class="bl_boardCtrls_total">
+                     총: <strong th:text="${pageable.totalElements}"></strong>건
+                </p>
+            </div>
+            <div class="bl_boardCtrls_rgt">
+                <select class="common_select" data-list="countSortList"></select>
+            </div>
+        </div>
+
+        <div class="tableResponsive overflowMulti">
+            <table class="table">
+                <colgroup>
+                    <col style="width: 50px">
+                    <col>
+                    <col>
+                    <col>
+                    <col>
+                    <col>
+                    <col>
+                    <col>
+                    <col>
+                    <col>
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th scope="col" rowspan="2">번호</th>
+                        <th scope="col" rowspan="2">권한명</th>
+                        <th scope="col" rowspan="2">이름</th>
+                        <th scope="col" rowspan="2">아이디</th>
+                        <th scope="col" rowspan="2">접속IP</th>
+                        <th scope="col" rowspan="2">접속일시</th>
+                        <th scope="col" colspan="4">대상정보</th>
+                    </tr>
+                    <tr>
+                        <th scope="col">메뉴</th>
+                        <th scope="col">이름</th>
+                        <th scope="col">아이디</th>
+                        <th scope="col">수행방식</th>
+                    </tr>
+                </thead>
+                <tbody th:if="${content != null && content.size > 0}">
+                <tr th:each="item,stat:${content}">
+                    <td th:text="${pageable.totalElements - ((pageable.page * pageable.size) + stat.index)}">1</td>
+                    <td th:text="${item.roleGroup}">1</td>
+                    <td th:text="${item.userName}">3</td>
+                    <td th:text="${item.userId}">0</td>
+                    <td th:text="${item.remoteIp}">75</td>
+                    <td th:text="${#strings.substring(item.createDateTime,0,10)}">0</td>
+                    <td th:text="${item.menuName}">3</td>
+                    <td th:text="${item.targetName}">0</td>
+                    <td th:text="${item.targetId}">75</td>
+                    <td>
+                        <span th:if="${item.httpMethod == 'GET'}">조회</span>
+                        <span th:if="${item.httpMethod == 'POST'}">생성</span>
+                        <span th:if="${item.httpMethod == 'PUT'}">수정</span>
+                        <span th:if="${item.httpMethod == 'DELETE'}">삭제</span>
+                    </td>
+                </tr>
+                </tbody>
+                <tbody th:unless="${content != null && content.size > 0}">
+                    <tr class="empty_data"><td colspan="10">조회된 내용이 없습니다.</td></tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="bl_paginate"></div>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            /* <![CDATA[ */
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+                pagination([[ ${pageable} ]], false)
+            }
+
+            function reset() {
+                var path = window.location.pathname
+                var uri = path.split("?")[0]
+                window.location.replace(uri);
+            }
+
+            function searchContent() {
+                let searchQuery = {}
+                let startDate = $("#startDate").val();
+                let endDate = $("#endDate").val();
+                let target = $("#target").val();
+                let containText = $("#containText").val();
+
+                if (startDate && endDate) {
+                    searchQuery.startDate = startDate;
+                    searchQuery.endDate = endDate;
+                }
+
+                if(target){
+                    if (target.length < 3) {
+                        alert("대상자 검색은 3글자 이상 입력해주세요.")
+                        return false;
+                    } else {
+                        searchQuery.target = target;
+                    }
+                }
+
+                if(containText){
+                    searchQuery.containTextType = "0";
+                    searchQuery.containText = containText;
+                }
+
+                searchJson(searchQuery)
+            }
+            /* ]]> */
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

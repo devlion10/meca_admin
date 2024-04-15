@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="user-1-1">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>회원 관리</h2>
+        </div>
+
+        <div class="tableLeftResponsive">
+            <table class="tableLeft">
+                <colgroup>
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                </colgroup>
+                <tbody>
+                    <tr>
+                        <th scope="row">이름</th>
+                        <td>
+                            <input id="userName" name="userName" type="text">
+                        </td>
+                        <th scope="row">아이디</th>
+                        <td>
+                            <input id="userId" name="userId" type="text">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">회원유형</th>
+                        <td colspan="3">
+                            <div class="chk_box">
+                                <input id="groupsAll" name="roleGroups" type="checkbox" value="0" class="all_checkbox">
+                                <label for="groupsAll">
+                                    <span></span>
+                                    전체
+                                </label>
+                            </div>
+                            <div class="chk_box">
+                                <input id="journalist" name="roleGroups" type="checkbox" value="JOURNALIST">
+                                <label for="journalist">
+                                    <span></span>
+                                    언론인
+                                </label>
+                            </div>
+                            <div class="chk_box">
+                                <input id="schoolteacher" name="roleGroups" type="checkbox" value="TEACHER">
+                                <label for="schoolteacher">
+                                    <span></span>
+                                    일반(교원)
+                                </label>
+                            </div>
+                            <div class="chk_box">
+                                <input id="student" name="roleGroups" type="checkbox" value="STUDENT">
+                                <label for="student">
+                                    <span></span>
+                                    일반(학생)
+                                </label>
+                            </div>
+                            <div class="chk_box">
+                                <input id="parent" name="roleGroups" type="checkbox" value="PARENTS">
+                                <label for="parent">
+                                    <span></span>
+                                    일반(학부모)
+                                </label>
+                            </div>
+                            <div class="chk_box">
+                                <input id="membership_normal" name="roleGroups" type="checkbox" value="GENERAL">
+                                <label for="membership_normal">
+                                    <span></span>
+                                    일반(일반인)
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">회원권한</th>
+                        <td>
+                            <div class="chk_box">
+                                <input id="authAll" name="businessAuthoritys" type="checkbox" value="0" class="all_checkbox">
+                                <label for="authAll">
+                                    <span></span>
+                                    전체
+                                </label>
+                            </div>
+                            <div class="chk_box">
+                                <input id="agency_admin" name="businessAuthoritys" type="checkbox" value="AGENCY">
+                                <label for="agency_admin">
+                                    <span></span>
+                                    기관담당자
+                                </label>
+                            </div>
+                            <div class="chk_box">
+                                <input id="school_admin" name="businessAuthoritys" type="checkbox" value="SCHOOL">
+                                <label for="school_admin">
+                                    <span></span>
+                                    학교담당자
+                                </label>
+                            </div>
+                            <div class="chk_box">
+                                <input id="media_instructor" name="businessAuthoritys" type="checkbox" value="INSTR">
+                                <label for="media_instructor">
+                                    <span></span>
+                                    미디어강사
+                                </label>
+                            </div>
+                        </td>
+                        <th scope="row">튜터 여부</th>
+                        <td>
+                            <div class="radio_box">
+                                <input id="tutor_all" type="radio" name="tutor" value="0" checked>
+                                <label for="tutor_all">
+                                    <span></span>
+                                    전체
+                                </label>
+                            </div>
+                            <div class="radio_box">
+                                <input id="tutor_Y" type="radio" name="tutor" value="Y">
+                                <label for="tutor_Y">
+                                    <span></span>
+                                    Y
+                                </label>
+                            </div>
+                            <div class="radio_box">
+                                <input id="tutor_N" type="radio" name="tutor" value="N">
+                                <label for="tutor_N">
+                                    <span></span>
+                                    N
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">소속</th>
+                        <td>
+                            <input id="organizationName" name="organizationName" type="text">
+                        </td>
+                        <th scope="row">상태</th>
+                        <td>
+                            <div class="radio_box">
+                                <input id="state_all" type="radio" name="state" value="0" checked>
+                                <label for="state_all">
+                                    <span></span>
+                                    전체
+                                </label>
+                            </div>
+                            <div class="radio_box">
+                                <input id="state_normal" type="radio" name="state" value="1">
+                                <label for="state_normal">
+                                    <span></span>
+                                    정상
+                                </label>
+                            </div>
+                            <div class="radio_box">
+                                <input id="state_sleep" type="radio" name="state" value="2">
+                                <label for="state_sleep">
+                                    <span></span>
+                                    휴면
+                                </label>
+                            </div>
+                            <div class="radio_box">
+                                <input id="state_stop" type="radio" name="state" value="3">
+                                <label for="state_stop">
+                                    <span></span>
+                                    정지
+                                </label>
+                            </div>
+                            <div class="radio_box">
+                                <input id="state_withdrawal" type="radio" name="state" value="4">
+                                <label for="state_withdrawal">
+                                    <span></span>
+                                    탈퇴
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- GRID : BUTTON -->
+        <div class="bl_gridBtns">
+            <div class="bl_gridBtns_md">
+                <div class="btn btnDefault btnReset">리셋</div>
+                <a class="btn btnDefault btnSearch" th:onclick="searchUser()">검색</a>
+                <a class="btn btnDefault download_excel download_search" href="/api/user/web-user/excel">excel 다운로드</a>
+            </div>
+        </div>
+
+        <!-- BOARD : CONTROLLER -->
+        <div class="bl_boardCtrls">
+            <div class="bl_boardCtrls_lft">
+                <p class="bl_boardCtrls_total">총: <strong th:text="${pageable.totalElements}"></strong>건</p>
+            </div>
+            <div class="bl_boardCtrls_rgt">
+                <select class="common_select" data-list="countSortList"></select>
+            </div>
+        </div>
+
+        <div class="tableResponsive overflowMulti">
+            <table class="table">
+                <colgroup>
+                    <col style="width: 50px">
+                    <col>
+                    <col>
+                    <col>
+                    <col>
+                    <col>
+                    <col>
+                    <col>
+                    <col>
+                    <col>
+                    <col>
+                    <col style="width: 150px">
+                    <col>
+                    <col>
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th scope="col">
+                            <div class="chk_box">
+                                <input id="all_check" name="user" type="checkbox" class="all_checkbox">
+                                <label for="all_check">
+                                    <span class="me-0"></span>
+                                </label>
+                            </div>
+                        </th>
+                        <th scope="col">번호</th>
+                        <th scope="col">이름</th>
+                        <th scope="col">아이디</th>
+                        <th scope="col">회원유형</th>
+                        <th scope="col">회원권한</th>
+                        <th scope="col">휴대전화번호</th>
+                        <th scope="col">생년월일</th>
+                        <th scope="col">성별</th>
+                        <th scope="col">기관(학교)명</th>
+                        <th scope="col">소속/직책</th>
+                        <th scope="col">가입일</th>
+                        <th scope="col">간편로그인 연동</th>
+                        <th scope="col">상태</th>
+                        <th scope="col">관리</th>
+                    </tr>
+                </thead>
+                <tbody th:if="${content != null && content.size > 0}">
+                    <tr th:each="item,stat:${content}">
+                        <td>
+                            <div class="chk_box item_chk">
+                                <input th:id="${item.userId + ',' + stat.index}" name="user" type="checkbox">
+                                <label th:for="${item.userId + ',' + stat.index}">
+                                    <span class="me-0"></span>
+                                </label>
+                            </div>
+                        </td>
+                        <td th:text="${pageable.totalElements - ((pageable.page * pageable.size) + stat.index)}"></td>
+                        <td th:text="${item.userName}">홍길동</td>
+                        <td th:text="${item.userId}">test123</td>
+                        <td>
+                            <th:block th:each="commonCode : ${commonCode}" th:if="${commonCode.code} == 'WEB_USER_ROLE'">
+                                <span th:each="codes : ${commonCode.subCode}" th:if="${codes.code == item.roleGroup}" th:text="${codes.codeName}"></span>
+                            </th:block>
+                        </td>
+                        <td>
+                            <div>
+                                <th:block th:each="common : ${commonCode}" th:if="${common.code} == 'BIZ_AUTH'">
+                                    <span th:each="cCode : ${common.subCode}" th:if="${cCode.code == item.businessAuthority}" th:text="${cCode.codeName}"></span>
+                                </th:block>
+                            </div>
+                            <div>
+                                <span th:if="${item.tutorYn != '' && item.tutorYn == 'Y'}" class="color_blue">튜터</span>
+                            </div>
+                        </td>
+                        <td th:text="${item.phone}">010-1111-1111</td>
+                        <td th:text="${item.birthDay}">1990.01.01</td>
+                        <td>
+                            <span th:if="${item.gender == '1'}">남</span>
+                            <span th:if="${item.gender == '2'}">여</span>
+                        </td>
+                        <td th:if="${item.organizationInfo == null}"></td>
+                        <td th:unless="${item.organizationInfo == null}">
+                            <div th:text="${item.organizationInfo.organizationName}"></div>
+                            <div th:if="${item.mediaInfo != null}" th:text="${item.mediaInfo.mediaName}"></div>
+                        </td>
+                        <td><span th:text="${item.department}"></span>/<span th:text="${item.position}"></span></td>
+                        <td th:text="${#strings.substring(item.createDateTime, 0, 10)}">2022.09.01</td>
+                        <td>
+                            <a th:if="${item.easyLogin == 'NAVER'}" href="" role="button" class="me-1"><img th:src="@{/assets/images/icons/naver_icon.png}" style="width: 25px; height: auto"></a>
+                            <a th:if="${item.easyLogin == 'KAKAO'}" href="" role="button" class="me-1"><img th:src="@{/assets/images/icons/kakao_icon.png}" style="width: 25px; height: auto"></a>
+                            <a th:if="${item.easyLogin == 'GOOGLE'}" href="" role="button"><img th:src="@{/assets/images/icons/google_icon.png}" style="width: 25px; height: auto"></a>
+                        </td>
+                        <td>
+                            <div th:if="${item.state == '0'}" class="color_gray">미사용</div>
+                            <div th:if="${item.state == '1'}" class="color_blue">정상</div>
+                            <div th:if="${item.state == '2'}" class="color_brown">휴면</div>
+                            <div th:if="${item.state == '3'}" class="color_gray">정지</div>
+                            <div th:if="${item.state == '4'}" class="color_red">탈퇴</div>
+                            <div th:if="${item.roleGroup == 'JOURNALIST'}">
+                                <span th:if="${item.approFlag == 'Y'}">승인</span>
+                                <span th:if="${item.approFlag == 'W'}">승인대기</span>
+                                <span th:if="${item.approFlag == 'N'}">미승인</span>
+                            </div>
+                        </td>
+                        <td>
+                            <button th:if="${item.isLock == true}" th:onclick="unlock([[${item.userId}]], [[${item.userName}]])" class="btn btnDefault icon_none">잠금해제</button>
+                            <a th:if="${item.state != '4'}" th:href="@{/user/web-user/{id}(id=${item.userSerialNo})}" class="btn btnDefault btnModify icon_none">수정</a>
+                            <div class="guide_text" th:if="${item.nokDI != null}">14세 미만</div>
+                        </td>
+                    </tr>
+                </tbody>
+                <tbody th:unless="${content != null && content.size > 0}">
+                    <tr class="empty_data"><td colspan="15">조회된 내용이 없습니다.</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="bl_gridBtns">
+            <div class="bl_gridBtns_lft">
+                <a class="btn btnDefault" onclick="checkSMS()">SMS 발송</a>
+            </div>
+            <div class="bl_gridBtns_rgt" style="flex-basis: auto">
+                <div class="d-flex-1">
+                    선택한 항목의 튜터권한을
+                    <select id="tutorState" class="common_select">
+                        <option value="Y">Y</option>
+                        <option value="N">N</option>
+                    </select>
+                    으로
+                    <div onclick="changeYN('tutor')" class="btn btnDefault">변경</div>
+                </div>
+                <div class="d-flex-1">
+                    선택한 항목의 언론인 승인 상태를
+                    <select id="journalistState" class="common_select">
+                        <option value="W">승인대기</option>
+                        <option value="Y">승인</option>
+                        <option value="N">미승인</option>
+                    </select>
+                    으로
+                    <div onclick="changeYN('journalist')" class="btn btnDefault">변경</div>
+                </div>
+            </div>
+        </div>
+        <div class="bl_paginate"></div>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            $(".all_checkbox").bind('click',function (e){
+                if($(this).is(":checked")){
+                    let name=$(this).attr("name");
+                    $(`input:checkbox[name=${name}]`).prop("checked", true);
+                }else{
+                    let name=$(this).attr("name");
+                    $(`input:checkbox[name=${name}]`).prop("checked", false);
+
+                }
+            })
+
+            function searchUser(){
+                let searchQuery = {}
+                let uid = $("#userId").val();
+                let name = $("#userName").val();
+                let oname = $("#organizationName").val();
+                let auth =$("input[name=businessAuthoritys]:checked").length>0 ? new Array(  $("input[name=businessAuthoritys]:checked").length ) :"0";
+                $("input[name=businessAuthoritys]:checked").each(function(index, item) {
+                    if($(this).val()!="0" &&auth!="0"){
+                        auth[index] = $(this).val();
+                    }else{
+                        auth = "0";
+                    }
+                })
+                let state = $('input:radio[name=state]:checked').val();
+                let type =$("input[name=roleGroups]:checked").length>0 ? new Array(  $("input[name=roleGroups]:checked").length ) :"0";
+                $("input[name=roleGroups]:checked").each(function(index, item) {
+                    if($(this).val()!="0" &&type!="0"){
+                        type[index] = $(this).val();
+                    }else{
+                        type = "0";
+                    }
+                })
+                let tutor = $('input:radio[name=tutor]:checked').val();
+                if(uid){
+                    searchQuery.userId = uid
+                }
+                if(name){
+                    searchQuery.userName = name
+                }
+                if(oname){
+                    searchQuery.organizationName = oname
+                }
+                if(auth&&auth!="0"){
+                    searchQuery.businessAuthoritys = auth.toString();
+                }
+                if(type&&type!="0"){
+                    searchQuery.roleGroups = type.toString();
+                }
+                if(state && state!="0"){
+                    searchQuery.state = state
+                }
+                if(tutor && tutor!="0"){
+                    searchQuery.tutorYn = tutor.toString();
+                }
+                 searchJson(searchQuery)
+            }
+            /* <![CDATA[ */
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+                pagination([[ ${pageable} ]]);
+            }
+            
+            function getCont(){
+                const cont = [[ ${content} ]]
+                return cont;
+            }
+            // 권한 조정
+            function changeYN(type){
+                let cont = getCont();
+                let params = new Array($('input:checkbox[name=user]:not(#all_check):checked').length)
+                $('input:checkbox[name=user]:not(#all_check):checked').each(function (index,item){
+                    let num = $(item).attr("id").split(",")[1];
+                    params[index] ={};
+                    params[index].userId = $(item).attr("id").split(",")[0];
+                    params[index].email = cont[num].email;
+                    params[index].state = cont[num].state;
+                    params[index].userZipCode = cont[num].userZipCode;
+                    params[index].userAddress1 = cont[num].userAddress1;
+                    params[index].userAddress2 = cont[num].userAddress2;
+                    params[index].department = cont[num].department;
+                    params[index].rank = cont[num].rank;
+                    params[index].position = cont[num].position;
+                    params[index].phone = cont[num].phone;
+                    params[index].isEmailAgree = cont[num].isEmailAgree;
+                    params[index].isSmsAgree = cont[num].isSmsAgree;
+                    params[index].gender = cont[num].gender;
+                    params[index].businessAuthority = cont[num].businessAuthority;
+                    params[index].roleGroup = cont[num].roleGroup;
+                    params[index].organizationCode = cont[num].organizationCode;
+                    params[index].mediaCode = cont[num].mediaCode;
+                    params[index].password=cont[num].password;
+
+                    if (type == 'tutor') {
+                        params[index].tutorYn = $("#tutorState").val();
+                        params[index].approFlag = cont[num].approFlag;
+                    } else if (type == 'journalist') {
+                        params[index].tutorYn = cont[num].tutorYn;
+                        params[index].approFlag = $("#journalistState").val();
+                    } else {
+                        params[index].tutorYn = cont[num].tutorYn;
+                        params[index].approFlag = cont[num].approFlag;
+                    }
+
+                    $.ajax({
+                        type: "PUT",
+                        headers: {'Content-Type' : 'application/json'},
+                        url: "/api/user/web-user/update",
+                        data: JSON.stringify(params[index]),
+                        dataType: "json",
+                        async:false,
+                        success: function (res){
+                            if(index==($('input:checkbox[name=user]:checked').length-1)){
+                                if (type == 'tutor') {
+                                    alert("튜터 권한 변경 완료했습니다.")
+                                } else {
+                                    alert("언론인 권한 변경 완료했습니다.")
+                                }
+                            }
+                            window.location.reload();
+                        },
+                        error: function (e){
+                            if (type == 'tutor') {
+                                alert("튜터 권한 변경 과정에서 오류가 발생했습니다.")
+                            } else {
+                                alert("언론인 권한 변경 과정에서 오류가 발생했습니다.")
+                            }
+                        }
+                    })
+                })
+            }
+            // 잠금해제
+            function unlock(userId, userName){
+                if(confirm("잠금을 해제하시겠습니까?")) {
+                    $.ajax({
+                        type: "PUT",
+                        headers: {'Content-Type' : 'application/json'},
+                        url: "/api/user/web-user/unlock/"+userId,
+                        dataType: "json",
+                        async:false,
+                        success: function (res){
+                            alert(userName+"("+userId+") 의 잠금이 해제되었습니다.")
+                            window.location.reload();
+                        },
+                        error: function (e){ }
+                    })
+                }
+            }
+            function checkSMS() {
+                let cont = getCont();
+                let params = new Array($('input:checkbox[name=user]:not(#all_check):checked').length)
+                $('input:checkbox[name=user]:not(#all_check):checked').each(function (index,item) {
+                    let num = $(item).attr("id").split(",")[1];
+                    params[index] = {};
+                    if (cont[num].phone && cont[num].phone.length > 0) {
+                        params[index].userName = cont[num].userName;
+                        params[index].phone = cont[num].phone;
+                    }
+                });
+
+                if (params && params.length > 0) {
+                    CommonUI.sendSMS(params)
+                } else {
+                    alert("발송 대상을 선택해 주세요.")
+                }
+            }
+            /* ]]> */
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

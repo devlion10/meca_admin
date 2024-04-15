@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="homepage-12">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>이벤트/설문 관리</h2>
+        </div>
+        
+        <div class="tableLeftResponsive">
+            <table class="tableLeft">
+                <colgroup>
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                </colgroup>
+                <tbody>
+                    <tr>
+                        <th scope="row">제목</th>
+                        <td>
+                            <input id="title" type="text" class="hp_w600" not_null="true" alert_name="배너 제목" th:if="${content} == null">
+                            <input id="title" type="text" class="hp_w600" not_null="true" alert_name="배너 제목"  th:unless="${content} == null" th:value="${content[0].title}" >
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">이벤트 기간</th>
+                        <td>
+                            <div class="bl_dateRange">
+                                <input id="startDt" type="text" class="el_datePicker sdate" name="startDt" th:if="${content} == null" cts-required="시작기간을 입력해주세요." placeholder="YYYY-MM-DD">
+                                <input id="startDt" type="text" class="el_datePicker sdate" name="startDt" th:unless="${content} == null" th:value="${content[0].startDt}" cts-required="시작기간을 입력해주세요." placeholder="YYYY-MM-DD">
+                                <span class="blank">~</span>
+                                <input id="endDt" type="text" class="el_datePicker edate" name="endDt" th:if="${content} == null" cts-required="종료기간을 입력해주세요." placeholder="YYYY-MM-DD">
+                                <input id="endDt" type="text" class="el_datePicker edate" name="endDt" th:unless="${content} == null" th:value="${content[0].endDt}" cts-required="종료기간을 입력해주세요." placeholder="YYYY-MM-DD">
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">내용</th>
+                        <td>
+                            <textarea id="contents" name="contents" class="ckeditor" style="width:100%; height:200px" th:if="${content} == null"></textarea>
+                            <textarea id="contents" name="contents" class="ckeditor" style="width:100%; height:200px"  th:unless="${content} == null" th:utext="${content[0].contents}"></textarea>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">썸네일</th>
+                        <td>
+                            <div class="bl_uploadGrid">
+                                <div class="bl_upload js_upload hp_lg_w462">
+                                    <input type="text" id="thumbFilePath" class="bl_upload_path js_path" readonly th:if="${content} and ${content[0].thumbFilePath == null}">
+                                    <input type="text" id="thumbFilePath" class="bl_upload_path js_path" readonly th:if="${content} and ${content[0].thumbFilePath != null}" th:value="${content[0].thumbFilePath}">
+                                    <input th:unless="${content}" id="thumbFilePath" type="text" class="bl_upload_path js_path" readonly>
+                                    <label class="btn btnDefault bg-secondary text-white bl_upload_btn">파일선택</label>
+                                    <input type="file" name="file" class="bl_upload_file js_file">
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">상태</th>
+                        <td th:if="${content != null}">
+                            <div class="radio_box">
+                                <input id="status1" type="radio" name="status" value="1" th:checked="${content[0].status == 1}">
+                                <label for="status1">
+                                    <span></span>
+                                    진행중
+                                </label>
+                            </div>
+                            <div class="radio_box">
+                                <input id="status2" type="radio" name="status" value="0" th:checked="${content[0].status == 0}">
+                                <label for="status2">
+                                    <span></span>
+                                    종료
+                                </label>
+                            </div>
+                        </td>
+                        <td th:unless="${content != null}">
+                            <div class="radio_box">
+                                <input id="status1" type="radio" name="status" value="1" checked>
+                                <label for="status1">
+                                    <span></span>
+                                    진행중
+                                </label>
+                            </div>
+                            <div class="radio_box">
+                                <input id="status2" type="radio" name="status" value="0">
+                                <label for="status2">
+                                    <span></span>
+                                    종료
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">타입</th>
+                        <td th:if="${content != null}">
+                            <div class="radio_box">
+                                <input id="type1" type="radio" name="type" value="1" th:checked="${content[0].type == '1'}">
+                                <label for="type1">
+                                    <span></span>
+                                    이벤트
+                                </label>
+                            </div>
+                            <div class="radio_box">
+                                <input id="type2" type="radio" name="type" value="2" th:checked="${content[0].type == '2'}">
+                                <label for="type2">
+                                    <span></span>
+                                    설문
+                                </label>
+                            </div>
+                        </td>
+                        <td th:unless="${content != null}">
+                            <div class="radio_box">
+                                <input id="type1" type="radio" name="type" value="1" checked>
+                                <label for="type1">
+                                    <span></span>
+                                    이벤트
+                                </label>
+                            </div>
+                            <div class="radio_box">
+                                <input id="type2" type="radio" name="type" value="2">
+                                <label for="type2">
+                                    <span></span>
+                                    설문
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="bl_gridBtns">
+            <div class="bl_gridBtns_lft">
+                <div th:if="${content != null}" class="btn btnDefault btnDelete">삭제</div>
+            </div>
+            <div class="bl_gridBtns_rgt">
+                <a class="btn btnDefault btnList" href="/homepage/event">목록</a>
+                <div th:if="${content != null}" class="btn btnDefault btnModify" onclick="update()">수정</div>
+                <div th:if="${content == null}" class="btn btnDefault btnRegister" onclick="create()">등록</div>
+            </div>
+        </div>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            /* <![CDATA[ */
+
+            $(".btnDelete").bind('click', function (){
+                let params = getFormData();
+                if(confirm(`정말로 삭제하시겠습니까?`)){
+                    $.ajax({
+                        type: "delete", //http method
+                        url: `/api/homepage/event/delete/${params.sequenceNo}`, //값을 가져올 경로
+                        headers: {'Content-Type': 'application/json'},
+                        data: JSON.stringify(params),
+                        dataType: "json",
+                        success: function(data) {
+                            alert("삭제되었습니다.");
+                            window.location.replace('/homepage/event');
+                        },
+                        error:function (e){
+                            alert(e.responseJSON.resultMessage);
+                        }
+                    })
+                }
+            });
+
+            function create(){
+                if(nullCheck()){
+                    let params = getFormData()
+                    $.ajax({
+                        type: "post",
+                        headers: {'Content-Type' : 'application/json'},
+                        url: "/api/homepage/event/create",
+                        data: JSON.stringify(params),
+                        dataType: "json",
+                        success: function (data){
+                            if(document.querySelector('.bl_upload_file').files[0]) {
+                                var form = new FormData();
+                                form.append( "attachFile", document.querySelector('.bl_upload_file').files[0] );
+                                $.ajax({
+                                    type:"put", //http method
+                                    url:"/api/homepage/event/upload/" + data.sequenceNo, //값을 가져올 경로
+                                    processData : false,
+                                    contentType : false,
+                                    data: form,
+                                    success: function(subData) {   //요청 성공시 실행될 메서드
+                                        alert("이벤트 등록이 완료되었습니다.");
+                                        window.location.replace('/homepage/event');
+                                    },
+                                    error: function(e) {
+                                        alert(e.responseJSON.resultMessage);
+                                    }
+                                });
+                            } else {
+                                alert("이벤트 등록이 완료되었습니다.");
+                                window.location.replace('/homepage/event');
+                            }
+                        },
+                        error: function (e){
+                            alert(e.responseJSON.resultMessage);
+                        }
+                    })
+
+                }
+            }
+
+            function update(){
+                if(nullCheck()){
+                    let params = getFormData()
+                    $.ajax({
+                        type: "put",
+                        headers: {'Content-Type' : 'application/json'},
+                        url: "/api/homepage/event/update",
+                        data: JSON.stringify(params),
+                        dataType: "json",
+                        success: function (data){
+                            if(document.querySelector('.bl_upload_file').files[0]) {
+                                var form = new FormData();
+                                form.append( "attachFile", document.querySelector('.bl_upload_file').files[0] );
+                                $.ajax({
+                                    type:"put", //http method
+                                    url:"/api/homepage/event/upload/" + params.sequenceNo, //값을 가져올 경로
+                                    processData : false,
+                                    contentType : false,
+                                    data: form,
+                                    success: function(subData) {   //요청 성공시 실행될 메서드
+                                        alert("이벤트 수정이 완료되었습니다.");
+                                        location.reload();
+                                    },
+                                    error: function(e) {
+                                        alert(e.responseJSON.resultMessage);
+                                    }
+                                });
+                            } else {
+                                alert("이벤트 수정이 완료되었습니다.");
+                            }
+                        },
+                        error: function (e){
+                            alert(e.responseJSON.resultMessage);
+                        }
+                    })
+                }
+            }
+
+            let CONT = null;
+
+            function getFormData(){
+                let params = {};
+                params.sequenceNo=0;
+                if(CONT!=null){
+                    params.sequenceNo = CONT[0].sequenceNo;
+                }
+
+                params.title =$("#title").val();
+                params.contents =CKEDITOR.instances.contents.getData();
+                params.startDt=$("#startDt").val();
+                params.endDt=$("#endDt").val();
+                params.popupStts=1;
+                params.status=$("input:radio[name=status]:checked").attr('value');
+                params.thumbFilePath="";
+                params.type=$("input:radio[name=type]:checked").attr('value');
+                return params;
+            }
+
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode}]])
+                CONT = [[ ${content}]]
+            }
+
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

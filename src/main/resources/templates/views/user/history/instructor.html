@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="user-6-1">
+  <div sec:authorize="isAuthenticated()">
+    <div class="title">
+      <h2>FORME 강의 이력(강의확인서)</h2>
+    </div>
+
+    <div class="tableLeftResponsive">
+      <table class="tableLeft">
+        <colgroup>
+          <col style="width: 200px">
+          <col style="width: auto">
+          <col style="width: 200px">
+          <col style="width: auto">
+        </colgroup>
+        <tbody class="search">
+        <tr>
+          <th scope="row">이름</th>
+          <td>
+            <input id="blciUserNm" name="blciUserNm" type="text">
+          </td>
+          <th scope="row">아이디</th>
+          <td>
+            <input id="blciUserId" name="blciUserId" type="text">
+          </td>
+        </tr>
+        <tr>
+          <th scope="row">사업명</th>
+          <td>
+            <input id="bninTitle" name="bninTitle" type="text">
+          </td>
+          <th scope="row">수행기관</th>
+          <td>
+            <input id="bainInstNm" name="bainInstNm" type="text">
+          </td>
+        </tr>
+        <tr>
+          <th scope="row">
+            차수
+          </th>
+          <td>
+            <select id="bninDegree" class="common_select" data-list="numList"></select>
+          </td>
+          <th scope="row">
+            년월
+          </th>
+          <td>
+            <select id="year" class="common_select" data-list="yearList"></select>
+            <select id="month" class="common_select" data-list="monthList"></select>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- GRID : BUTTON -->
+    <div class="bl_gridBtns">
+      <div class="bl_gridBtns_md">
+        <div class="btn btnDefault btnReset">리셋</div>
+        <a class="btn btnDefault bg-secondary text-white btnSearch" onclick="searchUser()">검색</a>
+      </div>
+    </div>
+
+    <th:block layout:fragment="style">
+      <style>
+        #forme_lec_history_pop .transcolor.odd td{background:#fff;}
+        #forme_lec_history_pop .transcolor.even td{background:#f9f9f9;}
+        #forme_lechistory_list_wrap tr.active td{ background: #b4daff !important;}
+      </style>
+    </th:block>
+    <!-- BOARD : CONTROLLER -->
+    <div class="bl_boardCtrls">
+      <div class="bl_boardCtrls_lft">
+        <p class="bl_boardCtrls_total">
+          총: <strong th:text="${pageable.totalElements}"></strong>건
+        </p>
+      </div>
+      <div class="bl_boardCtrls_rgt">
+        <select class="common_select" data-list="countSortList"></select>
+      </div>
+    </div>
+
+    <div id="forme_lechistory">
+
+      <div class="tableResponsive overflowMulti">
+        <table class="table">
+          <thead>
+          <tr>
+            <th scope="col">번호</th>
+            <th scope="col">작성자</th>
+            <th scope="col">제출처</th>
+            <th scope="col">년도</th>
+            <th scope="col">사업명</th>
+            <th scope="col">차수</th>
+            <th scope="col">수행기관</th>
+            <th scope="col">강의기간</th>
+            <th scope="col">강의시간</th>
+            <th scope="col">언택트 강의<br/>포함유무</th>
+            <th scope="col">년월</th>
+            <th scope="col">승인</th>
+            <th scope="col">작성일</th>
+          </tr>
+          </thead>
+          <tbody id="forme_lechistory_list_wrap">
+          <tr>
+            <td>번호</td>
+            <td>작성자</td>
+            <td>제출처</td>
+            <td>년도</td>
+            <td>사업명</td>
+            <td>차수</td>
+            <td>수행기관</td>
+            <td>강의기간</td>
+            <td>강의시간</td>
+            <td>언택트 강의 포함유무</td>
+            <td>년월</td>
+            <td>승인</td>
+            <td>작성일</td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+      <div id="forme_lechistory_list_wrap_paginate" class="bl_paginate"></div>
+    </div>
+    <div class="bl_paginate"></div>
+  </div>
+  <div sec:authorize="!isAuthenticated()"></div>
+
+  <th:block layout:fragment="script">
+    <script th:inline="javascript">
+      function searchUser(){
+        let searchQuery = {}
+        $("tbody.search input[type=text]").each((index, item)=>{
+          if(item.value !=""){
+            searchQuery[$(item).attr("id")] = item.value;
+          }
+        })
+        $("tbody.search select").each((index, item)=>{
+          if(Number(item.value) > 0){
+            searchQuery[$(item).attr("id")] = item.value;
+          }
+        })
+        searchJson(searchQuery)
+      }
+
+      /* <![CDATA[ */
+      let CONT =  [[ ${content} ]];
+      function onLoadSubmit() {
+        console.log('commonCode: ', [[ ${commonCode} ]] )
+        pagination([[ ${pageable} ]]);
+        initialFormeBizInfo()
+      }
+      /* ]]> */
+
+      function initialFormeBizInfo() {
+        let pageInfo = {
+          page: 0,
+          size: $("#forme_lechistory .common_select").val() || 20,
+          onClick: function (pageIndex) {
+            if (pageIndex !== undefined) {
+              pageInfo.page = pageIndex;
+              getFormeLecHistoryList();
+            }
+          }
+        }
+
+        $(document).ready(function(){
+          $("#forme_lechistory .common_select").off("change").change(function(e){
+            e.preventDefault();
+            pageInfo.size = $("#forme_lechistory .common_select").val() || 20;
+            getFormeLecHistoryList()
+          });
+        });
+
+
+        function getFormeLecHistoryList() {
+          if (CONT) formeLecHistoryListMakeItem(CONT);
+        }
+
+        function formeLecHistoryListMakeItem(list) {
+
+          let frag = $(document.createDocumentFragment());
+          list.forEach(function (item) {
+            let wrDate = moment(item.blciRegDttm).format("YYYY-MM-DD");
+            let YYYYMM = moment(item.blciYymm + "01").format("YYYY년 MM월");
+            let tr = $(`
+                <tr>
+                    <td>${item.blciId}</td>
+                    <td>${item.blciUserNm}(${item.blciUserId})</td>
+                    <td>${item.blciAreaNm}</td>
+                    <td>${item.blciYymm.slice(0, 4)}</td>
+                    <td>${item.bninTitle}</td>
+                    <td>${item.bninDegree}</td>
+                    <td>${item.bainInstNm}</td>
+                    <td>${item.bainEduSdate}~${item.bainEduEdate}</td>
+                    <td>${item.battSumTime}</td>
+                    <td>
+                        ${item.untactCnt == '0' ? '미포함' : `<strong style="color:red;">포함(${item.untactCnt}건)</strong>`}
+                    </td>
+                    <td>${YYYYMM}</td>
+                    <td>${item.blciStatus === 'CONFIRM' ? '승인' : '미승인'}</td>
+                    <td>${wrDate}</td>
+                </tr>
+                `);
+            tr.click(function (e) {
+              tr.addClass("active").siblings().removeClass("active");
+              formeLecHistoryDetailView(item)
+            });
+            frag.append(tr);
+          });
+          if( !list.length ){
+            let tr = $(`<tr><td class="text-center" colspan="13">강의이력이 없습니다.</td></tr>`);
+            frag.html(tr);
+          }
+          $('#forme_lechistory_list_wrap').empty().append(frag);
+        }
+
+        async function formeLecHistoryDetailView(item) {
+          let addDate = await $.ajax({
+            type: "get",
+            headers: {'Content-Type': 'application/json'},
+            url: "/api/business/instructor/identify/forme/" + item.blciId,
+            dataType: "json"
+          });
+
+          let scheduleHtml = '';
+          if (addDate && addDate.content && addDate.content.length && addDate.content[0].formeFomBizapplyTtables && addDate.content[0].formeFomBizapplyTtables.length) {
+            addDate.content[0].formeFomBizapplyTtables.forEach(function (sItem, index) {
+              if (moment(sItem.battDate).format("YYYYMM") == addDate.content[0].blciYymm) {
+                let even = index % 2 ? 'even' : 'odd';
+                scheduleHtml += `
+                        <tr class="transcolor ${even}">
+                            <td rowspan="3">${sItem.battInning}</td>
+                            <td class="text-center">${moment(sItem.battDate).format("YYYY-MM-DD")}</td>
+                            <td class="text-center">${sItem.battLuserNm}</td>
+                            <td class="text-center">${sItem.battStartTime}~${sItem.battEndTime}</td>
+                            <td class="text-center">${sItem.battUntactYn === 'Y' ? '<span style="color:red;">언택트 강의 포함</span>' : ''}</td>
+                        </tr>
+                        <tr class="transcolor ${even}">
+                            <td colspan="4">
+                                <div style="max-width:720px;white-space: pre-wrap;">${sItem.battEduTitle}</div>
+                            </td>
+                        </tr>
+                        <tr class="transcolor ${even}">
+                            <td colspan="4">
+                                <div style="max-width:720px;white-space: pre-wrap;">${sItem.battContent ? sItem.battContent : ''}</div>
+                            </td>
+                        </tr>
+                    `;
+              }
+            });
+          } else {
+            scheduleHtml += '<tr><td colspan="5" class="text-center">  강의 시간표가 없습니다. </td></tr>';
+          }
+          // 팝업 HTML 생성
+          const html = $(`
+                    <article class="pop_wrapper ui-modal" id="forme_lec_history_pop">
+                        <div class="pop_wrap pop_secondary" style="max-width:1100px;">
+                            <div class="pop_cont">
+                            <h3 class="subTitle">FORME 강의이력 상세보기(강의확인서)</h3>
+                                <div class="tableLeftResponsive">
+                                    <table class="tableLeft">
+                                        <colgroup>
+                                            <col style="width: 200px">
+                                            <col style="width: auto">
+                                        </colgroup>
+                                        <thead>
+                                        <tr><td colspan="2"></td></tr>
+                                        </thead>
+                                        <tbody>
+                                        <tr>
+                                            <th scope="row">사업명</th>
+                                            <td>${item.bninTitle}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th scope="row">제출처</th>
+                                            <td>${item.blciAreaNm}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th scope="row">학교/기관</th>
+                                            <td>${item.bainInstNm}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th scope="row">담당자명</th>
+                                            <td>${item.bainChargeNm}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th scope="row">강사명</th>
+                                            <td>${item.blciUserNm}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th scope="row">총 강의시간</th>
+                                            <td>${item.battSumTime}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th scope="row">강의시간표</th>
+                                            <td style="padding:5px;">
+                                                <div class="tableResponsive">
+                                                    <table class="table">
+                                                        <thead>
+                                                        <tr>
+                                                            <th scope="col" rowspan="3" class="text-center">차시</th>
+                                                            <th scope="col" class="text-center">일시</th>
+                                                            <th scope="col" class="text-center">강사</th>
+                                                            <th scope="col" class="text-center">시간</th>
+                                                            <th scope="col" class="text-center">언텍트 강의 유무</th>
+                                                        </tr>
+                                                        <tr>
+                                                            <th scope="col" colspan="4" style="border-top:2px solid #ddd;">주제</th>
+                                                        </tr>
+                                                        <tr>
+                                                            <th scope="col" colspan="4" style="border-top:2px solid #ddd;">내용</th>
+                                                        </tr>
+                                                        </thead>
+
+                                                        <tbody>
+                                                        ${scheduleHtml}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="pop_foot text-center">
+                                    <button id="forme_popup_button_cancel" class="forme_popup_button_close btn btnDefault">닫기</button>
+                                </div>
+							</div>
+                            <button id="forme_popup_button_close2" type="button" class="forme_popup_button_close pop_close pop-close">닫기</button>
+                            </div>
+                        </div>
+                    </article>
+            `);
+          html.appendTo(document.body);
+          html.find(".forme_popup_button_close").click(function () {
+            modal.closeModal();
+            html.remove();
+          });
+          let modal = html.openModal({
+            removeComponent: true,
+            onHide: function () {
+              $("#forme_lechistory_list_wrap tr.active").removeClass("active");
+            },
+            onShow: function () {
+
+            }
+          });
+        }
+        getFormeLecHistoryList();
+      }
+    </script>
+  </th:block>
+</div>
+</body>
+</html>

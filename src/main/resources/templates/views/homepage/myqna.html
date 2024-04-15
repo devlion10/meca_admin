@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="homepage-3">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>1:1문의 관리</h2>
+        </div>
+
+        <div class="tableLeftResponsive">
+            <table class="tableLeft">
+                <colgroup>
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                </colgroup>
+                <tbody>
+                    <tr>
+                        <th scope="row">작성일</th>
+                        <td>
+                            <div class="bl_dateRange">
+                                <input id="startDate" type="text" class="el_datePicker sdate">
+                                <span class="blank">~</span>
+                                <input id="endDate" type="text" class="el_datePicker edate">
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">검색</th>
+                        <td>
+                            <div class="d-flex gap-2">
+                                <select id="containTextType" class="common_select">
+                                    <option value="1">제목+내용</option>
+                                    <option value="2">제목</option>
+                                    <option value="3">내용</option>
+                                </select>
+                                <input id="containText" type="text" class="hp_w600">
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">작성자</th>
+                        <td>
+                            <div class="d-flex gap-2">
+                                <select id="wtype" class="common_select">
+                                    <option value="userName">이름</option>
+                                    <option value="userId">아이디</option>
+                                </select>
+                                <input id="writer" type="text" class="hp_w600">
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="bl_gridBtns">
+            <div class="bl_gridBtns_md">
+                <div class="btn btnDefault btnReset">리셋</div>
+                <a onclick="searchQna()" class="btn btnDefault btnSearch">검색</a>
+            </div>
+        </div>
+
+        <!-- BOARD : CONTROLLER -->
+        <div class="bl_boardCtrls">
+            <div class="bl_boardCtrls_lft">
+                <p class="bl_boardCtrls_total">총: <strong th:text="${pageable.totalElements}"></strong>건</p>
+                <select class="common_select" data-list="countSortList"></select>
+            </div>
+        </div>
+
+        <div class="tableResponsive overflowMulti">
+            <table class="table">
+                <colgroup>
+                    <col style="width: 50px">
+                    <col>
+                    <col style="width: 600px">
+                    <col>
+                    <col>
+                    <col>
+                    <col>
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th scope="col">번호</th>
+                        <th scope="col">구분</th>
+                        <th scope="col">제목</th>
+                        <th scope="col">작성자</th>
+                        <th scope="col">작성일</th>
+                        <th scope="col">상태</th>
+                    </tr>
+                </thead>
+                <tbody th:if="${content != null && content.size > 0}">
+                    <tr th:each="item, stat:${content}">
+                        <td>
+                            <span th:text="${pageable.totalElements - ((pageable.page * pageable.size) + stat.index)}"></span>
+                        </td>
+                        <td>
+                            <span th:if="${item.qnaType=='0'}">-</span>
+                            <span th:if="${item.qnaType=='1'}">공모/자격 문의</span>
+                            <span th:if="${item.qnaType=='2'}">교육문의</span>
+                            <span th:if="${item.qnaType=='3'}">사이트 이용문의</span>
+                        </td>
+                        <td>
+                            <a th:href="@{/homepage/my-qna/{no}(no=${item.sequenceNo})}" class="d-flex justify-content-center">
+                                <span class="hp_ellipsis" th:text="${item.reqTitle}">제목입니다.</span>
+                                <span>
+                                    <i th:if="${item.reqAttachFilePath} != null" class="el_ico">
+                                    <img th:src="@{/assets/images/icons/file_icon.png}" alt="첨부파일" width="12px">
+                                </i>
+                                </span>
+                            </a>
+                        </td>
+                    <td><span th:text="${item.lmsUser.userName}">홍길동</span>(<span th:text="${item.lmsUser.userId}">test1234</span>)</td>
+                        <td th:text="${#strings.substring(item.createDateTime, 0, 10)}">2022.10.10</td>
+                        <td>
+                            <span th:if="${item.qnaState=='1'}" class="state state__red">미확인</span>
+                            <span th:if="${item.qnaState=='2'}" class="state state__blue">처리중</span>
+                            <span th:if="${item.qnaState=='3'}" class="state state__green">답변완료</span>
+                        </td>
+                    </tr>
+                </tbody>
+                <tbody th:unless="${content != null && content.size > 0}">
+                <tr class="empty_data"><td colspan="7">조회된 내용이 없습니다.</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="bl_paginate"></div>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            function searchQna(){
+                let searchQuery = {}
+                let name = $("#containText").val();
+                let type = $("#containTextType").val();
+                let wtype = $("#wtype").val();
+                let writer = $("#writer").val();
+                if(name){
+                    searchQuery.containText = name
+                    searchQuery.containTextType =type
+                }
+                if(writer){
+                    if(wtype=='userName'){
+                        searchQuery.userName=writer;
+                    }else{
+                        searchQuery.userId=writer;
+                    }
+                }
+                let sDate = $("#startDate").val()
+                let eDate = $("#endDate").val()
+                if(sDate && eDate){
+                    searchQuery.startDate= sDate;
+                    searchQuery.endDate= eDate;
+                }else if(sDate||eDate){
+                    alert('작성일은 시작일과 종료일을 모두 입력해야 합니다.')
+                }
+                searchJson(searchQuery)
+            }
+            /* <![CDATA[ */
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+                pagination([[ ${pageable} ]], false)
+
+                let searchParams = new URLSearchParams(window.location.search);
+                if(searchParams.has('userName')){
+                    $('#wtype').val('userName').prop("selected", true);
+                    $('#writer').val(searchParams.get('userName'))
+                }else if(searchParams.has('userId')){
+                    $('#wtype').val('userId').prop("selected", true);
+                    $('#writer').val(searchParams.get('userId'))
+                }
+            }
+            /* ]]> */
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

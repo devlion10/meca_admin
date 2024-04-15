@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/pop_layout}">
+<body>
+<div layout:fragment="pop">
+    <div sec:authorize="isAuthenticated()">
+        <p>엑셀 파일을 다운로드 하고 있습니다. 처리하는데 1분 이상 걸릴 수 있습니다. 이 창을 닫지 말고 잠시 기다려 주세요.</p>
+
+        <table class="table" id="excelDownload" style="display: none;" th:if="${!#arrays.isEmpty(content)}">
+            <thead>
+                <tr>
+                    <th scope="col">사업년도</th>
+                    <th scope="col">구분</th>
+                    <th scope="col">차수</th>
+                    <th scope="col">사업명</th>
+                    <th scope="col">신청자 아이디</th>
+                    <th scope="col">이름</th>
+                    <th scope="col">기관명</th>
+                    <th scope="col">담당자 부서</th>
+                    <th scope="col">담당자 직위</th>
+                    <th scope="col">연락처</th>
+                    <th scope="col">이메일</th>
+                    <th:block th:each="item:${content[0].bizAplyDtls}">
+                        <th scope="col" th:if="${item.bizPbancTmpl5.bizPbancTmpl5Notnull=='Y' && item.bizPbancTmpl5.bizPbancTmpl5Type!='5'}" th:text="${item.bizPbancTmpl5.bizPbancTmpl5Name}"></th>
+                    </th:block>
+                    <th scope="col">상태</th>
+                    <th scope="col">등록 일시</th>
+                    <th scope="col">수정 일시</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="item, stat : ${content}">
+                    <td th:text="${item.bizPbancMaster.bizPbancYr}"></td>
+                    <td th:text="${item.ctgr}"></td>
+                    <td th:text="${item.bizPbancMaster.bizPbancRnd}"></td>
+                    <td th:text="${item.bizPbancMaster.bizPbancNm}"></td>
+                    <td th:text="${item.bizAplyUserID}"></td>
+                    <td th:text="${item.bizAplyUserNm}"></td>
+                    <td>
+                        <span th:text="${item.lmsUser.organizationInfo != null ? item.lmsUser.organizationInfo.organizationName : item.orgName}"></span>
+                        <span th:if="${item.lmsUser.mediaInfo != null}">/</span>
+                        <span th:text="${item.lmsUser.mediaInfo != null ? item.lmsUser.mediaInfo.mediaName : ''}"></span>
+                    </td>
+                    <td>
+                        <span th:if="${!#strings.isEmpty(item.bizAplyUserDptm)}" th:text="${item.bizAplyUserDptm}"></span>
+                        <span th:if="${#strings.isEmpty(item.bizAplyUserDptm)}"
+                            th:text="${item.lmsUser != null ? item.lmsUser.position : ''}">
+                        </span>
+                    </td>
+                    <td>
+                        <span th:if="${!#strings.isEmpty(item.bizAplyUserJbgd)}" th:text="${item.bizAplyUserJbgd}"></span>
+                        <span th:if="${#strings.isEmpty(item.bizAplyUserJbgd)}"
+                              th:text="${item.lmsUser != null ? item.lmsUser.rank : ''}">
+                        </span>
+                    </td>
+                    <td style="mso-number-format:'\@'" th:text="${item.bizAplyUserTelno}"></td>
+                    <td th:text="${item.bizAplyUserEml}"></td>
+                    <th:block th:each="item2:${item.bizAplyDtls}">
+                        <td th:if="${item2.bizPbancTmpl5.bizPbancTmpl5Notnull=='Y' && item2.bizPbancTmpl5.bizPbancTmpl5Type!='5'}">
+                            <span th:text="${item2.bizAplyDtlCont}"></span>
+                        </td>
+                    </th:block>
+                    <td>
+                        <span th:if="${item.bizAplyStts == 1}">신청</span>
+                        <span th:if="${item.bizAplyStts == 3}">반려</span>
+                        <span th:if="${item.bizAplyStts == 5}">가승인</span>
+                        <span th:if="${item.bizAplyStts == 7}">승인</span>
+                        <span th:if="${item.bizAplyStts == 9}">종료</span>
+                    </td>
+                    <td th:text="${item.createDateTime}"></td>
+                    <td th:text="${item.updateDateTime}"></td>
+                </tr>
+            </tbody>
+        </table>
+        <table class="table" id="excelDownload" style="display: none;" th:if="${#arrays.isEmpty(content)}">
+            <thead>
+                <tr>
+                    <th scope="col">사업년도</th>
+                    <th scope="col">구분</th>
+                    <th scope="col">차수</th>
+                    <th scope="col">사업명</th>
+                    <th scope="col">신청자 아이디</th>
+                    <th scope="col">이름</th>
+                    <th scope="col">기관명</th>
+                    <th scope="col">담당자 부서</th>
+                    <th scope="col">담당자 직위</th>
+                    <th scope="col">연락처</th>
+                    <th scope="col">이메일</th>
+                    <th scope="col">상태</th>
+                    <th scope="col">등록 일시</th>
+                    <th scope="col">수정 일시</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="empty_data">
+                    <td colspan="14">
+                        조회 결과가 없습니다.
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <th:block layout:fragment="script">
+            <script th:inline="javascript">
+                /* <![CDATA[ */
+                function onLoadSubmit() {
+                    console.log('content: ', [[ ${content} ]] )
+                    const CONT =  [[ ${content} ]];
+
+                    let now = new Date();
+                    now.setUTCHours(now.getUTCHours()+9);
+                    let toDay = now.toJSON().split('T')[0];
+                    let FILENAME=toDay+'_'+CONT[0].bizPbancMaster.bizPbancNm+'.xls';
+
+                    setTimeout(function (){
+                        if(CONT&&CONT.length>0){
+                            var link = document.createElement('a');
+                            link.download = FILENAME;
+                            var data_type = 'data:application/vnd.ms-excel;charset=utf-8';
+                            var table_div = document.getElementById( "excelDownload" );
+                            var table_html = table_div.outerHTML.replace(/ /g, '%20');
+                            link.href = data_type + ', ' + table_html;
+                            link.click();
+                            setTimeout(function (){window.close()},5000);
+                        }else{
+                            alert('조회된 사업신청서가 없습니다.');
+                            window.close();
+                        }
+                    },5000)
+                }
+                /* ]]> */
+            </script>
+        </th:block>
+    </div>
+
+    <div sec:authorize="!isAuthenticated()"></div>
+</div>
+</body>
+</html>

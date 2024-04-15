@@ -1,0 +1,23 @@
+<header th:fragment="header" class="navbar navbar-dark sticky-top flex-md-nowrap p-0 shadow">
+    <a class="navbar-brand col-md-3 col-lg-2 fs-6 text-center" href="/">MECA 관리 시스템</a>
+    <div class="dropdown me-3">
+        <div class="reset_time" id="session_time">60:00
+        </div>
+
+        <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+            <img th:src="@{/assets/images/icons/profile.png}" width="32" height="32" class="rounded-circle me-2" alt="프로필" />
+            <strong th:text="${#authentication.name}">홍길동</strong>님
+        </a>
+        <ul class="dropdown-menu text-small shadow">
+            <li><a class="dropdown-item" href="/logout">로그아웃</a></li>
+        </ul>
+    </div>
+
+    <div class="gnb">
+        <ul>
+            <th:block th:each="item, stat:${#authentication.principal.accessMenuList}">
+                <li th:if="${item.isUsable} == true"><a th:href="${item.uri}" th:text="${item.menuName}"></a></li>
+            </th:block>
+        </ul>
+    </div>
+</header>

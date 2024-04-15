@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="edu-2">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>과정개설 관리</h2>
+        </div>
+
+        <div class="tableLeftResponsive">
+            <table class="tableLeft">
+                <colgroup>
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                </colgroup>
+                <tbody>
+                    <tr>
+                        <th scope="row">교육유형</th>
+                        <td>
+                            <div class="radio_box">
+                                <input id="education_all" type="radio" name="educationType" value="" th:checked="${true}">
+                                <label for="education_all">
+                                    <span></span>
+                                    전체
+                                </label>
+                            </div>
+                            <th:block th:each="commonCode : ${commonCode}" th:if="${commonCode.code} == 'EDU_TYPE'" >
+                                <th:block th:each="educationType: ${commonCode.subCode}">
+                                    <div class="radio_box">
+                                        <input th:id="${educationType.codeName}" type="radio" name="educationType" th:value="${educationType.code}" th:checked="${false}">
+                                        <label th:for="${educationType.codeName}">
+                                            <span></span>
+                                            <p th:text="${educationType.codeName}"></p>
+                                        </label>
+                                    </div>
+                                </th:block>
+                            </th:block>
+                        </td>
+                        <th scope="row">구분</th>
+                        <td>
+                            <select class="common_select" id="categoryCode">
+                                <option value="" th:selected="${true}">전체</option>
+                                <th:block th:each="commonCode : ${commonCode}" th:if="${commonCode.code} == 'CTS_CTGR'">
+                                    <option th:each="categoryCode : ${commonCode.subCode}" th:value="${categoryCode.code}" th:text="${categoryCode.codeName}"></option>
+                                </th:block>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">과정명</th>
+                        <td colspan="3">
+                            <div class="d-flex gap-2">
+                                <input type="text" class="hp_w600" id="curriculumName">
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">운영상태</th>
+                        <td>
+                            <div class="radio_box">
+                                <input id="operation_all" type="radio" name="operationType" value="" th:checked="${true}">
+                                <label for="operation_all">
+                                    <span></span>
+                                    전체
+                                </label>
+                            </div>
+                            <th:block th:each="commonCode : ${commonCode}" th:if="${commonCode.code} == 'OPER_TYPE'" >
+                                <th:block th:each="operationType: ${commonCode.subCode}">
+                                    <div class="radio_box">
+                                        <input th:id="${operationType.codeName}" type="radio" name="operationType" th:value="${operationType.code}" th:checked="${false}">
+                                        <label th:for="${operationType.codeName}">
+                                            <span></span>
+                                            <p th:text="${operationType.codeName}"></p>
+                                        </label>
+                                    </div>
+                                </th:block>
+                            </th:block>
+                        </td>
+                        <th scope="row">기수</th>
+                        <td>
+                            <select id="yearOfEducationPlan" class="common_select" data-list="yearList"></select>
+                            <span class="blank">/</span>
+                            <select id="yearOfEducationPlanStep" class="common_select" data-list="numList2"></select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">상태</th>
+                        <td colspan="3">
+                            <div class="radio_box">
+                                <input id="applyable_all" type="radio" name="availableApplicationType" value="" th:checked="${true}">
+                                <label for="applyable_all">
+                                    <span></span>
+                                    전체
+                                </label>
+                            </div>
+                            <th:block th:each="commonCode : ${commonCode}" th:if="${commonCode.code} == 'APLYABLE_TYPE'" >
+                                <th:block th:each="availableApplicationType: ${commonCode.subCode}" th:if="${availableApplicationType.code != '4'}">
+                                    <div class="radio_box">
+                                        <input th:id="${availableApplicationType.codeName}" type="radio" name="availableApplicationType" th:value="${availableApplicationType.code}" th:checked="${false}">
+                                        <label th:for="${availableApplicationType.codeName}">
+                                            <span></span>
+                                            <p th:text="${availableApplicationType.codeName}"></p>
+                                        </label>
+                                    </div>
+                                </th:block>
+                            </th:block>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="bl_gridBtns">
+            <div class="bl_gridBtns_md">
+                <div class="btn btnDefault btnReset">리셋</div>
+                <div class="btn btnDefault btnSearch" onclick="goSearch()">검색</div>
+                <a href="/api/education/schedule/excel" class="btn btnDefault download_excel download_search">excel 다운로드</a>
+                <a th:href="@{/education/schedule/regist/parallel}" class="btn btnDefault btnRegister">등록</a>
+            </div>
+        </div>
+
+        <!-- BOARD : CONTROLLER -->
+        <div class="bl_boardCtrls">
+            <div class="bl_boardCtrls_lft">
+                <p class="bl_boardCtrls_total">
+                     총: <strong th:text="${pageable.totalElements}"></strong>건
+                </p>
+                <select class="common_select" data-list="countSortList"></select>
+            </div>
+        </div>
+
+        <div class="tableResponsive overflowMulti">
+            <table class="table">
+                <colgroup>
+                    <col style="width: 50px">
+                    <col>
+                    <col>
+                    <col>
+                    <col>
+                    <col>
+                    <col>
+                    <col>
+                    <col>
+                    <col>
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th scope="col">번호</th>
+                        <th scope="col">교육유형</th>
+                        <th scope="col">구분</th>
+                        <th scope="col">과정</th>
+                        <th scope="col">운영형태</th>
+                        <th scope="col">기수</th>
+                        <th scope="col">담당부서</th>
+                        <th scope="col">담당자</th>
+                        <th scope="col">신청기간</th>
+                        <th scope="col">교육기간</th>
+                        <th scope="col">정원</th>
+                        <th scope="col">상태</th>
+                        <th scope="col">차시</th>
+                    </tr>
+                </thead>
+                <tbody th:if="${content != null && content.size > 0}">
+                    <tr th:each="item, stat : ${content}">
+                        <td>
+                            <img th:if="${item.isTop}" th:src="@{/assets/images/icons/board_top.png}" alt="Top" width="16px">
+                            <span th:unless="${item.isTop}" th:text="${pageable.totalElements - ((pageable.page * pageable.size) + stat.index)}"></span>
+                        </td>
+                        <th:block th:each="commonCode : ${commonCode}" th:if="${commonCode.code} == 'EDU_TYPE'">
+                            <td th:each="educationType : ${commonCode.subCode}"
+                                th:if="${item.curriculumMaster.educationType == educationType.code}"
+                                th:text="${educationType.codeName}"></td>
+                        </th:block>
+                        <td th:switch="${item.curriculumMaster.categoryCode}">
+                            <th:block th:each="commonCode : ${commonCode}" th:if="${commonCode.code} == 'CTS_CTGR'">
+                                <span th:each="categoryCode : ${commonCode.subCode}"
+                                      th:if="${categoryCode.code == item.curriculumMaster.categoryCode}"
+                                      th:value="${categoryCode.code}" th:text="${categoryCode.codeName}"></span>
+                            </th:block>
+                        </td>
+                        <td>
+                            <a th:href="@{/education/schedule/{educationCode}/{educationPlanCode}(educationCode=${item.curriculumMaster.educationType == '1' ? 'e-lecture' : (item.curriculumMaster.educationType == '2' ? 'lecture' : (item.curriculumMaster.educationType == '3' ? 'e-learning' : 'parallel'))}, educationPlanCode=${item.educationPlanCode})}" class="d-flex">
+                                <span class="hp_ellipsis" th:text="${item.curriculumMaster.curriculumName}">과정명이 들어갑니다.</span>
+                            </a>
+                        </td>
+                        <td>
+                            <span th:if="${item.operationType != null} and ${item.operationType == '1'}">기수</span>
+                            <span th:if="${item.operationType != null} and ${item.operationType == '2'}">상시</span>
+                        </td>
+                        <td>
+                            <span th:text="${item.yearOfEducationPlan}">2022</span>/<span th:text="${item.yearOfEducationPlanStep}">01</span>
+                        </td>
+                        <td>
+                            <span th:if="${item.province != null}">
+                                <th:block th:each="commonCode : ${commonCode}" th:if="${commonCode.code} == 'PROVINCE_CD'">
+                                    <th:block th:each="province_cd: ${commonCode.subCode}">
+                                        <span th:if="${province_cd.code==item.province}" th:text="${province_cd.codeName}">HEAD</span>
+                                    </th:block>
+                                </th:block>
+                            </span>
+                            <span th:unless="${item.province != null}">(미지정)</span>
+                        </td>
+                        <td th:text="${item.curriculumMaster.managerName}">01</td>
+                        <td>
+                            <span th:text="${#strings.substring(item.applyBeginDateTime,0,10)}">2022.09.01</span> ~
+                            <span th:text="${#strings.substring(item.applyEndDateTime,0,10)}">2023.09.30</span>
+                        </td>
+                        <td>
+                            <span th:text="${#strings.substring(item.operationBeginDateTime,0,10)}">2022.09.01</span> ~
+                            <span th:text="${#strings.substring(item.operationEndDateTime,0,10)}">2023.09.30</span>
+                        </td>
+                        <td th:text="${item.numberOfPeople}">40</td>
+                        <td>
+                            <span class="state state__blue" th:if="${item.availableApplicationType == '3'}">진행</span>
+                            <span class="state state__red" th:unless="${item.availableApplicationType == '3'}">마감</span>
+                        </td>
+
+                        <td>
+                            <a href="#popChapter" data-control="modal" data-handler="popChapter" class="btn btnDefault"
+                               th:if="${item.curriculumMaster.educationType == '3'}"
+                               th:attr="onclick=|goSubSearch(true, '${item.curriculumMaster.educationType}', '${item.curriculumMaster.curriculumContentsList[0].contentsMaster.contentsCode}')|">상세보기</a>
+                            <a href="#popChapter" data-control="modal" data-handler="popChapter" class="btn btnDefault"
+                               th:unless="${item.curriculumMaster.educationType == '3'}"
+                               th:attr="onclick=|goSubSearch(true, '${item.curriculumMaster.educationType}', '${item.educationPlanCode}')|">상세보기</a>
+                        </td>
+                    </tr>
+                </tbody>
+                <tbody th:unless="${content != null && content.size > 0}">
+                <tr class="empty_data"><td colspan="12">조회된 내용이 없습니다.</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="bl_paginate"></div>
+
+        <!-- POPUP : 차시 상세보기 -->
+        <article class="pop_wrapper ui-modal" id="popChapter">
+            <div class="pop_wrap pop_secondary" style="max-width:1000px;">
+                <div class="pop_cont">
+                    <div class="tableResponsive overflowMulti">
+                        <table class="table">
+                            <thead id="popChapterhead">
+                                <tr>
+                                    <th scope="col">교육기간</th>
+                                    <th scope="col">차시명</th>
+                                    <th scope="col">차시내용</th>
+                                    <th scope="col">강사</th>
+                                    <th scope="col">강의장소</th>
+                                    <th scope="col">QR체크인</th>
+                                </tr>
+                            </thead>
+                            <tbody id="popChapterBody">
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="bl_gridBtns">
+                        <div class="bl_gridBtns_md">
+                            <a class="btn btnDefault pop-close" href="">확인</a>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="button" class="pop_close pop-close">닫기</button>
+            </div>
+        </article>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            /* <![CDATA[ */
+            const commonCode = [[ ${commonCode} ]];
+            const content = [[ ${content} ]][0];
+            const params = {};
+
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+                pagination([[ ${pageable} ]], false)
+
+                const params = new URLSearchParams(decodeURIComponent(window.location.search).replace("?", ""));
+                if(params.get("educationType")) { Array.from($("[name=educationType]")).filter(data => data.value == params.get("educationType")).forEach(data => data.setAttribute('checked', true)); }
+                if(params.get("operationType")) { Array.from($("[name=operationType]")).filter(data => data.value == params.get("operationType")).forEach(data => data.setAttribute('checked', true)); }
+                if(params.get("availableApplicationType")) { Array.from($("[name=availableApplicationType]")).filter(data => data.value == params.get("availableApplicationType")).forEach(data => data.setAttribute('checked', true)); }
+
+                if(params.get("lectureName")) { document.getElementById('containTextType').value = "2"; document.querySelector('#containText').value = params.get("curriculumName"); }
+                if(params.get("categoryCode")) { $('#categoryCode').val(params.get("categoryCode")).prop("selected", true) }
+            }
+
+
+            /** 조회 */
+            function goSearch() {
+                let searchQuery = {}
+                let text = $("#curriculumName").val();
+                let categoryCode = $("#categoryCode").val();
+                if(text){
+                    searchQuery.curriculumName = text
+                }
+                if(categoryCode){
+                    searchQuery.categoryCode = categoryCode
+                }
+                if($("[name=educationType]:checked")[0].value) searchQuery.educationType = $("[name=educationType]:checked")[0].value;
+                if( $("[name=operationType]:checked")[0].value) searchQuery.operationType = $("[name=operationType]:checked")[0].value;
+                if( $("[name=availableApplicationType]:checked")[0].value) searchQuery.availableApplicationType = $("[name=availableApplicationType]:checked")[0].value;
+                if($("#yearOfEducationPlan").val()&&$("#yearOfEducationPlan").val()!="0")searchQuery.yearOfEducationPlan =$("#yearOfEducationPlan").val();
+                if($("#yearOfEducationPlanStep").val()&&$("#yearOfEducationPlanStep").val()!="0") searchQuery.yearOfEducationPlanStep =$("#yearOfEducationPlanStep").val();
+
+                searchJson(searchQuery)
+            }
+
+            function goSubSearch(hidden, educationType, searchCode) {
+                if(hidden) {
+                    document.querySelector('#popChapter > div').setAttribute('style', 'visibility: hidden');
+                }
+                const subParams = {};
+                if(educationType == '3') {
+                    /** 챕터 조회 */
+                    $.ajax({ //jquery ajax
+                        type:"get", //http method
+                        url:"/api/contents/list/chapter/" + searchCode, //값을 가져올 경로
+                        dataType:"json", //html, xml, text, script, json, jsonp 등 다양하게 쓸 수 있음
+                        success: function(data) {   //요청 성공시 실행될 메서드
+                            document.querySelector("#popChapterhead").innerHTML = `
+                                <tr>
+                                    <th scope="col">차시명</th>
+                                    <th scope="col">차시내용</th>
+                                </tr>`;
+                            document.querySelector("#popChapterBody").innerHTML = "";
+                            data.content.forEach(function (chapterInfo, index, list) {
+                                document.querySelector("#popChapterBody").innerHTML +=
+                                    "<tr>" +
+                                    "<td>" + chapterInfo.chapterMaster.chapterName + "</td>" +
+                                    "<td>" + chapterInfo.chapterMaster.chapterTitle + "</td>" +
+                                    "</tr>"
+                            })
+                            document.querySelector('#popChapter > div').setAttribute('style', 'visibility: visible');
+                        },
+                        error: function(e){		 //요청 실패시 에러 확인을 위함
+                            alert(e.responseJSON.resultMessage);
+                        }
+                    })
+                } else {
+                    /** 챕터 조회 */
+                    $.ajax({ //jquery ajax
+                        type:"get", //http method
+                        url:"/api/education/curriculum/lecture/" + searchCode, //값을 가져올 경로
+                        dataType:"json", //html, xml, text, script, json, jsonp 등 다양하게 쓸 수 있음
+                        success: function(data) {   //요청 성공시 실행될 메서드
+                            document.querySelector("#popChapterhead").innerHTML = `
+                                <tr>
+                                    <th scope="col" style="width:100px;">교육기간</th>
+                                    <th scope="col">차시명</th>
+                                    <th scope="col">차시내용</th>
+                                    <th scope="col" style="width:100px;">강사</th>
+                                    <th scope="col">강의장소</th>
+                                    <th scope="col" style="width:90px;">QR체크인</th>
+                                </tr>`;
+                            let wrap = document.querySelector("#popChapterBody");
+                            wrap.innerHTML = "";
+                            data.content.forEach(function (chapterInfo, index, list) {
+                                let html = $(
+                                    "<tr>" +
+                                    "<td>" +
+                                    "<span>" + chapterInfo.operationBeginDateTime.substr(0, 10) + "</span> ~ " +
+                                    "<span>" + chapterInfo.operationEndDateTime.substr(0, 10) + "</span>" +
+                                    "</td>" +
+                                    "<td>" + chapterInfo.lectureTitle + "</td>" +
+                                    "<td>" + chapterInfo.lectureDetail + "</td>" +
+                                    "<td>" + chapterInfo.lecturerInfo.instrNm + "</td>" +
+                                    "<td>" + chapterInfo.lecturerPlace + "</td>" +
+                                    "<td> <a class='btn btnDefault' target='_blank' href='"+chapterInfo.attendQRCodePath+"'>열기</a></td>" +
+                                    "</tr>"
+                                );
+                                html.find(".btn").click(function(e){
+                                    e.preventDefault();
+                                    ctsUtil.windowOpen(chapterInfo.attendQRCodePath, "chapterInfo.lectureTitle - QR체크인", 800, 800);
+                                });
+                                $(wrap).append(html);
+                            });
+                            document.querySelector('#popChapter > div').setAttribute('style', 'visibility: visible');
+                        },
+                        error: function(e){		 //요청 실패시 에러 확인을 위함
+                            alert(e.responseJSON.resultMessage);
+                        }
+                    })
+                }
+            }
+            /* ]]> */
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

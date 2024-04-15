@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="edu-3-4">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title d-flex-between">
+            <h2>집합교육 수료관리</h2>
+            <div class="text-end">
+                <a class="btn btnDefault" href="/education/application/lecture/complete">뒤로가기</a>
+            </div>
+        </div>
+
+        <div class="tableLeftResponsive">
+            <table class="tableLeft">
+                <colgroup>
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                </colgroup>
+                <tbody>
+                    <tr>
+                        <th scope="row">과정명</th>
+                        <td colspan="2" th:if="${content!=null && #lists.size(content) !=0}" th:text="${content[0].educationPlan.curriculumMaster.curriculumName}">과정명 입니다.</td>
+                        <td colspan="2" th:unless="${content!=null && #lists.size(content) !=0}"> </td>
+                        <th scope="row">연도/기수</th>
+                        <td colspan="2">
+                            <span th:if="${content!=null && #lists.size(content) !=0}" th:text="${content[0].educationPlan.yearOfEducationPlan}">2022</span> /
+                            <span th:if="${content!=null && #lists.size(content) !=0}" th:text="${content[0].educationPlan.yearOfEducationPlanStep}">01</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">수료일</th>
+                        <td colspan="2">
+                            <div class="bl_dateRange">
+                                <input type="text" id="completeBeginDate" class="el_datePicker sdate">
+                                <span class="blank">~</span>
+                                <input type="text" id="completeEndDate" class="el_datePicker edate">
+                            </div>
+                        </td>
+                        <th scope="row">상태</th>
+                        <td colspan="2">
+                            <div class="radio_box">
+                                <input id="state_all" type="radio" name="isComplete" value="" checked>
+                                <label for="state_all">
+                                    <span></span>
+                                    전체
+                                </label>
+                            </div>
+                            <div class="radio_box">
+                                <input id="state_1" type="radio" name="isComplete" value="Y">
+                                <label for="state_1">
+                                    <span></span>
+                                    수료
+                                </label>
+                            </div>
+                            <div class="radio_box">
+                                <input id="state_2" type="radio" name="isComplete" value="N">
+                                <label for="state_2">
+                                    <span></span>
+                                    미수료
+                                </label>
+                            </div>
+                            <div class="radio_box">
+                                <input id="state_3" type="radio" name="isComplete" value="W">
+                                <label for="state_3">
+                                    <span></span>
+                                    처리중
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">검색</th>
+                        <td colspan="5">
+                            <div class="d-flex-2">
+                                <select id="containType" class="common_select">
+                                    <option value="1">전체</option>
+                                    <option value="2">이름</option>
+                                    <option value="3">아이디</option>
+                                </select>
+                                <input id="containText" type="text" class="hp_w600">
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- GRID : BUTTON -->
+        <div class="bl_gridBtns">
+            <div class="bl_gridBtns_md">
+                <div class="btn btnDefault btnReset">리셋</div>
+                <div class="btn btnDefault btnSearch" onclick="goSearch()">검색</div>
+                <a class="btn btnDefault download_excel" th:href="${content!=null && #lists.size(content) !=0 ? '/api/education/application/lecture/complete/excel?educationPlanCode='+content[0].educationPlanCode:'잘못된 접근입니다.'}">excel 다운로드</a>
+            </div>
+        </div>
+
+        <!-- BOARD : CONTROLLER -->
+        <div class="bl_boardCtrls">
+            <div class="bl_boardCtrls_lft">
+                <p class="bl_boardCtrls_total">총: <strong th:text="${pageable.totalElements}"></strong>건</p>
+            </div>
+            <div class="bl_boardCtrls_rgt">
+                <select class="common_select" data-list="countSortList"></select>
+            </div>
+        </div>
+
+        <div class="tableResponsive overflowMulti">
+            <table class="table">
+                <colgroup>
+                    <col>
+                    <col>
+                    <col>
+                    <col>
+                    <col>
+                    <col>
+                    <col>
+                    <col style="width: 100px">
+                    <col>
+                    <col style="width: 100px">
+                    <col>
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th scope="col">
+                            <div class="chk_box">
+                                <input id="list_all" type="checkbox" name="list">
+                                <label for="list_all">
+                                    <span class="me-0"></span>
+                                </label>
+                            </div>
+                        </th>
+                        <th scope="col">번호</th>
+                        <th scope="col">사용자(아이디)</th>
+                        <th scope="col">소속명</th>
+                        <th scope="col">부서/직급/직책</th>
+                        <th scope="col">학습기간</th>
+                        <th scope="col">수료일</th>
+                        <th scope="col">총점</th>
+                        <th scope="col">출석</th>
+                        <th scope="col">시험</th>
+                        <th scope="col">수료여부</th>
+                    </tr>
+                </thead>
+                <tbody th:if="${content != null && content.size > 0}">
+                    <tr th:each="item, stat: ${content}">
+                        <td style="display: none;" th:if="${item.sequenceNo != null}" th:text="${item.sequenceNo}"></td>
+                        <td>
+                            <div class="chk_box">
+                                <input th:id="${pageable.totalElements - ((pageable.page * pageable.size) + stat.index)}" type="checkbox" name="list">
+                                <label th:for="${pageable.totalElements - ((pageable.page * pageable.size) + stat.index)}">
+                                    <span class="me-0"></span>
+                                </label>
+                            </div>
+                        </td>
+                        <td th:text="${pageable.totalElements - ((pageable.page * pageable.size) + stat.index)}"></td>
+                        <td>
+                            <span th:if="${item.lmsUser.userName != null}" th:text="${item.lmsUser.userName}">홍길동</span>(<span th:if="${item.userId != null}" th:text="${item.userId}">test22</span>)
+                        </td>
+                        <td>
+                            <div th:if="${item.lmsUser.organizationInfo != null}" th:text="${item.lmsUser.organizationInfo.organizationName}"></div>
+                            <div th:if="${item.lmsUser.mediaInfo != null}" th:text="${item.lmsUser.mediaInfo.mediaName}"></div>
+                        </td>
+                        <td>
+                            <div th:if="${item.lmsUser.department != null}" th:text="${item.lmsUser.department}"></div>
+                            <div>
+                                <span th:if="${item.lmsUser.rank != null}" th:text="${item.lmsUser.rank}"></span>
+                                <span th:if="${not #strings.isEmpty(item.lmsUser.rank) && not #strings.isEmpty(item.lmsUser.position)}"> / </span>
+                                <span th:if="${item.lmsUser.position != null}" th:text="${item.lmsUser.position}"></span>
+                            </div>
+                        </td>
+                        <td>
+                            <span th:if="${item.operationBeginDateTime != null}" th:text="${#strings.substring(item.operationBeginDateTime,0,10)}">2022.09.01</span> ~
+                            <span th:if="${item.operationEndDateTime != null}" th:text="${#strings.substring(item.operationEndDateTime,0,10)}">2022.09.30</span>
+                        </td>
+                        <td>
+                            <div th:if="${item.completeDateTime != null}" th:text="${item.completeDateTime}">2022.09.01 14:23:36</div>
+                            <div th:if="${item.programCompleteNumber != null}" th:text="${'미교원-'+#strings.substring(item.createDateTime,0,4)+'-직무-'+item.programCompleteNumber}">0403001</div>
+                            <span th:unless="${item.completeDateTime != null}">-</span>
+                        </td>
+                        <td style="display: none;" th:if="${item.sequenceNo != null}" th:text="${item.sequenceNo}"></td>
+                        <td>
+                            <div class="d-flex-center-2">
+                                <input type="text" th:if="${item.progressScore != null} and ${item.examScore != null} and ${item.assignmentScore != null}" th:value="${item.progressScore + item.examScore + item.assignmentScore}" style="min-width: 50px" th:disabled="${item.educationPlan.curriculumMaster.examScoreOfEnd > item.examScore}">
+                                <span th:if="${item.progressScore != null} and ${item.examScore != null} and ${item.assignmentScore != null}"> 점</span>
+                                <span th:unless="${item.progressScore != null} and ${item.examScore != null} and ${item.assignmentScore != null}">-</span>
+                            </div>
+                        </td>
+                        <td>
+                            <a th:id="${item.applicationNo}" href="javascript: void(0)" th:if="${item.progressRate != null} and ${item.educationPlanCode != null}" th:text="${item.progressRate} + '%'" onclick="openPop('', '/education/application/lecture/complete/attend/'+this.id, 'forPopAttendance')">100%</a>
+                        </td>
+                        <td>
+                            <div class="d-flex-center-2">
+                                <input type="text" th:if="${item.educationPlan.curriculumMaster.examScoreOfEnd != null} and ${item.examScore != null}" th:value="${item.examScore}" style="min-width: 50px" th:disabled="${item.educationPlan.curriculumMaster.examScoreOfEnd > item.examScore}">
+                                <span th:if="${item.educationPlan.curriculumMaster.examScoreOfEnd != null} and ${item.examScore != null}"> 점</span>
+                                <span th:unless="${item.educationPlan.curriculumMaster.examScoreOfEnd != null} and ${item.examScore != null}">-</span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="d-flex-2">
+                                <select id="completionSelect" class="common_select" th:value="${item.isComplete}" th:onchange="selectOnComplete(this, [[${item.userId}]], [[${item.applicationNo}]], [[${item.curriculumCode}]], [[${item.educationPlanCode}]] )">
+                                    <option value="Y" th:selected="${item.isComplete}=='Y'">수료</option>
+                                    <option value="N" th:selected="${item.isComplete}=='N'">미수료</option>
+                                    <option value="W" th:selected="${item.isComplete}=='W'">처리중</option>
+                                </select>
+                                <!-- 수료시 수료증 출력 -->
+                                <div style='cursor:pointer; color: #0c63e4;' th:onclick="certi([[${item}]])" th:if="${item.completeDateTime != null} and ${item.completeDateTime} and ${item.educationPlan.curriculumMaster.educationTarget !='3'}">수료증</div>
+                                <!-- 교원 대상 화상/집합 교육 이수증 출력 -->
+                                <div style='cursor:pointer; color: #0c63e4;' th:onclick="teacher_certi([[${item}]])" th:if="${item.completeDateTime != null} and ${item.completeDateTime} and ${item.educationPlan.curriculumMaster.educationTarget =='3'}">이수증</div>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+                <tbody th:unless="${content != null && content.size > 0}">
+                <tr class="empty_data"><td colspan="11">조회된 내용이 없습니다.</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="bl_gridBtns">
+            <div class="bl_gridBtns_lft">
+                <div class="btn btnDefault" onclick="checkSMS()">SMS 발송</div>
+            </div>
+            <div class="bl_gridBtns_rgt">
+                <div class="d-flex-end-1">
+                    선택한 항목의 수료여부를
+                    <select id="isComplete" class="common_select">
+                        <option value="Y">수료</option>
+                        <option value="N">미수료</option>
+                        <option value="W">처리중</option>
+                    </select>
+                    (으)로
+                    <a onclick="modify()" class="btn btnDefault">변경</a>
+                </div>
+                <div class="d-flex-end-1 mt-2">
+                    선택한 항목의 점수를 일괄로
+                    <div class="btn btnDefault">저장</div>
+                </div>
+            </div>
+        </div>
+        <div class="bl_paginate"></div>
+
+        <!-- POPUP : 출석 -->
+        <div class="iframe_wrap">
+            <iframe id="forPopAttendance" src="about:blank" width="800"></iframe>
+        </div>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+
+    <th:block layout:fragment="script">
+    <script th:inline="javascript">
+        $("#list_all").bind('click',function (e){
+            if($(this).is(":checked")){
+                $(`input:checkbox[name=list]`).prop("checked", true);
+            }else{
+                $(`input:checkbox[name=list]`).prop("checked", false);
+            }
+        })
+        /* <![CDATA[ */
+        const content = [[ ${content} ]];
+        function onLoadSubmit() {
+            console.log('commonCode: ', [[ ${commonCode} ]] )
+            pagination([[ ${pageable} ]], false)
+        }
+        let openWin;
+        function certi(data){
+            window.name = 'parentForm';
+            openWin = window.open('/education/application/lecture/complete/certification', 'childForm', 'width=0, height=0')
+            if(openWin){
+                let sendData = {
+                    name: data.lmsUser.userName,
+                    eduTitle: data.educationPlan.curriculumMaster.curriculumName,
+                    eduStartDate: data.operationBeginDateTime,
+                    eduEndDate: data.operationEndDateTime,
+                    eduCompleteDate: data.completeDateTime
+                }
+                if(data.lmsUser.organizationInfo === null){
+                    sendData.organName = null;
+                } else {
+                    sendData.organName = data.lmsUser.organizationInfo.organizationName;
+                }
+                openWin.sendData = sendData
+            }
+        }
+        let openWin2;
+        function teacher_certi(data){
+            window.name = 'parentForm';
+            openWin2 = window.open('/education/application/lecture/complete/teacher/certification', 'childForm', 'width=0, height=0')
+            if(openWin2){
+                let sendData = {
+                    programCompleteNumber: data.programCompleteNumber,
+                    name: data.lmsUser.userName,
+                    birthDay: data.lmsUser.birthDay,
+                    eduTitle: data.educationPlan.curriculumMaster.curriculumName,
+                    educationTime: data.educationPlan.curriculumMaster.educationPerHour,
+                    eduCreateDate: data.createDateTime,
+                    eduStartDate: data.operationBeginDateTime,
+                    eduEndDate: data.operationEndDateTime,
+                    eduCompleteDate: data.completeDateTime
+                }
+                openWin2.sendData = sendData
+            }
+        }
+
+        function goSearch() {
+            const params = {};
+            if(document.querySelector("#completeBeginDate").value || document.querySelector("#completeEndDate").value) {
+                if(document.querySelector("#completeBeginDate").value && document.querySelector("#completeEndDate").value) {
+                    params.completeBeginDate = document.querySelector("#completeBeginDate").value;
+                    params.completeEndDate = document.querySelector("#completeEndDate").value;
+                } else {
+                    alert("수료일 검색 시작일과 종료일을 모두 선택해주세요.")
+                }
+            }
+
+            if ($("[name=isComplete]:checked").val() && $("[name=isComplete]:checked").val() !="") {
+                params.isComplete = $("[name=isComplete]:checked").val() ;
+            }
+            if(document.getElementById('containType').value == "1") {
+                //전체
+                params.containTextType = "1";
+                params.containText = document.querySelector('#containText').value;
+            } else if(document.getElementById('containType').value == "2") {
+                //이름
+                params.containTextType = "2";
+                params.containText = document.querySelector('#containText').value;
+            } else if(document.getElementById('containType').value == "3") {
+                //아이디
+                params.containTextType = "3";
+                params.containText = document.querySelector('#containText').value;
+            }
+
+            const queryParams = Object.entries(params).filter(data => data[1] != null && data[1] !== '').map(data => data.join('=')).join('&')
+            window.location.assign(window.location.pathname+"?"+queryParams)
+        }
+
+        function selectOnComplete(el, userId, applicationNo, curriculumCode, educationPlanCode){
+            let stateTxt = (el.value =="Y" ? '수료' : el.value =="N" ? '미수료' : '처리중');
+            if( !userId || !applicationNo || !curriculumCode || !educationPlanCode ){
+                alert('정상적인 요청이 아닙니다.');
+                return false;
+            }
+            if( confirm(`${userId} 사용자를 ${stateTxt} 상태로 변경하시겠습니까?`) ){
+                let params = {
+                    applicationList:[{
+                        "applicationNo": applicationNo,
+                        "curriculumCode": curriculumCode,
+                        "educationPlanCode": educationPlanCode,
+                        "userId": userId,
+                        "isComplete": el.value,
+                    }]
+                };
+                /** 교육 신청 상태 수정 */
+                $.ajax({ //jquery ajax
+                    type:"put", //http method
+                    url:"/api/education/application/update-education-state", //값을 가져올 경로
+                    headers: {'Content-Type': 'application/json'},
+                    data: JSON.stringify(params),
+                    async: false,
+                    dataType:"json", //html, xml, text, script, json, jsonp 등 다양하게 쓸 수 있음
+                    success: function(res) {   //요청 성공시 실행될 메서드
+                        if( res && res.resultCode == "SUCCESS"){
+                            alert("수료상태 변경이 완료되었습니다.");
+                            window.location.reload()
+                        }else{
+                            alert('오류가 발생했습니다.');
+                            window.location.reload();
+                        }
+                    },
+                    error: function(e){		 //요청 실패시 에러 확인을 위함
+                        alert(e.responseJSON.resultMessage);
+                    }
+                });
+            }
+        }
+
+        /** 교육 수료 상태 수정 */
+        function modify() {
+            const params = {};
+            params.applicationList = [];
+
+            $("[name=list]:checked").each(function(index, value, list) {
+                const sequenceNo = value.parentElement.parentElement.parentElement.children[0].textContent;
+                if(sequenceNo) {
+                    content.filter(data => String(data.sequenceNo) === String(sequenceNo))
+                        .forEach(data => {
+                            params.applicationList.push({
+                                applicationNo: data.applicationNo,
+                                educationPlanCode: data.educationPlanCode,
+                                curriculumCode: data.curriculumCode,
+                                userId: data.userId,
+                                isComplete: document.querySelector("#isComplete").value
+                            })
+                        });
+                }
+            });
+
+            if(params.applicationList.length > 0) {
+                /** 교육 수료 상태 수정 */
+                $.ajax({ //jquery ajax
+                    type:"put", //http method
+                    url:"/api/education/application/update-education-state", //값을 가져올 경로
+                    headers: {'Content-Type': 'application/json'},
+                    data: JSON.stringify(params),
+                    dataType:"json", //html, xml, text, script, json, jsonp 등 다양하게 쓸 수 있음
+                    success: function(data) {   //요청 성공시 실행될 메서드
+                        alert("교육 수료 상태 수정이 완료되었습니다.");
+                        window.location.reload();
+                    },
+                    error: function(e){		 //요청 실패시 에러 확인을 위함
+                        alert(e.responseJSON.resultMessage);
+                    }
+                });
+            }
+        }
+
+        // '수료여부' > '수료'일 때 '수료증' 출력 링크 표시/숨김 처리
+        function completionSelectChk() {
+            if ($('#completionSelect option:selected').text() == '수료') {
+                $('#completionSelect').next().show();
+            } else {
+                $('#completionSelect').next().hide();
+            }
+        }
+        completionSelectChk();
+        $('#completionSelect').on('change', completionSelectChk);
+
+        function checkSMS() {
+            let params = new Array($("[name=list]:checked").length);
+            $("[name=list]:checked").each(function(index, value, list) {
+                const sequenceNo = value.parentElement.parentElement.parentElement.children[0].textContent;
+                if(sequenceNo) {
+                    content.filter(data => String(data.sequenceNo) === String(sequenceNo))
+                        .forEach(data => {
+                            if (data.lmsUser.phone && data.lmsUser.phone.length > 0) {
+                                params.push({
+                                    userName: data.lmsUser.userName,
+                                    phone: data.lmsUser.phone
+                                })
+                            }
+                        });
+                }
+            });
+            if (params && params.length > 0) {
+                CommonUI.sendSMS(params)
+            } else {
+                alert("발송 대상을 선택해 주세요.")
+            }
+        }
+        /* ]]> */
+    </script>
+</th:block>
+</div>
+</body>
+</html>

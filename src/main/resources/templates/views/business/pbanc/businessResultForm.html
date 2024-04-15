@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="business-1">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>사업공고 관리</h2>
+        </div>
+
+        <div class="d-flex gap-4" th:if="${content[0].bizPbancType != 5}">
+            <div class="flex-grow-1">
+                <h3 class="subTitle">
+                    사업공고 신청 기관
+                    (<span th:if="${!#lists.isEmpty(content[0].bizOrganizationAplies)}" class="font_roboto font_weight_bold color_main" th:text="${content[0].bizOrganizationAplies.size}">0</span><span th:unless="${!#lists.isEmpty(content[0].bizOrganizationAplies)}"  class="font_roboto font_weight_bold color_main">0</span>)
+                </h3>
+                <div class="tableResponsive overflowMulti" style="max-height: 167px">
+                    <table class="table">
+                        <thead>
+                        <tr>
+                            <th scope="col">번호</th>
+                            <th scope="col">기관명</th>
+                            <th scope="col">교육기간</th>
+                            <th scope="col">교육시간</th>
+                            <th scope="col">담당자</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <div th:if="${!#lists.isEmpty(content[0].bizOrganizationAplies)}">
+                            <tr th:each="item, stat: ${content[0].bizOrganizationAplies}">
+                                <td th:text="${stat.count}">1</td>
+                                <td th:text="${item.organizationName}"></td>
+                                <td>
+                                    <span th:text="${item.bizOrgAplyLsnPlanBgng}">2022-10-01</span> ~
+                                    <span th:text="${item.bizOrgAplyLsnPlanEnd}">2022-10-30</span>
+                                </td>
+                                <td th:text="${item.bizOrgAplyTime}">10.0</td>
+                                <td th:text="${item.bizOrgAplyPicNm}">담당자명</td>
+                            </tr>
+                        </div>
+                        <div th:unless="${!#lists.isEmpty(content[0].bizOrganizationAplies)}">
+                            <tr class="empty_data">
+                                <td colspan="5">신청한 기관이 없습니다.</td>
+                            </tr>
+                        </div>
+
+                        </tbody>
+
+                    </table>
+                </div>
+            </div>
+            <div class="flex-grow-1">
+                <h3 class="subTitle">
+                    사업공고 승인 기관
+
+                    (<span th:if="${!#lists.isEmpty(content[0].bizOrganizationAprvs)}" class="font_roboto font_weight_bold color_main" th:text="${content[0].bizOrganizationAprvs.size}">0</span><span th:unless="${!#lists.isEmpty(content[0].bizOrganizationAprvs)}"  class="font_roboto font_weight_bold color_main">0</span>)
+
+                </h3>
+                <div class="tableResponsive overflowMulti" style="max-height: 167px">
+                    <table class="table">
+                        <thead>
+                        <tr>
+                            <th scope="col">번호</th>
+                            <th scope="col">기관명</th>
+                            <th scope="col">교육기간</th>
+                            <th scope="col">교육시간</th>
+                            <th scope="col">담당자</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <div th:if="${!#lists.isEmpty(content[0].bizOrganizationAprvs)}">
+                            <tr th:each="item, stat: ${content[0].bizOrganizationAprvs}">
+                                <td th:text="${stat.count}">1</td>
+                                <td th:text="${item.organizationName}"></td>
+                                <td>
+                                    <span th:text="${item.bizOrgAplyLsnPlanBgng}">2022-10-01</span> ~
+                                    <span th:text="${item.bizOrgAplyLsnPlanEnd}">2022-10-30</span>
+                                </td>
+                                <td th:text="${item.bizOrgAplyTime}">10.0</td>
+                                <td th:text="${item.bizOrgAplyPicNm}">담당자명</td>
+                            </tr>
+                        </div>
+                        <div th:unless="${!#lists.isEmpty(content[0].bizOrganizationAprvs)}">
+                            <tr class="empty_data">
+                                <td colspan="5">승인된 기관이 없습니다.</td>
+                            </tr>
+                        </div>
+                        </tbody>
+
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <h3 class="subTitle">사업공고 선정결과</h3>
+        <div class="tableLeftResponsive">
+            <table class="tableLeft">
+                <colgroup>
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                </colgroup>
+                <tbody>
+                    <tr>
+                        <th scope="row">구분</th>
+                        <td th:text="${content[0].bizPbancCtgrNm}">
+                            구분값 입니다.
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">사업명</th>
+                        <td th:text="${content[0].bizPbancNm}">사업명</td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><span class="el_required">*</span>내용</th>
+                        <td>
+                            <textarea name="contents" class="ckeditor" tyle="width:100%; height:200px" th:text="${content[0].bizPbancRsltCn}"></textarea>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">파일첨부</th>
+                        <td>
+                            <div class="bl_uploadGrid">
+                                <div class="bl_upload hp_w400">
+                                    <input id="fileName" type="text" class="bl_upload_path js_path" readonly th:if="${content == null}">
+                                    <input id="fileName" type="text" class="bl_upload_path js_path" readonly th:if="${content != null} and ${content[0].bizPbancRsltFile == null}">
+                                    <input id="fileName" type="text" class="bl_upload_path js_path" readonly th:if="${content != null} and ${content[0].bizPbancRsltFile != null}" th:value="${content[0].bizPbancRsltFile.split('/')[content[0].bizPbancRsltFile.split('/').length-1]}">
+                                    <label for="formFile" class="btn btnDefault bg-secondary text-white bl_upload_btn">파일선택</label>
+                                    <input id="formFile" type="file" name="file" class="bl_upload_file js_file" accept=".gif, .jpg, .png, .pdf, .hwp, .hwpx">
+                                </div>
+                                <a th:if="${content != null} and ${content[0].bizPbancRsltFile != null}" th:href="@{/api/business/pbanc/rslt/download(attachFilePath=${content[0].bizPbancRsltFile})}" class="btn btnDefault bg_blue download_ajax">다운로드</a>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- GRID : BUTTON -->
+        <div class="bl_gridBtns">
+            <div class="bl_gridBtns_rgt">
+                <a class="btn btnDefault btnList" href="/business/pbanc/list">목록</a>
+                <div id="rslt_post" class="btn btnDefault" th:text="${content[0].bizPbancRsltNo}?'수정':'등록'">등록</div>
+            </div>
+        </div>
+
+        <th:block layout:fragment="script">
+            <script th:inline="javascript">
+                let fileSize = $(".file_size");
+                for (var item of fileSize) {
+                    $(item).text(Math.floor(item.innerText / 1024)+"KB")
+                }
+                var fileList=[];
+
+                $("#formFile").bind("change", function (e){
+                    if(this.files[0]){
+                        fileList.push(this.files[0])
+                        //총용량 추가
+                        let text = this.files[0].size;
+                        text = parseFloat(text) / 1024;
+                        text = parseFloat(text) / 1024;
+                        text = text.toFixed(2);
+                        let now = $('#fileMB').text();
+                        now = parseFloat(now)+parseFloat(text);
+                        now = parseFloat(now).toFixed(2);
+                        $('#fileMB').text(now);
+                    }
+
+                    if( this.files[0].name){
+                        $("#fileName").val(this.files[0].name);
+                    }
+                })
+
+                $("#rslt_post").bind("click", function (e){
+                    if (nullCheck()) {
+                        let params = getFormData();
+                        if(params.bizPbancRsltNo=="000"){
+                            $.ajax({
+                                type: "post", //http method
+                                url: "/api/business/pbanc/rslt/create", //값을 가져올 경로
+                                headers: {'Content-Type': 'application/json'},
+                                data: JSON.stringify(params),
+                                dataType: "json",
+                                success: function(data) {
+                                    if($("#formFile")[0].files.length>0){
+                                        let form = new FormData();
+                                        form.append( "attachFile", $("#formFile")[0].files[0] );
+                                        $.ajax({
+                                            type:"put", //http method
+                                            url:`/api/business/pbanc/rslt/upload/${data.bizPbancRsltNo}`, //값을 가져올 경로
+                                            processData : false,
+                                            contentType : false,
+                                            data: form,
+                                            async:false,
+                                            success: function(data) {   //요청 성공시 실행될 메서드
+                                                alert("결과공고가 등록되었습니다.");
+                                                window.location.href = '/business/pbanc/list';
+                                            }, error: function(e) {
+                                                alert(e.responseJSON.resultMessage);
+                                            }
+                                        })
+                                    }else{
+                                        alert("결과공고가 등록되었습니다.");
+                                        window.location.href = '/business/pbanc/list';
+                                    }
+                                },
+                                error: function(e) { }
+                            })
+                        }else{
+                            $.ajax({
+                                type: "put", //http method
+                                url: "/api/business/pbanc/rslt/update", //값을 가져올 경로
+                                headers: {'Content-Type': 'application/json'},
+                                data: JSON.stringify(params),
+                                dataType: "json",
+                                success: function(data) {
+                                    if($("#formFile")[0].files.length>0){
+                                        let form = new FormData();
+                                        form.append( "attachFile", $("#formFile")[0].files[0] );
+                                        $.ajax({
+                                            type:"put", //http method
+                                            url:`/api/business/pbanc/rslt/upload/${data.bizPbancRsltNo}`, //값을 가져올 경로
+                                            processData : false,
+                                            contentType : false,
+                                            data: form,
+                                            async:false,
+                                            success: function(data) {   //요청 성공시 실행될 메서드
+                                                alert("결과공고가 수정되었습니다.");
+                                                window.location.reload();
+                                            }, error: function(e) {
+                                                alert(e.responseJSON.resultMessage);
+                                            }
+                                        })
+                                    }else{
+                                        alert("결과공고가 수정되었습니다.");
+                                        window.location.reload();
+                                    }
+                                },
+                                error: function(e) { }
+                            })
+                        }
+                    }
+                })
+
+                /* <![CDATA[ */
+                function  getFormData(){
+                    let params={};
+                    let CONT = [[ ${content}]];
+                    params.bizPbancNo = CONT[0].bizPbancNo;
+                    params.bizPbancNtcYn = 0;
+
+                    let contents = CKEDITOR.instances.contents.getData();
+                    params.bizPbancRsltCn = contents;
+                    params.bizPbancRsltNo = CONT[0].bizPbancRsltNo ? CONT[0].bizPbancRsltNo : "000"
+                    return params;
+                }
+                function onLoadSubmit() {
+                    console.log('commonCode: ', [[ ${commonCode} ]] )
+                }
+                /* ]]> */
+            </script>
+        </th:block>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+</div>
+</body>
+</html>

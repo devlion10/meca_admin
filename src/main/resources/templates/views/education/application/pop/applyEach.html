@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/pop_layout}">
+<body>
+<div layout:fragment="pop">
+    <!-- POPUP : -->
+    <article class="pop_page">
+        <div class="pop_secondary">
+            <div class="pop_head">
+                <div class="tit">교육관리 개별등록</div>
+            </div>
+            <div class="blocking">
+                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                <span> 신청 정보 생성 중 입니다.</span>
+            </div>
+            <div class="pop_cont">
+                <p class="guide_text mt-0">※ 관리자가 강제 입과하신 경우, 신청서는 제출되지 않으며, 병행과정은 '집합'으로 신청됩니다.</p>
+
+                <div class="tableLeftResponsive">
+                    <table class="tableLeft">
+                        <colgroup>
+                            <col style="width: 100px">
+                            <col style="width: auto">
+                            <col style="width: 100px">
+                            <col style="width: auto">
+                        </colgroup>
+                        <tbody>
+                            <tr>
+                                <th scope="row">이름</th>
+                                <td>
+                                    <input id="userName" type="text" class="hp_w200">
+                                </td>
+                                <th scope="row">아이디</th>
+                                <td>
+                                    <input id="userId" type="text" class="hp_w200">
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="bl_gridBtns">
+                    <div class="bl_gridBtns_md">
+                        <div onclick="searchUser()" class="btn btnDefault btnSearch">검색</div>
+                    </div>
+                </div>
+
+                <div class="tableResponsive overflowMulti">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th scope="col">번호</th>
+                                <th scope="col">이름</th>
+                                <th scope="col">아이디</th>
+                                <th scope="col">소속명</th>
+                                <th scope="col">부서/직급/직책</th>
+                                <th scope="col">선택</th>
+                            </tr>
+                        </thead>
+                        <tbody th:if="${content != null && content.size > 0}">
+                            <tr th:each="item, stat:${content}">
+                                <td th:text="${pageable.totalElements - ((pageable.page * pageable.size) + stat.index)}">1</td>
+                                <td th:text="${item.userName}">홍길동</td>
+                                <td th:text="${item.userId}">test01</td>
+                                <td>
+                                    <div th:if="${item.organizationInfo != null}" th:text="${item.organizationInfo.organizationName}"></div>
+                                    <div th:if="${item.mediaInfo != null}" th:text="${item.mediaInfo.mediaName}"></div>
+                                </td>
+                                <td>
+                                    <div th:if="${item.department != null}" th:text="${item.department}"></div>
+                                    <div>
+                                        <span th:if="${item.rank != null}" th:text="${item.rank}"></span>
+                                        <span th:if="${not #strings.isEmpty(item.rank) && not #strings.isEmpty(item.position)}"> / </span>
+                                        <span th:if="${item.position != null}" th:text="${item.position}"></span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div onclick="create(this)" th:value="${stat.index}" class="btn btnDefault">선택하기</div>
+                                </td>
+                            </tr>
+                        </tbody>
+                        <tbody th:unless="${content != null && content.size > 0}">
+                            <tr class="empty_data"><td colspan="5">조회된 내용이 없습니다.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="bl_paginate"></div>
+            </div>
+            <button type="button" class="pop_close pop-close" onclick="parent.window.closePop()">닫기</button>
+        </div>
+    </article>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            function searchUser(){
+                let searchQuery = {}
+                let uid = $("#userId").val();
+                let name = $("#userName").val();
+                if(uid){
+                    searchQuery.userId = uid
+                }
+                if(name){
+                    searchQuery.userName = name
+                }
+                searchJson(searchQuery)
+            }
+            /* <![CDATA[ */
+            function create(btn){
+                $(".blocking").show();
+
+                let dataIndex = parseInt($(btn).attr("value"));
+                let EDU =  [[${educationPlan}]];
+                let CONT = [[ ${content} ]];
+                if(dataIndex>=0 && EDU.empty == false){
+                    let user = CONT[dataIndex];
+                    let eduPlan = EDU.content[0];
+                    let params = {};
+
+                    params.userId = user.userId;
+                    params.curriculumCode = eduPlan.curriculumCode;
+                    params.educationPlanCode = eduPlan.educationPlanCode;
+                    params.adminApprovalState = "2";
+                    params.sequenceNo=0;
+                    if (eduPlan.curriculumMaster.educationType=="4") {
+                        params.setEducationType = "1";
+                    } else params.setEducationType = eduPlan.curriculumMaster.educationType;
+                    console.log(params)
+
+                    $.ajax({
+                        type: "POST",
+                        headers: {'Content-Type' : 'application/json'},
+                        url:  '/api/education/application/create',
+                        data: JSON.stringify(params),
+                        dataType: "json",
+                        success: function (res){
+                            alert(res.userId+'을(를) 교육과정에 등록하였습니다.');
+                            $(".blocking").hide();
+                        },
+                        error: function(e) {
+                            if (e && e.responseJSON) {
+                                if (e.responseJSON.verboseMessage) {
+                                    alert(e.responseJSON.verboseMessage);
+                                } else if (e.responseJSON.verboseMessage) {
+                                    alert(e.responseJSON.resultMessage);
+                                } else {
+                                    alert('사용자를 교육과정에 등록하는 과정에서 오류가 발생하였습니다. 중복 입과 여부를 확인해주세요.');
+                                }
+                            } else {
+                                alert('사용자를 교육과정에 등록하는 과정에서 오류가 발생하였습니다.');
+                            }
+                            $(".blocking").hide();
+                        }
+                    })
+                }
+            }
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+                console.log('educationPlan: ', [[ ${educationPlan} ]] )
+                console.log('content: ', [[ ${content} ]] )
+                pagination([[ ${pageable} ]], false)
+            }
+
+            /* ]]> */
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="user-2">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>강사 관리</h2>
+        </div>
+
+        <div class="bl_tab2 js_tab">
+            <ul class="bl_tab2_menu js_tab_menu">
+                <li>
+                    <a href="#none">일반정보</a>
+                </li>
+                <li id="lecture_history">
+                    <a href="#none">강의이력 (<span id="career_count"></span>)</a>
+                </li>
+                <li id="forme_lecture_history" th:if="${content != null && #strings.contains(content[0].instrCtgr, 'INSTR')}">
+                    <a href="#none">강의이력(FORME) (<span id="formebizlec_count"></span>)</a>
+                </li>
+                <li id="forme_lecture_history" th:if="${content != null && (#strings.contains(content[0].instrCtgr, 'READER') || #strings.contains(content[0].instrCtgr, 'LECTURER,READER') )}">
+                    <a href="#none">강의이력(언론인교육센터) (<span id="edu2020_count"></span>)</a>
+                </li>
+            </ul>
+
+            <div class="bl_tab2_body js_tab_contents">
+                <!-- 일반정보 -->
+                <div class="bl_tab2_item js_tab_item">
+                    <h3 class="subTitle">개인정보</h3>
+                    <!-- 개인정보 -->
+                    <div class="tableLeftResponsive">
+                        <table class="tableLeft">
+                            <colgroup>
+                                <col style="width: 200px">
+                                <col style="width: auto">
+                            </colgroup>
+                            <tbody>
+                            <tr>
+                                <th scope="row">구분</th>
+                                <td>
+                                    <div class="chk_box" id="ctg_media_instructor_check">
+                                        <input id="ctg_media_instructor" name="instrCtgrs" type="checkbox" th:if="${content == null}" value="INSTR" disabled>
+                                        <input id="ctg_media_instructor" name="instrCtgrs" type="checkbox" th:unless="${content == null}" th:checked="${#strings.contains(content[0].instrCtgr, 'INSTR')}" value="INSTR" disabled>
+                                        <label for="ctg_media_instructor">
+                                            <span></span>
+                                            미디어강사
+                                        </label>
+                                    </div>
+                                    <div class="chk_box" id="ctg_media_lecturer_check">
+                                        <input id="ctg_media_lecturer" name="instrCtgrs" type="checkbox" th:if="${content == null}" value="LECTURER">
+                                        <input id="ctg_media_lecturer" name="instrCtgrs" type="checkbox" th:unless="${content == null}" th:checked="${#strings.contains(content[0].instrCtgr, 'LECTURER')}" value="LECTURER">
+                                        <label for="ctg_media_lecturer">
+                                            <span></span>
+                                            미디어교육강사
+                                        </label>
+                                    </div>
+                                    <div class="chk_box">
+                                        <input id="ctg_journalist_instructor" name="instrCtgrs" type="checkbox" th:if="${content == null}" value="READER">
+                                        <input id="ctg_journalist_instructor" name="instrCtgrs" type="checkbox" th:unless="${content == null}" th:checked="${#strings.contains(content[0].instrCtgr, 'READER')}" value="READER">
+                                        <label for="ctg_journalist_instructor">
+                                            <span></span>
+                                            언론인연수강사
+                                        </label>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><span class="el_required">*</span>이름</th>
+                                <td>
+                                    <th:block th:if="${content != null}">
+                                        <input th:if="${#strings.contains(content[0].instrCtgr, 'INSTR') && content[0].lmsUser!=null}" id="instrNm" type="text" class="hp_w400" not_null="true" alert_name="이름" th:value="${content[0].instrNm}" disabled>
+                                        <input th:unless="${#strings.contains(content[0].instrCtgr, 'INSTR') && content[0].lmsUser!=null}" id="instrNm" type="text" class="hp_w400" not_null="true" alert_name="이름" th:value="${content[0].instrNm}">
+                                    </th:block>
+                                    <th:block th:unless="${content != null}">
+                                        <input id="instrNm" type="text" class="hp_w400" not_null="true" alert_name="이름">
+                                        <button class="btn btnDefault" type="button" onclick="checkInstrNm()">중복 확인</button>
+                                    </th:block>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row">생년월일</th>
+                                <td>
+                                    <th:block th:if="${content != null}">
+                                        <input th:if="${#strings.contains(content[0].instrCtgr, 'INSTR') && content[0].lmsUser!=null}" id="instrBrdt" type="text" class="el_datePicker hp_w200" data-yearrange="1950:2011" th:value="${content[0].instrBrdt}" disabled>
+                                        <input th:unless="${#strings.contains(content[0].instrCtgr, 'INSTR') && content[0].lmsUser!=null}" id="instrBrdt" type="text" class="el_datePicker hp_w200" data-yearrange="1950:2011" th:value="${content[0].instrBrdt}">
+                                    </th:block>
+                                    <th:block th:unless="${content != null}">
+                                        <input id="instrBrdt" type="text" class="el_datePicker hp_w200" data-yearrange="1950:2011">
+                                    </th:block>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><span class="el_required">*</span>성별</th>
+                                <td>
+                                    <div class="radio_box">
+                                        <th:block th:if="${content != null}">
+                                            <input th:if="${#strings.contains(content[0].instrCtgr, 'INSTR') && content[0].lmsUser!=null}" id="male" type="radio" name="gender" th:checked="${content[0].gender == '1'}" disabled>
+                                            <input th:unless="${#strings.contains(content[0].instrCtgr, 'INSTR') && content[0].lmsUser!=null}" id="male" type="radio" name="gender" th:checked="${content[0].gender == '1'}">
+                                        </th:block>
+                                        <th:block th:unless="${content != null}">
+                                            <input id="male" type="radio" name="gender" th:if="${content == null}" checked>
+                                        </th:block>
+                                        <label for="male">
+                                            <span></span>
+                                            남성
+                                        </label>
+                                    </div>
+                                    <div class="radio_box">
+                                        <th:block th:if="${content != null}">
+                                            <input th:if="${#strings.contains(content[0].instrCtgr, 'INSTR') && content[0].lmsUser!=null}" id="female" type="radio" name="gender" th:checked="${content[0].gender == '2'}" disabled>
+                                            <input th:unless="${#strings.contains(content[0].instrCtgr, 'INSTR') && content[0].lmsUser!=null}" id="female" type="radio" name="gender" th:checked="${content[0].gender == '2'}">
+                                        </th:block>
+                                        <th:block th:unless="${content != null}">
+                                            <input id="female" type="radio" name="gender" th:if="${content == null}">
+                                        </th:block>
+                                        <label for="female">
+                                            <span></span>
+                                            여성
+                                        </label>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row">휴대폰번호</th>
+                                <td>
+                                    <div class="d-flex align-items-center hp_w400 gap-2">
+                                        <select class="common_select" data-list="phoneList" id="phoneSelect">
+                                        </select>
+                                        <span>-</span>
+                                        <input type="text" maxlength="4" id="phone1">
+                                        <span>-</span>
+                                        <input type="text" maxlength="4" id="phone2">
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row">이메일</th>
+                                <td>
+                                    <div class="d-flex align-items-center hp_w400 gap-2">
+                                        <input id="mail" type="text">
+                                        <span>@</span>
+                                        <input id="mailInput" name="" type="text">
+                                        <select id="mailSelect" class="common_select" data-list="emailList" onchange="mailChange(this)"></select>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><span class="el_required">*</span>사용여부</th>
+                                <td>
+                                    <div class="radio_box">
+                                        <input id="use" type="radio" name="use" th:if="${content == null}">
+                                        <input id="use" type="radio" name="use" th:unless="${content == null}" th:checked="${content[0].instrStts == 1}">
+                                        <label for="use">
+                                            <span></span>
+                                            사용
+                                        </label>
+                                    </div>
+                                    <div class="radio_box">
+                                        <input id="not_use" type="radio" name="use" th:if="${content == null}" checked>
+                                        <input id="not_use" type="radio" name="use" th:unless="${content == null}" th:checked="${content[0].instrStts == 0}">
+                                        <label for="not_use">
+                                            <span></span>
+                                            미사용
+                                        </label>
+                                    </div>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- 강사정보(미디어강사, 언론인연수강사) -->
+                    <h3 class="subTitle">강사정보</h3>
+                    <div class="tableLeftResponsive">
+                        <table class="tableLeft">
+                            <colgroup>
+                                <col style="width: 200px">
+                                <col style="width: auto">
+                            </colgroup>
+                            <tbody>
+                            <tr>
+                                <th scope="row">직급</th>
+                                <td>
+                                    <input id="department" type="text" class="hp_w400" th:if="${content == null}">
+                                    <input id="department" type="text" class="hp_w400" th:unless="${content == null}" th:value="${content[0].department}">
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row">소속</th>
+                                <td>
+                                    <input id="orgName" type="text" class="hp_w400" th:if="${content == null}">
+                                    <input id="orgName" type="text" class="hp_w400" th:unless="${content == null}" th:value="${content[0].orgName}">
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row">강의분야</th>
+                                <td>
+                                    <div class="d-flex-2">
+                                        <select id="instrRelmFrst" class="common_select" onchange="codeSelector(this.value)">
+                                            <option value="">분야(대) 선택</option>
+                                            <th:block th:each="commonCode : ${commonCode}" th:if="${commonCode.code} == 'INSTR_TYPE'" >
+                                                <option th:each="instrTypes : ${commonCode.subCode}" th:value="${instrTypes.code}"
+                                                        th:text="${instrTypes.codeName}" th:selected="${content.size > 0 ? content[0].instrRelmFrst == instrTypes.code : false}"></option>
+                                            </th:block>
+                                        </select>
+                                        <select id="instrRelmLast" class="common_select"></select>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr name="instr_info">
+                                <th scope="row"><span class="el_required">*</span>사진</th>
+                                <td>
+                                    <div class="d-flex gap-2">
+                                        <div class="img_box">
+                                            <img th:src="@{/assets/images/menu__user/img_profile.png}" alt="" th:if="${content == null || content[0].instrPctr == null}">
+                                            <img th:src="@{/api/common/upload/download(attachFilePath=${content[0].instrPctr})}" alt="" th:if="${content != null && content[0].instrPctr != null}">
+                                        </div>
+                                        <div>
+                                            <div class="bl_uploadGrid">
+                                                <div class="bl_upload js_upload hp_lg_w462">
+                                                    <input id="instrPctr" type="text" class="bl_upload_path js_path" readonly th:if="${content == null || content[0].instrPctr == null}">
+                                                    <input id="instrPctr" type="text" class="bl_upload_path js_path" readonly th:if="${content != null && content[0].instrPctr != null}" th:value="${content[0].instrPctr}">
+                                                    <label class="btn btnDefault bg-secondary text-white bl_upload_btn">파일찾기</label>
+                                                    <input type="file" name="file" class="bl_upload_file js_file">
+                                                </div>
+                                            </div>
+                                            <p class="bl_uploadNote">※ 파일형식 pdf, jpg, png, gif / 5MB 미만
+                                            </p>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr name="instr_info">
+                                <th scope="row"><span class="el_required">*</span>서명/도장</th>
+                                <td>
+                                    <div class="d-flex gap-2">
+                                        <div class="img_box">
+                                            <img th:src="@{/assets/images/menu__user/img_stamp.png}" alt="" th:if="${content == null || content[0].instrSgntr == null}">
+                                            <img th:src="@{/api/common/upload/download(attachFilePath=${content[0].instrSgntr})}" alt="" th:if="${content != null && content[0].instrSgntr != null}">
+                                        </div>
+                                        <div>
+                                            <div class="bl_uploadGrid">
+                                                <div class="bl_upload js_upload hp_lg_w462">
+                                                    <input id="instrSgntr" type="text" class="bl_upload_path js_path" readonly th:if="${content == null || content[0].instrSgntr == null}">
+                                                    <input id="instrSgntr" type="text" class="bl_upload_path js_path" readonly th:if="${content != null && content[0].instrSgntr != null}" th:value="${content[0].instrSgntr}">
+                                                    <label class="btn btnDefault bg-secondary text-white bl_upload_btn">파일찾기</label>
+                                                    <input type="file" name="file" class="bl_upload_file js_file">
+                                                </div>
+                                            </div>
+                                            <p class="bl_uploadNote">※ 파일형식 pdf, jpg, png, gif / 5MB 미만
+                                            </p>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr name="instr_info">
+                                <th scope="row"><span class="el_required">*</span>자택주소</th>
+                                <td>
+                                    <div class="d-flex flex-column gap-2">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <input type="text" id="instrZipCd" class="hp_w400" th:if="${content == null}">
+                                            <input type="text" id="instrZipCd" class="hp_w400" th:unless="${content == null}" th:value="${content[0].instrZipCd}" readonly>
+                                            <div class="btn btnDefault" onclick="addrSearch()">검색</div>
+                                        </div>
+                                        <input type="text" id="instrAddr1" class="hp_w600" th:if="${content == null}">
+                                        <input type="text" id="instrAddr2" class="hp_w600" th:if="${content == null}">
+                                        <input type="text" id="instrAddr1" class="hp_w600" th:unless="${content == null}" th:value="${content[0].instrAddr1}" readonly>
+                                        <input type="text" id="instrAddr2" class="hp_w600" th:unless="${content == null}" th:value="${content[0].instrAddr2}" readonly>
+                                    </div>
+                                    <p class="guide_text">※ 거리 증빙 시 출발 기준점으로 사용되므로, 반드시 자택주소 기입</p>
+                                </td>
+                            </tr>
+                            <tr name="instr_info">
+                                <th scope="row"><span class="el_required">*</span>강의가능 지역</th>
+                                <td>
+                                    <div class="d-flex-2">
+                                        <select class="common_select" data-list="regionList" data-list-start="선택1" id="instrLctRgn1"></select>
+                                        <select class="common_select" data-list="regionList" data-list-start="선택2" id="instrLctRgn2"></select>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr name="instr_info">
+                                <th scope="row"><span class="el_required">*</span>최종학력</th>
+                                <td>
+                                    <div class="tableResponsive">
+                                        <table class="table">
+                                            <thead>
+                                            <tr>
+                                                <th scope="col">졸업년도</th>
+                                                <th scope="col">학교명</th>
+                                                <th scope="col">전공</th>
+                                                <th scope="col">학위</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            <tr>
+                                                <td>
+                                                    <input id="instrAcbgYr" type="text" th:if="${content == null}">
+                                                    <input id="instrAcbgYr" type="text" th:unless="${content == null}" th:value="${content[0].instrAcbgYr}">
+                                                </td>
+                                                <td>
+                                                    <input id="instrAcbgSchlNm" type="text" th:if="${content == null}">
+                                                    <input id="instrAcbgSchlNm" type="text" th:unless="${content == null}" th:value="${content[0].instrAcbgSchlNm}">
+                                                </td>
+                                                <td>
+                                                    <input id="instrAcbgMjr" type="text" th:if="${content == null}">
+                                                    <input id="instrAcbgMjr" type="text" th:unless="${content == null}" th:value="${content[0].instrAcbgMjr}">
+                                                </td>
+                                                <td>
+                                                    <input id="instrAcbgDgr" type="text" th:if="${content == null}">
+                                                    <input id="instrAcbgDgr" type="text" th:unless="${content == null}" th:value="${content[0].instrAcbgDgr}">
+                                                </td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr name="instr_info">
+                                <th scope="row"><span class="el_required">*</span>강의 주요 내용</th>
+                                <td>
+                                    <textarea id="instrMainCn" cols="20" rows="10" class="common_input" th:if="${content == null}"></textarea>
+                                    <textarea id="instrMainCn" cols="20" rows="10" class="common_input" th:unless="${content == null}" th:text="${content[0].instrMainCn}"></textarea>
+                                </td>
+                            </tr>
+                            <tr name="instr_info">
+                                <th scope="row"><span class="el_required">*</span>주요이력</th>
+                                <td>
+                                    <div class="text-end mb-2">
+                                        <div class="btn btnDefault btn_add" onclick="addList(this, 'target')">추가</div>
+                                    </div>
+                                    <div class="tableResponsive">
+                                        <table id="targetTable" class="table">
+                                            <colgroup>
+                                                <col>
+                                                <col>
+                                                <col>
+                                                <col style="width: 70px">
+                                            </colgroup>
+                                            <thead>
+                                            <tr>
+                                                <th scope="col">년도</th>
+                                                <th scope="col">기관</th>
+                                                <th scope="col">내용</th>
+                                                <th scope="col">삭제</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody th:if="${content == null}">
+                                            <tr id="target" class="antecedents">
+                                                <td>
+                                                    <input type="text" class="instrHistYr">
+                                                </td>
+                                                <td>
+                                                    <input type="text" class="instrOrgNm">
+                                                </td>
+                                                <td>
+                                                    <input type="text" class="instrCn">
+                                                </td>
+                                                <td class="text-center">
+                                                    <div class="btn btnDefault btnDelete btn_del" onclick="removeList(this, 'target','targetTable')">삭제</div>
+                                                </td>
+                                            </tr>
+                                            </tbody>
+                                            <tbody th:if="${content != null && #lists.size(content[0].instructorHists) == 0}">
+                                            <tr id="target" class="antecedents">
+                                                <td>
+                                                    <input type="text" class="instrHistYr">
+                                                </td>
+                                                <td>
+                                                    <input type="text" class="instrOrgNm">
+                                                </td>
+                                                <td>
+                                                    <input type="text" class="instrCn">
+                                                </td>
+                                                <td class="text-center">
+                                                    <div class="btn btnDefault btnDelete btn_del" onclick="removeList(this, 'target','targetTable')">삭제</div>
+                                                </td>
+                                            </tr>
+                                            </tbody>
+                                            <tbody th:if="${content != null && #lists.size(content[0].instructorHists) != 0}">
+                                            <tr id="target" th:each="item:${content[0].instructorHists}"  class="antecedents">
+                                                <td>
+                                                    <input class="instrHistYr" type="text" th:value="${item.instrHistYr}">
+                                                </td>
+                                                <td>
+                                                    <input class="instrOrgNm" type="text" th:value="${item.instrOrgNm}">
+                                                </td>
+                                                <td>
+                                                    <input class="instrCn" type="text" th:value="${item.instrCn}">
+                                                    <input type="hidden" class="sequenceNo" th:value="${item.sequenceNo}">
+                                                </td>
+                                                <td class="text-center">
+                                                    <div class="btn btnDefault btnDelete btn_del" onclick="removeList(this, 'target','targetTable')">삭제</div>
+                                                </td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr name="instr_info">
+                                <th scope="row"><span class="el_required">*</span>자격증</th>
+                                <td>
+                                    <div class="text-end mb-2">
+                                        <div class="btn btnDefault btn_add" onclick="addList(this, 'target2')">추가</div>
+                                    </div>
+                                    <div class="tableResponsive">
+                                        <table id="targetTable2" class="table">
+                                            <colgroup>
+                                                <col>
+                                                <col>
+                                                <col>
+                                                <col>
+                                                <col style="width: 70px">
+                                            </colgroup>
+                                            <thead>
+                                            <tr>
+                                                <th scope="col">취득일자</th>
+                                                <th scope="col">자격증</th>
+                                                <th scope="col">자격번호</th>
+                                                <th scope="col">발급기관</th>
+                                                <th scope="col">삭제</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody th:if="${content == null}">
+                                            <tr id="target2" class="certificate">
+                                                <td>
+                                                    <input type="text" class="el_datePicker instrQlfcYmd" readonly>
+                                                </td>
+                                                <td>
+                                                    <input type="text" class="instrQlfcNm">
+                                                </td>
+                                                <td>
+                                                    <input type="text" class="instrQlfcNo">
+                                                </td>
+                                                <td>
+                                                    <input type="text" class="instrQlfcInst">
+                                                </td>
+                                                <td class="text-center">
+                                                    <div class="btn btnDefault btnDelete btn_del" onclick="removeList(this, 'target2','targetTable2')">삭제</div>
+                                                </td>
+                                            </tr>
+                                            </tbody>
+                                            <tbody th:if="${content != null && #lists.size(content[0].instructorQlfcs) == 0}">
+                                            <tr id="target2" class="certificate">
+                                                <td>
+                                                    <input type="text" class="el_datePicker instrQlfcYmd" readonly>
+                                                </td>
+                                                <td>
+                                                    <input type="text" class="instrQlfcNm">
+                                                </td>
+                                                <td>
+                                                    <input type="text" class="instrQlfcNo">
+                                                </td>
+                                                <td>
+                                                    <input type="text" class="instrQlfcInst">
+                                                </td>
+                                                <td class="text-center">
+                                                    <div class="btn btnDefault btnDelete btn_del" onclick="removeList(this, 'target2','targetTable2')">삭제</div>
+                                                </td>
+                                            </tr>
+                                            </tbody>
+                                            <tbody th:if="${content != null && #lists.size(content[0].instructorQlfcs) != 0}">
+                                            <tr id="target2" th:each="item:${content[0].instructorQlfcs}" class="certificate">
+                                                <td>
+                                                    <input type="text" class="el_datePicker instrQlfcYmd" th:value="${item.instrQlfcYmd}" readonly>
+                                                </td>
+                                                <td>
+                                                    <input type="text" class="instrQlfcNm" th:value="${item.instrQlfcNm}">
+                                                </td>
+                                                <td>
+                                                    <input type="text" class="instrQlfcNo" th:value="${item.instrQlfcNo}">
+                                                </td>
+                                                <td>
+                                                    <input type="text" class="instrQlfcInst" th:value="${item.instrQlfcInst}">
+                                                    <input type="hidden" class="sequenceNo" th:value="${item.sequenceNo}">
+                                                </td>
+                                                <td class="text-center">
+                                                    <div class="btn btnDefault btnDelete btn_del" onclick="removeList(this, 'target2','targetTable2')">삭제</div>
+                                                </td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr name="instr_info">
+                                <th scope="row"><span class="el_required">*</span>계좌</th>
+                                <td>
+                                    <div class="dot_list">
+                                        <span class="dot">은행/예금주</span>
+                                        <select class="common_select" data-list="bankList" id="instrBank"></select>
+                                        <input id="instrNm" th:if="${content!=null}" type="text" class="hp_w120" placeholder="예금주" th:value="${content[0].instrNm}" disabled>
+                                    </div>
+                                    <div class="dot_list">
+                                        <span class="dot">계좌번호</span>
+                                        <div>
+                                            <input id="instrActno" th:if="${content==null}" type="text">
+                                            <input id="instrActno" th:unless="${content==null}" type="text" th:value="${content[0].instrActno}">
+                                            <p class="guide_text">※ 계좌번호는 하이픈(-)을 제외하고 숫자만 입력
+                                        </div>
+                                        </p>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr name="instr_info" th:if="${content!=null}">
+                                <th scope="row">강의이력</th>
+                                <td>
+                                    <div class="tableResponsive">
+                                        <table class="table">
+                                            <thead>
+                                            <tr>
+                                                <th scope="col">과정카테고리</th>
+                                                <th scope="col">과정명</th>
+                                                <th scope="col">과정운영기간</th>
+                                                <th scope="col">강의일시</th>
+                                                <th scope="col">사례비</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody th:if="${#lists.size(content[0].bizInstructorAplies) > 0}">
+                                            <tr th:each="item,stat:${content[0].bizInstructorAplies}">
+                                                <td th:text="${item.bizOrganizationAply.bizPbancMaster.bizPbancType}"></td>
+                                                <td th:text="${item.bizOrganizationAply.bizPbancMaster.bizPbancNm}"></td>
+                                                <td>
+                                                    <span th:text="${item.bizOrganizationAply.bizOrgAplyLsnPlanBgng}"></span> ~
+                                                    <span th:text="${item.bizOrganizationAply.bizOrgAplyLsnPlanEnd}"></span>
+                                                </td>
+                                                <td>
+                                                    <span>2023.01.04</span> ~ <span>2023.01.04</span>
+                                                </td>
+                                                <td>0</td>
+                                            </tr>
+                                            </tbody>
+                                            <tbody th:unless="${#lists.size(content[0].bizInstructorAplies) > 0}">
+                                            <tr>
+                                                <td colspan="5" class="text-center">  강의 이력이 없습니다. </td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- GRID : BUTTON -->
+                    <div class="bl_gridBtns">
+                        <div class="bl_gridBtns_rgt">
+                            <a class="btn btnDefault btnList" href="/user/instructor">목록</a>
+                            <a class="btn btnDefault btnModify" onclick="create()" th:if="${content==null}">등록</a>
+                            <a class="btn btnDefault btnModify" onclick="update()" th:if="${content!=null}">수정</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 강의이력 -->
+                <div class="bl_tab2_item js_tab_item" >
+                    <th:block th:include="views/user/instructor/career.html"></th:block>
+                </div>
+
+                <!--  포미이력  -->
+                <div class="bl_tab2_item js_tab_item" th:if="${content != null && #strings.contains(content[0].instrCtgr, 'INSTR')}">
+                    <th:block th:include="views/forme/forme_lec_history_list.html"></th:block>
+                </div>
+                <div class="bl_tab2_item js_tab_item" th:if="${content != null && (#strings.contains(content[0].instrCtgr, 'READER') || #strings.contains(content[0].instrCtgr, 'LECTURER') )}">
+                    <th:block th:include="views/forme/edu2020_lctr_list.html"></th:block>
+                </div>
+            </div>
+        </div>
+
+        <!-- POPUP : 강사확인 -->
+        <div class="iframe_wrap">
+            <iframe id="addInstructor" src="about:blank" width="800"></iframe>
+        </div>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+
+    <th:block layout:fragment="script">
+    </th:block>
+    <script th:inline="javascript">
+        /* <![CDATA[ */
+        var commonCode = [[ ${commonCode} ]]
+        if ([[${content}]] != null) {
+            hide_edit();
+        } else {
+            hide_write();
+        }
+
+        function update(){
+            if (nullCheck() && $("input:checkbox[name=instrCtgrs]").is(':checked')) {
+                let params = getFormData();
+                $.ajax({
+                    type: "put", //http method
+                    url: "/api/user/instructor/update",
+                    headers: {'Content-Type': 'application/json'},
+                    data: JSON.stringify(params),
+                    dataType: "json",
+                    success: function (res){
+                        if($("[name=file]")[0].files.length==0 && $("[name=file]")[1].files.length==0) {
+                            alert('강사정보를 수정하였습니다.');
+                            window.location.reload();
+                        }else{
+                            let form = new FormData()
+                            if ($("[name=file]")[0].files.length!=0) {
+                                form.append( "pictureFile", $("[name=file]")[0].files[0] );
+                                $.ajax({
+                                    type: "put", //http method
+                                    url: `/api/user/instructor/upload/${res.instrSerialNo}`, //값을 가져올 경로
+                                    processData : false,
+                                    contentType : false,
+                                    data: form,
+                                    success: function(data) {
+                                    },error:function (e){
+                                        if(e && e.responseJSON && e.responseJSON.resultMessage){
+                                            alert(e.responseJSON.resultMessage);
+                                        }else{
+                                            alert('강사정보를 등록하는 과정에서 오류가 발생했습니다.');
+                                        }
+                                    }
+                                })
+                            }
+                            if ($("[name=file]")[1].files.length!=0) {
+                                form.append( "signFile", $("[name=file]")[1].files[0] );
+                                $.ajax({
+                                    type: "put", //http method
+                                    url: `/api/user/instructor/upload/${res.instrSerialNo}`, //값을 가져올 경로
+                                    processData : false,
+                                    contentType : false,
+                                    data: form,
+                                    success: function(data) {
+                                    },error:function (e){
+                                        if(e && e.responseJSON && e.responseJSON.resultMessage){
+                                            alert(e.responseJSON.resultMessage);
+                                        }else{
+                                            alert('강사정보를 등록하는 과정에서 오류가 발생했습니다.');
+                                        }
+                                    }
+                                })
+                            }
+                            alert('강사정보를 수정하였습니다.');
+                            window.location.reload();
+                        }
+                    },
+                    error: function (e){
+                        if(e && e.responseJSON && e.responseJSON.resultMessage){
+                            alert(e.responseJSON.resultMessage);
+                        }else{
+                            alert('강사정보를 수정하는 과정에서 오류가 발생했습니다.');
+                        }
+                    }
+                })
+            } else {
+                alert("구분을(를) 입력해 주세요.")
+            }
+        }
+
+        function create(){
+            if (nullCheck() && $("input:checkbox[name=instrCtgrs]").is(':checked')) {
+                let params = getFormData();
+                $.ajax({
+                    type: "POST",
+                    headers: {'Content-Type' : 'application/json'},
+                    url: "/api/user/instructor/create",
+                    data: JSON.stringify(params),
+                    dataType: "json",
+                    success: function (res){
+                        if($("[name=file]")[0].files.length==0 && $("[name=file]")[1].files.length==0){
+                            alert('강사정보를 등록하였습니다.');
+                            window.location.assign('/user/instructor');
+                        }else if($("[name=file]")[0].files.length==0 || $("[name=file]")[1].files.length==0){
+                            alert('강사정보를 등록하였습니다. 단, 사진 파일, 서명/도장 파일은 함께 업로드해야 합니다.');
+                            window.location.assign('/user/instructor');
+                        }else{
+                            let form = new FormData()
+                            form.append( "pictureFile", $("[name=file]")[0].files[0] );
+                            form.append( "signFile", $("[name=file]")[1].files[0] );
+                            $.ajax({
+                                type: "put", //http method
+                                url: `/api/user/instructor/upload/${res.instrSerialNo}`, //값을 가져올 경로
+                                processData : false,
+                                contentType : false,
+                                data: form,
+                                success: function(data) {
+                                    alert('강사정보를 등록하였습니다.');
+                                    window.location.assign('/user/instructor');
+                                },error:function (e){
+                                    if(e && e.responseJSON && e.responseJSON.resultMessage){
+                                        alert(e.responseJSON.resultMessage);
+                                    }else{
+                                        alert('강사정보를 등록하는 과정에서 오류가 발생했습니다.');
+                                    }
+                                }
+                            })
+                        }
+                    },
+                    error: function (e){
+                        if(e && e.responseJSON && e.responseJSON.resultMessage){
+                            alert(e.responseJSON.resultMessage);
+                        }else{
+                            alert('강사정보를 등록하는 과정에서 오류가 발생했습니다.');
+                        }
+                    }
+                })
+            } else {
+                alert("구분을(를) 입력해 주세요.")
+            }
+        }
+        function getFormData(){
+            let params = {};
+            let CONT = [[ ${content} ]];
+            if(CONT){
+                params=CONT[0];
+            }else{
+                params.instrSerialNo=0;
+            }
+            params.instrAcbgYr=$("#instrAcbgYr").val()?parseInt($("#instrAcbgYr").val()):0;
+            params.instructorHistoryApiRequestVOs=[]
+            params.instructorQulificationApiRequestVOs=[]
+
+            let type = $("input:checkbox[name=instrCtgrs]:checked").length>0 ? new Array(  $("input:checkbox[name=instrCtgrs]:checked").length ) :"0";
+            $("input:checkbox[name=instrCtgrs]:checked").each(function(index, item) {
+                if($(this).val()!="0" &&type!="0"){
+                    type[index] = $(this).val();
+                }else{
+                    type = "0";
+                }
+            })
+            if(type&&type!="0"){
+                params.instrCtgr = type.toString();
+            }
+            $('input:text').each((index, item)=>{
+                if($(item).attr('id')&& !$(item).hasClass("el_datePicker")){
+                    params[$(item).attr('id')] = $(item).val()
+                }
+            })
+            $('select').each((index, item)=>{
+                if($(item).attr('id')&& !$(item).hasClass("el_datePicker")){
+                    params[$(item).attr('id')] = $(item).val()
+                }
+            })
+            $(".antecedents").each(function (index, item){
+                let temp ={}
+                temp.instrHistYr = $(item).find(".instrHistYr").val();
+                temp.instrOrgNm = $(item).find(".instrOrgNm").val();
+                temp.instrCn = $(item).find(".instrCn").val();
+                temp.sequenceNo = $(item).find(".sequenceNo").val()? $(item).find(".sequenceNo").val():0;
+                temp.instrSerialNo=params.instrSerialNo
+                params.instructorHistoryApiRequestVOs.push(temp)
+            })
+            $(".certificate").each(function (index, item){
+                let temp ={}
+                temp.instrQlfcYmd = $(item).find(".instrQlfcYmd").val();
+                temp.instrQlfcNm = $(item).find(".instrQlfcNm").val();
+                temp.instrQlfcNo = $(item).find(".instrQlfcNo").val();
+                temp.instrQlfcInst = $(item).find(".instrQlfcInst").val();
+                temp.sequenceNo = $(item).find(".sequenceNo").val()? $(item).find(".sequenceNo").val():0;
+                temp.instrSerialNo=params.instrSerialNo
+                params.instructorQulificationApiRequestVOs.push(temp)
+            });
+
+            params.instrNm = $("#instrNm").val();
+            params.instrMainCn = $("#instrMainCn").val();
+            params.instrTel = params.phoneSelect +params.phone1 +params.phone2;
+            params.instrEml = params.mail+"@"+params.mailInput;
+            params.instrStts = $("#use").is(":checked")? 1:0;
+            params.gender = $("#male").is(":checked")? 1:2;
+            params.instrBrdt = $("#instrBrdt").val()
+            params.department = $('#department').val();
+            params.orgName = $('#orgName').val();
+
+            if($("[name=file]")[0].files.length==0 && $("[name=file]")[1].files.length==0){
+                params.instrPctr = null;
+                params.instrSgntr = null;
+            }
+            return params;
+        }
+
+        function mailChange(mailVal){
+            if(globalEmailList.includes(mailVal.value)){
+                $('#mailInput').val(mailVal.value);
+                document.getElementById('mailInput').setAttribute('readonly','readonly');
+            } else {
+                $('#mailInput').val('');
+                document.getElementById('mailInput').removeAttribute('readonly');
+            }
+        }
+
+        function onLoadSubmit() {
+            console.log('commonCode: ', [[ ${commonCode} ]] )
+            let CONT = [[ ${content} ]];
+
+            if(CONT){
+                setSelected(CONT[0].instrLctRgn1,'instrLctRgn1');
+                setSelected(CONT[0].instrLctRgn2,'instrLctRgn2');
+                setSelected(CONT[0].instrBank, 'instrBank');
+                if(CONT[0].instrEml && globalEmailList.includes(CONT[0].instrEml.split('@')[1])){
+                    setSelected(CONT[0].instrEml.split('@')[1],'mailSelect');
+                    document.getElementById('mail').value = CONT[0].instrEml.split('@')[0];
+                    document.getElementById('mailInput').setAttribute('readonly','readonly');
+                } else if( CONT[0].instrEml ){
+                    setSelected('직접입력','mailSelect');
+                    document.getElementById('mailInput').removeAttribute('readonly');
+                    document.getElementById('mail').value = CONT[0].instrEml.split('@')[0];
+                    document.getElementById('mailInput').value = CONT[0].instrEml.split('@')[1];
+                }
+                if (CONT[0].instrTel.length > 3) {
+                    let convertPhoneNum = CONT[0].instrTel.replace(/(^02.{0}|^01.{1}|^050.{1}|^[0-9]{3})([0-9]*)([0-9]{4})/, "$1-$2-$3");
+                    if(convertPhoneNum && convertPhoneNum.indexOf('-')){
+                        setSelected(convertPhoneNum.split('-')[0],'phoneSelect');
+                        document.getElementById('phone1').setAttribute('value', convertPhoneNum.split('-')[1])
+                        document.getElementById('phone2').setAttribute('value', convertPhoneNum.split('-')[2])
+                    }
+                } else {
+                    document.getElementById('phoneSelect').setAttribute('value', CONT[0].instrTel)
+                }
+
+                if (CONT[0].instrCtgr.indexOf("INSTR") >= 0) {
+                    // 핸드폰번호 수정 불가
+                    document.getElementById('phoneSelect').disabled = true
+                    document.getElementById('phone1').disabled = true
+                    document.getElementById('phone2').disabled = true
+
+                    // 이메일 수정 불가
+                    document.getElementById('mail').disabled = true
+                    document.getElementById('mailInput').disabled = true
+                    document.getElementById('mailSelect').style.display='none'
+                } else {
+                    document.getElementById('phoneSelect').disabled = false
+                    document.getElementById('phone1').disabled = false
+                    document.getElementById('phone2').disabled = false
+
+                    document.getElementById('mail').disabled = false
+                    document.getElementById('mailInput').disabled = false
+                    document.getElementById('mailSelect').style.display='show'
+                }
+
+                codeSelector(CONT[0].instrRelmFrst)
+                $('#instrRelmLast').val(CONT[0].instrRelmLast).prop("selected", true)
+            }
+        }
+
+        function addrSearch() {
+            var width = 500; //팝업의 너비
+            var height = 600; //팝업의 높이
+            new daum.Postcode({
+                width: width, //생성자에 크기 값을 명시적으로 지정해야 합니다.
+                height: height,
+                oncomplete: function(data) {
+                    var zonecode = data.zonecode; // 우편번호 변수
+                    var addr = ''; // 주소 변수
+                    var addr2 = '';
+
+                    document.getElementById('instrZipCd').value = zonecode;
+                    document.getElementById('instrZipCd').setAttribute('readonly', 'readonly');
+
+                    //사용자가 선택한 주소 타입에 따라 해당 주소 값을 가져온다.
+                    if (data.userSelectedType === 'R') { // 사용자가 도로명 주소를 선택했을 경우
+                        addr = data.roadAddress;
+                        if (data.buildingName != '') {
+                            addr2 = data.buildingName;
+                        }
+                    } else { // 사용자가 지번 주소를 선택했을 경우(J)
+                        addr = data.jibunAddress;
+                    }
+                    document.getElementById("instrAddr1").value = addr;
+                    if (addr2 != '') {
+                        document.getElementById("instrAddr1").value += ' (' + addr2 + ')';
+                    }
+                    document.getElementById("instrAddr1").setAttribute('readonly', 'readonly');
+                    document.getElementById("instrAddr2").value = '';
+                    document.getElementById("instrAddr2").removeAttribute('readonly');
+                }
+            }).open({
+                left: (window.screen.width / 2) - (width / 2),
+                top: (window.screen.height / 2) - (height / 2)
+            });
+        }
+
+        function hide_write() {
+            var link = window.location.href;
+            var link_length = link.length;
+            var link_last_text = link.substring(link_length-1,link_length)
+
+            if (link_last_text != '/') {
+            } else {
+                $('#ctg_media_instructor_check').hide();
+                $('#ctg_media_lecturer_check').css('margin-left', '0px');
+                $('#lecture_history').hide();
+                $('tr[name=instr_info]').hide();
+            }
+        }
+        function hide_edit() {
+            con = [[ ${content} ]];
+            try{
+                if (con && con[0].instrCtgr.indexOf('INSTR') > -1) {
+                    let formeUserId = con[0].userId;
+                    if (formeUserId) {
+                        initialFormeBizInfo(formeUserId);
+                        initialCareers(con[0].instrCtgr, formeUserId, con[0].instrSerialNo);
+                    }
+                } else if (con && ((con[0].instrCtgr.indexOf('READER') > -1) || (con[0].instrCtgr.indexOf('LECTURER') > -1))) {
+                    let lectrNo = con[0].lectrNo;
+                    initialEdu2020LecInfo(lectrNo, con[0]);
+                    initialCareers(con[0].instrCtgr, '', con[0].instrSerialNo);
+                }
+            }catch(e){
+                console.error('ERROR',e);
+            }
+
+            if(con && (con[0].instrCtgr.indexOf('READER') > -1)){
+                $('tr[name=instr_info]').hide();
+            }
+        }
+
+        function checkInstrNm() {
+            let url = '/popup/check/instructor';
+            let name = $("#instrNm").val();
+
+            if (name) {
+                let url2 = url+"?instrNm="+name
+                openPop('', url2, 'addInstructor')
+            } else {
+                alert("중복 확인을 위한 이름을 입력해주세요.");
+            }
+        }
+
+        var codeSelector = function (value) {
+            var codes = commonCode.filter(code => code.code === "INSTR_TYPE_SUB")[0].subCode
+            var selector = document.querySelector('#instrRelmLast')
+            selector.innerHTML = '';
+            $(selector).append(`<option value="">분야(소) 선택</option>`)
+            // select에 옵션 추가
+            codes.forEach(item => {
+                if (item.code.startsWith(value))
+                    return $(selector).append(`<option value="${item.code}">${item.codeName}</option>`)
+            })
+        }
+        /* ]]> */
+    </script>
+</div>
+</body>
+</html>

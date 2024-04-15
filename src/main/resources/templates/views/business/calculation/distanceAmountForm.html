@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="business-5-3">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>강사료 정산</h2>
+        </div>
+
+        <div class="bl_tab2 js_tab">
+            <ul class="bl_tab2_menu">
+                <li>
+                    <a href="/business/instructor/calculate">정산마감일</a>
+                </li>
+                <li>
+                    <a href="/business/instructor/calculate/target">정산요청 목록</a>
+                </li>
+                <li>
+                    <a href="/business/instructor/calculate/list?groupType=instr">정산금액 조회</a>
+                </li>
+                <li class="is_active">
+                    <a href="/business/instructor/calculate/distance/amount">이동거리 기준단가</a>
+                </li>
+            </ul>
+
+            <div class="tableLeftResponsive">
+                <table class="tableLeft">
+                    <colgroup>
+                        <col style="width: 200px">
+                        <col style="width: auto">
+                    </colgroup>
+                    <tbody>
+                    <tr>
+                        <th scope="row"><span class="el_required">*</span>년도</th>
+                        <td>
+                            <select class="common_select" data-list="yearList" id="year" not_null="true" alert_name="연도"></select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">강의료 기준단가</th>
+                        <td>
+                            <input id="bizInstrDistCrtrAmtValue" onchange="makeAllValue(this)" type="text" class="hp_w200" th:if="${content == null}" not_null="true" alert_name="강의료 기준단가">
+                            <input id="bizInstrDistCrtrAmtValue" onchange="makeAllValue(this)" type="text" class="hp_w200" th:unless="${content == null}" th:value="${content[0].bizInstrDistCrtrAmtValue}" not_null="true" alert_name="강의료 기준단가">
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="tableLeftResponsive">
+                <table class="table">
+                    <thead>
+                    <th scope="col">구분</th>
+                    <th scope="col">상향비율(배)</th>
+                    <th scope="col">강의료(원)</th>
+                    <th scope="col">관리</th>
+                    </thead>
+                    <tbody th:if="${content == null}">
+                    <tr class="amtItems">
+                        <td>
+                            <div class="d-flex-center-1">
+                                <input type="hidden" class="hp_w150 itemNo" >
+                                <input type="text" class="hp_w150 itemLowr" value="0" not_null="true" alert_name="구분 최소범위값">이상
+                                <input type="text" class="hp_w150 itemUp" value="39" not_null="true" alert_name="구분 최대범위값">미만
+                            </div>
+                        </td>
+                        <td>
+                            <input type="text" class="hp_w150 itemRate" onchange="makeValue(this)" value="1.0" not_null="true" alert_name="상향비율(배)">
+                        </td>
+                        <td>
+                            <input type="text" class="hp_w200 itemValue" not_null="true" alert_name="강의료(원)">
+                        </td>
+                        <td>
+                            <div class="btn btnDefault btn_add" onclick="addField(this)">추가</div>
+                        </td>
+                    </tr>
+                    </tbody>
+                    <tbody th:unless="${content == null}">
+                    <tr class="amtItems" th:each="item, stat:${content[0].bizInstructorDistCrtrAmtItems}">
+                        <td>
+                            <div class="d-flex-center-1">
+                                <input type="hidden" class="hp_w150 itemNo" th:value="${item.bizInstrDistCrtrAmtItemNo}">
+                                <input type="text" class="hp_w150 itemLowr" th:value="${item.bizInstrDistCrtrAmtItemLowr}" not_null="true" alert_name="구분 최소범위값">이상
+                                <input type="text" class="hp_w150 itemUp" th:value="${item.bizInstrDistCrtrAmtItemUp}" not_null="true" alert_name="구분 최대범위값">미만
+                            </div>
+                        </td>
+                        <td>
+                            <input type="text" class="hp_w150 itemRate" onchange="makeValue(this)" th:value="${item.bizInstrDistCrtrAmtItemRate}" not_null="true" alert_name="상향비율(배)">
+                        </td>
+                        <td>
+                            <input type="text" class="hp_w200 itemValue" th:value="${item.bizInstrDistCrtrAmtItemValue}" not_null="true" alert_name="강의료(원)">
+                        </td>
+                        <td>
+                            <div class="btn btnDefault btn_add" onclick="addField(this)">추가</div>
+                            <div th:unless="${stat.index==0}" class="btn btnDefault btn_add" th:value="${stat.index}" onclick="removeItem(this)">삭제</div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="bl_gridBtns">
+                <div class="bl_gridBtns_rgt">
+                    <a class="btn btnDefault btnList" href="/business/instructor/calculate/distance/amount">목록</a>
+                    <a onclick="create()" th:if="${content==null}" class="btn btnDefault btnRegister">등록</a>
+                    <a onclick="update()" th:if="${content!=null}" class="btn btnDefault btnRegister">수정</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            function update() {
+                if(nullCheck()){
+
+                    let params = getFormData();
+                    $.ajax({
+                        type: "put", //http method
+                        url: "/api/business/instructor/calculate/distance/amount/update", //값을 가져올 경로
+                        headers: {'Content-Type': 'application/json'},
+                        data: JSON.stringify(params),
+                        dataType: "json",
+                        async:false,
+                        success: function(data) {
+                            let amtParams = getAmtItem(data.bizInstrDistCrtrAmtNo)
+                            amtParams.forEach(item=>{
+                                if(item.bizInstrDistCrtrAmtItemNo =="0"){
+                                    $.ajax({
+                                        type: "post",
+                                        headers: {'Content-Type' : 'application/json'},
+                                        url: `/api/business/instructor/calculate/distance/amount/item/create`,
+                                        data: JSON.stringify(item),
+                                        dataType: "json",
+                                        async:false,
+                                    })
+                                }else{
+                                    $.ajax({
+                                        type: "put",
+                                        headers: {'Content-Type' : 'application/json'},
+                                        url: `/api/business/instructor/calculate/distance/amount/item/update`,
+                                        data: JSON.stringify(item),
+                                        dataType: "json",
+                                        async:false,
+                                    })
+                                }
+                                if(item ==amtParams[amtParams.length-1]){
+                                    alert("이동거리 기준단가를 수정하였습니다.");
+                                    window.location.reload();
+                                }
+                            })
+                        },
+                        error:function (e){
+                            if(e.responseJSON &&e.responseJSON.resultMessage )
+                                alert(e.responseJSON.resultMessage);
+                            else
+                                alert("이동거리 기준단가를 등록하는 과정에서 오류가 발생했습니다.")
+
+                        }
+                    })
+                }
+            }
+            function create(){
+                if(nullCheck()){
+
+                    let params = getFormData();
+                    $.ajax({
+                        type: "post", //http method
+                        url: "/api/business/instructor/calculate/distance/amount/create", //값을 가져올 경로
+                        headers: {'Content-Type': 'application/json'},
+                        data: JSON.stringify(params),
+                        dataType: "json",
+                        async:false,
+                        success: function(data) {
+                            let amtParams = getAmtItem(data.bizInstrDistCrtrAmtNo)
+                            $.ajax({
+                                type: "post", //http method
+                                url: "/api/business/instructor/calculate/distance/amount/item/creates", //값을 가져올 경로
+                                headers: {'Content-Type': 'application/json'},
+                                data: JSON.stringify(amtParams),
+                                dataType: "json",
+                                async:false,
+                                success: function(data) {
+                                    alert("이동거리 기준단가를 등록하였습니다.");
+                                    window.location.replace('/business/instructor/calculate/distance/amount')
+                                },
+                                error:function (e){
+                                    if(e.responseJSON &&e.responseJSON.resultMessage )
+                                        alert(e.responseJSON.resultMessage);
+                                    else
+                                        alert("이동거리 기준단가를 등록하는 과정에서 오류가 발생했습니다.")
+
+                                }
+                            })
+                        },
+                        error:function (e){
+                            if(e.responseJSON &&e.responseJSON.resultMessage )
+                                alert(e.responseJSON.resultMessage);
+                            else
+                                alert("이동거리 기준단가를 등록하는 과정에서 오류가 발생했습니다.")
+
+                        }
+                    })
+                }
+            }
+
+            function makeAllValue(btn){
+                let amt = $(btn).val();
+                let rate, value;
+                amt = parseFloat(amt);
+                $(".amtItems").each((index, item)=>{
+                    rate = $(item).find(".itemRate").val();
+                    rate=parseFloat(rate);
+                    value = parseInt(rate*amt);
+                    $(item).find(".itemValue").val(value)
+                })
+            }
+            function makeValue(btn){
+                let rate = $(btn).val();
+                let amt = $("#bizInstrDistCrtrAmtValue").val();
+                rate=parseFloat(rate);
+                amt = parseFloat(amt);
+                let value = parseInt(rate*amt);
+                let tr = $(btn).parent().parent();
+                $(tr).find(".itemValue").val(value);
+            }
+            var bizInstrDistCrtrAmtNo = "0"
+            /* <![CDATA[ */
+
+            function removeItem(btn){
+                let index = parseInt($(btn).attr('value'));
+                let CONT = [[ ${content} ]]
+                if(confirm("정말로 삭제하시겠습니까? 새로고침해도 복구되지 않습니다.") && index>=0){
+                    let amtParams = CONT[0].bizInstructorDistCrtrAmtItems[index];
+                    $.ajax({
+                        type: "delete", //http method
+                        url:`/api/business/instructor/calculate/distance/amount/item/delete/${amtParams.bizInstrDistCrtrAmtItemNo}`, //값을 가져올 경로
+                        headers: {'Content-Type': 'application/json'},
+                        data: JSON.stringify(amtParams),
+                        dataType: "json",
+                        async:false,
+                        success: function(data) {
+                            alert("이동거리 기준단가 항목을 삭제하였습니다.");
+                            delField(btn)
+                        },
+                        error:function (e){
+                            if(e.responseJSON &&e.responseJSON.resultMessage )
+                                alert(e.responseJSON.resultMessage);
+                            else
+                                alert("이동거리 기준단가 항목을 삭제하는 과정에서 오류가 발생했습니다.")
+
+                        }
+                    })
+                }
+
+            }
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+                const CONT = [[ ${content} ]]
+                if(CONT != null){
+                    bizInstrDistCrtrAmtNo = CONT[0].bizInstrDistCrtrAmtNo
+                    setSelected(CONT[0].bizInstrDistCrtrAmtYr, 'year')
+                }
+            }
+            function getFormData(){
+                let params = {};
+                params.bizInstrDistCrtrAmtNo = bizInstrDistCrtrAmtNo;
+                params.bizInstrDistCrtrAmtValue = $("#bizInstrDistCrtrAmtValue").val();
+                params.bizInstrDistCrtrAmtYr = $("#year").val();
+                return params;
+            }
+            function getAmtItem(distNo){
+                let params =[]
+                let bizInstructorDistCrtrAmtItems=new Array( $(".amtItems").length);
+                let temp ={};
+                $(".amtItems").each((index, item)=>{
+                    temp = {};
+                    temp.bizInstrDistCrtrAmtItemLowr = $(item).find(".itemLowr").val();
+                    temp.bizInstrDistCrtrAmtItemRate = $(item).find(".itemRate").val();
+                    temp.bizInstrDistCrtrAmtItemValue = $(item).find(".itemValue").val();
+                    temp.bizInstrDistCrtrAmtItemUp = $(item).find(".itemUp").val();
+                    temp.bizInstrDistCrtrAmtItemNo = $(item).find(".itemNo").val()!=""?$(item).find(".itemNo").val():"0";
+                    temp.bizInstrDistCrtrAmtNo = distNo;
+                    bizInstructorDistCrtrAmtItems[index] = temp;
+                })
+                params=bizInstructorDistCrtrAmtItems;
+                return params ;
+            }
+
+            function addField(e){
+                const TARGET = e.parentElement.parentElement;
+
+                const TR = document.createElement('tr');
+                const TD1 = document.createElement('td');
+                const TD2 = document.createElement('td');
+                const TD3 = document.createElement('td');
+                const TD4 = document.createElement('td');
+
+                TR.setAttribute("class", "amtItems");
+
+                const INPUT0 = document.createElement('input');
+                INPUT0.setAttribute('type','hidden');
+                INPUT0.setAttribute('class','hp_w150 itemNo');
+
+                const INPUT1 = document.createElement('input');
+                INPUT1.setAttribute('type','text');
+                INPUT1.setAttribute('class','hp_w150 itemLowr');
+                INPUT1.setAttribute('not_null','true');
+                INPUT1.setAttribute('alert_name','구분 최소범위값');
+
+                const INPUT1_2 = document.createElement('input');
+                INPUT1_2.setAttribute('type','text');
+                INPUT1_2.setAttribute('class','hp_w150 itemUp');
+                INPUT1_2.setAttribute('not_null','true');
+                INPUT1_2.setAttribute('alert_name','구분 최대범위값');
+
+                const INPUT2 = document.createElement('input');
+                INPUT2.setAttribute('type','text');
+                INPUT2.setAttribute('class','hp_w150 itemRate');
+                INPUT2.setAttribute('onchange','makeValue(this)');
+                INPUT2.setAttribute('not_null','true');
+                INPUT2.setAttribute('alert_name','상향비율(배)');
+
+                const INPUT3 = document.createElement('input');
+                INPUT3.setAttribute('type','text');
+                INPUT3.setAttribute('class','hp_w200 itemValue');
+                INPUT3.setAttribute('not_null','true');
+                INPUT3.setAttribute('alert_name','강의료(원)');
+
+                const DIV = document.createElement('div');
+                DIV.setAttribute('class','d-flex-center-1');
+
+                const BTN1 = document.createElement('div');
+                BTN1.setAttribute('class','btn btnDefault btn_del');
+                BTN1.setAttribute('onclick', 'addField(this)')
+                BTN1.innerText = '추가';
+
+                const BTN = document.createElement('div');
+                BTN.setAttribute('class','btn btnDefault btn_del');
+                BTN.setAttribute('onclick', 'delField(this)')
+                BTN.innerText = '삭제';
+                DIV.appendChild(INPUT0);
+                DIV.appendChild(INPUT1);
+                DIV.append('이상');
+                DIV.appendChild(INPUT1_2);
+                DIV.append('미만');
+                TD1.appendChild(DIV);
+
+                TD2.appendChild(INPUT2);
+
+                TD3.appendChild(INPUT3);
+
+                TD4.appendChild(BTN1);
+                TD4.appendChild(BTN);
+
+                TR.appendChild(TD1);
+                TR.appendChild(TD2);
+                TR.appendChild(TD3);
+                TR.appendChild(TD4);
+
+                TARGET.after(TR);
+            }
+
+            function delField(e){
+                const TARGET = e.parentElement.parentElement;
+                TARGET.remove();
+            }
+            /* ]]> */
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

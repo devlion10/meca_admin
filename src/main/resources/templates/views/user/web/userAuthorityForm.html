@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="user-6-2">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>회원 권한</h2>
+        </div>
+
+        <div class="tableLeftResponsive">
+            <table class="tableLeft">
+                <colgroup>
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                </colgroup>
+                <tbody>
+                    <tr>
+                        <th scope="row">이름</th>
+                        <td th:text="${content[0].userName}">
+                            홍길동
+                        </td>
+                        <th scope="row">아이디</th>
+                        <td id="userId" th:text="${content[0].userId}">
+                            test123
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">요청일</th>
+                        <td th:if="${content[0].organizationAuthorityHistory != null}" th:text="${#strings.substring(content[0].organizationAuthorityHistory.createDateTime, 0, 10)}">2022.09.01</td>
+                        <td th:if="${content[0].individualAuthorityHistory != null}" th:text="${#strings.substring(content[0].individualAuthorityHistory.createDateTime, 0, 10)}">2022.09.01</td>
+                        <th scope="row">처리일</th>
+                        <td th:if="${content[0].organizationAuthorityHistory != null}" th:text="${#strings.substring(content[0].organizationAuthorityHistory.updateDateTime, 0, 10)}">2022.09.01</td>
+                        <td th:if="${content[0].individualAuthorityHistory != null}" th:text="${#strings.substring(content[0].individualAuthorityHistory.updateDateTime, 0, 10)}">2022.09.01</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">요청권한</th>
+                        <td>
+                            <span th:if="${content[0].businessAuthority == 'SCHOOL'}">학교담당자</span>
+                            <span th:if="${content[0].businessAuthority == 'AGENCY'}">기관담당자</span>
+                            <span th:if="${content[0].businessAuthority == 'INSTR'}">미디어강사</span>
+                        </td>
+                        <th scope="row">상태</th>
+                        <td>
+                            <span th:if="${content[0].businessAuthorityApprovalState == '1'}" class="color_brown">권한요청</span>
+                            <span th:if="${content[0].businessAuthorityApprovalState == '2'}" class="color_blue">승인</span>
+                            <span th:if="${content[0].businessAuthorityApprovalState == '3'}" class="color_brown">해지요청</span>
+                            <span th:if="${content[0].businessAuthorityApprovalState == '4'}" class="color_red">해제</span>
+                            <span th:if="${content[0].businessAuthorityApprovalState == '5'}" class="color_red">반려</span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h3 th:if="${content[0].organizationAuthorityHistory}" class="subTitle">기관정보</h3>
+        <div th:if="${content[0].organizationAuthorityHistory}" class="tableLeftResponsive">
+            <table class="tableLeft">
+                <colgroup>
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                </colgroup>
+                <tbody th:each="item:${content[0]}">
+                    <tr>
+                        <th scope="row"><span class="el_required"></span>학교/기관명</th>
+                        <td>
+                            <div class="d-flex-2">
+                                <input id="organizationCode" type="hidden" th:value="${item.organizationAuthorityHistory.organizationCode}">
+                                <input id="organizationName" type="text" class="hp_w400" readonly th:value="${item.organizationAuthorityHistory.organizationName}">
+                                <div  th:unless="${content[0].businessAuthority=='SCHOOL'||content[0].businessAuthority=='AGENCY'}" class="btn btnDefault bg-secondary text-white" onclick="openPop('', '/popup/find/company', 'findCompany')">찾아보기</div>
+                                <div th:if="${content[0].businessAuthority=='SCHOOL'||content[0].businessAuthority=='AGENCY'}" class="btn btnDefault bg-secondary text-white" onclick="openPop('', '/popup/find/organization', 'findOrganization')">찾아보기</div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><span class="el_required"></span>대표전화</th>
+                        <td>
+                            <div class="d-flex align-items-center hp_w400 gap-2">
+                                <select id='telSelect' class="common_select" data-list="telList" disabled></select>
+                                <span>-</span>
+                                <input id='tel1' type="text" readonly>
+                                <span>-</span>
+                                <input id='tel2' type="text" readonly>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><span class="el_required"></span>교장/기관장</th>
+                        <td>
+                            <input id="representation" type="text" class="hp_w400" th:value="${item.organizationAuthorityHistory.representation}"readonly>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><span class="el_required"></span>사업자등록번호</th>
+                        <td>
+                            <div class="d-flex align-items-center hp_w400 gap-2" th:if="${item.organizationAuthorityHistory.businessLicenseNo != ''}">
+                                <input id="bizNo1" type="text" th:value="${#strings.substring(item.organizationAuthorityHistory.businessLicenseNo,0,3)}"readonly>
+                                <span>-</span>
+                                <input id="bizNo2" type="text" th:value="${#strings.substring(item.organizationAuthorityHistory.businessLicenseNo,3,5)}"readonly>
+                                <span>-</span>
+                                <input id="bizNo3" type="text" th:value="${#strings.substring(item.organizationAuthorityHistory.businessLicenseNo,5,10)}"readonly>
+                            </div>
+                            <div class="d-flex align-items-center hp_w400 gap-2" th:unless="${item.organizationAuthorityHistory.businessLicenseNo} != ''">
+                                <input id="bizNo1" type="text" readonly>
+                                <span>-</span>
+                                <input id="bizNo2" type="text"readonly>
+                                <span>-</span>
+                                <input id="bizNo3" type="text"readonly>
+                            </div>
+                            <p class="guide_text">※ 비영리기관일 경우 고유번호를 입력해주세요</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><span class="el_required"></span>학교/기관 주소</th>
+                        <td>
+                            <div class="d-flex flex-column gap-2">
+                                <div class="d-flex align-items-center gap-2">
+                                    <input id="organizationZipCode" type="text" class="hp_w400" th:value="${item.organizationAuthorityHistory.organizationZipCode}" readonly>
+                                    <div class="btn btnDefault" onclick="addrSearch()">우편번호</div>
+                                </div>
+                                <input id="organizationAddress1" type="text" class="hp_w600" th:value="${item.organizationAuthorityHistory.organizationAddress1}" readonly>
+                                <input id="organizationAddress2" type="text" class="hp_w600" th:value="${item.organizationAuthorityHistory.organizationAddress2}" readonly>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">홈페이지</th>
+                        <td>
+                            <input id="homepage" type="text" class="hp_w600" th:value="${item.organizationAuthorityHistory.homepage}" disabled>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">팩스번호</th>
+                        <td>
+                            <div class="d-flex align-items-center hp_w400 gap-2">
+                                <select id='faxSelect' class="common_select" data-list="telList" disabled></select>
+                                <span>-</span>
+                                <input id='fax1' type="text" disabled>
+                                <span>-</span>
+                                <input id='fax2' type="text" disabled>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+
+
+        <h3  th:if="${content[0].organizationAuthorityHistory}"  class="subTitle">권한정보</h3>
+        <div  th:if="${content[0].organizationAuthorityHistory}"  class="tableLeftResponsive">
+            <table class="tableLeft">
+                <colgroup>
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                </colgroup>
+                <tbody>
+                    <tr>
+                        <th scope="row"><span class="el_required"></span>직위</th>
+                        <td>
+                            <input id="rank" type="text" class="hp_w400 orgFlag" th:value="${content[0].organizationAuthorityHistory.rank}">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><span class="el_required"></span>담당과목</th>
+                        <td>
+                            <input id="contents" type="text" class="hp_w400 orgFlag" th:value="${content[0].organizationAuthorityHistory.contents}">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><span class="el_required"></span>직통전화</th>
+                        <td>
+                            <div class="d-flex align-items-center hp_w400 gap-2">
+                                <select id='dTelSelect' class="common_select orgFlag" data-list="telList"></select>
+                                <span>-</span>
+                                <input id='dTel1' class="orgFlag" type="text">
+                                <span>-</span>
+                                <input id='dTel2' class="orgFlag" type="text">
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">상태</th>
+                        <td>
+                            <select id="businessAuthorityApprovalState" class="common_select">
+                                <option value="1" th:if="${content[0].businessAuthorityApprovalState == '1'}" th:selected="${content[0].businessAuthorityApprovalState == '1'}">권한요청</option>
+                                <option value="2" th:if="${content[0].businessAuthorityApprovalState == '1'||content[0].businessAuthorityApprovalState == '2'}" th:selected="${content[0].businessAuthorityApprovalState == '2'}">승인</option>
+                                <option value="3" th:if="${content[0].businessAuthorityApprovalState == '3'}" th:selected="${content[0].businessAuthorityApprovalState == '3'}">해지 요청</option>
+                                <option value="4" th:if="${content[0].businessAuthorityApprovalState == '3'||content[0].businessAuthorityApprovalState == '4'}" th:selected="${content[0].businessAuthorityApprovalState == '4'}">해제</option>
+                                <option value="5" th:if="${content[0].businessAuthorityApprovalState == '1'||content[0].businessAuthorityApprovalState == '3'||content[0].businessAuthorityApprovalState == '5'}" th:selected="${content[0].businessAuthorityApprovalState == '5'}">반려</option>
+                            </select>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 강사정보(미디어강사, 언론인연수강사) -->
+        <h3 th:if="${content[0].individualAuthorityHistory}" class="subTitle">강사정보</h3>
+        <div th:if="${content[0].individualAuthorityHistory}" class="tableLeftResponsive">
+            <table class="tableLeft">
+                <colgroup>
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                </colgroup>
+                <tbody>
+                <tr>
+                    <th scope="row"><span class="el_required"></span>사진</th>
+                    <td>
+                        <div class="d-flex gap-2">
+                            <div class="img_box">
+                                <img th:src="@{/assets/images/menu__user/img_profile.png}" alt="" >
+                            </div>
+                            <div>
+                                <div class="bl_uploadGrid">
+                                    <div class="bl_upload js_upload hp_lg_w462">
+                                        <input id="picturePath" type="text" class="bl_upload_path js_path" readonly >
+                                        <label class="btn btnDefault bg-secondary text-white bl_upload_btn">파일찾기</label>
+                                        <input type="file" name="file" class="bl_upload_file js_file">
+                                    </div>
+                                </div>
+                                <p class="bl_uploadNote">※ 파일형식 pdf, jpg, png, gif / 5MB 미만
+                                </p>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><span class="el_required"></span>서명/도장</th>
+                    <td>
+                        <div class="d-flex gap-2">
+                            <div class="img_box">
+                                <img th:src="@{/assets/images/menu__user/img_stamp.png}" alt="">
+                            </div>
+                            <div>
+                                <div class="bl_uploadGrid">
+                                    <div class="bl_upload js_upload hp_lg_w462">
+                                        <input id="signPath" type="text" class="bl_upload_path js_path" readonly>
+                                        <label class="btn btnDefault bg-secondary text-white bl_upload_btn">파일찾기</label>
+                                        <input type="file" name="file" class="bl_upload_file js_file">
+                                    </div>
+                                </div>
+                                <p class="bl_uploadNote">※ 파일형식 pdf, jpg, png, gif / 5MB 미만
+                                </p>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><span class="el_required"></span>자택주소</th>
+                    <td>
+                        <div class="d-flex flex-column gap-2">
+                            <div class="d-flex align-items-center gap-2">
+                                <input type="text" id="userZipCode" class="hp_w400" disabled>
+                                <div class="btn btnDefault" onclick="addrSearch()">검색</div>
+                            </div>
+                            <input type="text" id="userAddress1" class="hp_w600" readonly>
+                            <input type="text" id="userAddress2" class="hp_w600" readonly>
+                        </div>
+                        <p class="guide_text">※ 거리 증빙 시 출발 기준점으로 사용되므로, 반드시 자택주소 기입</p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><span class="el_required"></span>강의가능 지역</th>
+                    <td>
+                        <div class="d-flex-2">
+                            <select class="common_select regionList" data-list="regionList" data-list-start="선택1" id="area1"></select>
+                            <select class="common_select regionList" data-list="regionList" data-list-start="선택2" id="area2"></select>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><span class="el_required"></span>최종학력</th>
+                    <td>
+                        <div class="tableResponsive">
+                            <table class="table">
+                                <thead>
+                                <tr>
+                                    <th scope="col">졸업년도</th>
+                                    <th scope="col">학교명</th>
+                                    <th scope="col">전공</th>
+                                    <th scope="col">학위</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr>
+                                    <td>
+                                        <input id="graduationYear" type="text">
+                                    </td>
+                                    <td>
+                                        <input id="graduationSchool" type="text">
+                                    </td>
+                                    <td>
+                                        <input id="major" type="text">
+                                    </td>
+                                    <td>
+                                        <input id="degree" type="text">
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><span class="el_required"></span>강의 주요 내용</th>
+                    <td>
+                        <textarea id="comments" cols="20" rows="10" class="common_input" th:value="${content[0].individualAuthorityHistory.comments}"></textarea>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><span class="el_required"></span>강의분야</th>
+                    <td>
+                        <div class="d-flex-2">
+                            <select class="common_select">
+                                <option value="">분야(대) 선택</option>
+                            </select>
+                            <select class="common_select">
+                                <option value="">분야(소) 선택</option>
+                            </select>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><span class="el_required"></span>주요이력</th>
+                    <td>
+                        <div class="text-end mb-2">
+                            <div id="addAntecedents" class="btn btnDefault btn_add" onclick="addList(this, 'target')">추가</div>
+                        </div>
+                        <div class="tableResponsive">
+                            <table id="targetTable" class="table">
+                                <colgroup>
+                                    <col>
+                                    <col>
+                                    <col>
+                                    <col style="width: 70px">
+                                </colgroup>
+                                <thead>
+                                <tr>
+                                    <th scope="col">년도</th>
+                                    <th scope="col">기관</th>
+                                    <th scope="col">내용</th>
+                                    <th scope="col">삭제</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr id="target" class="antecedents">
+                                    <td>
+                                        <input type="text" class="yearR">
+                                    </td>
+                                    <td>
+                                        <input type="text" class="orgR">
+                                    </td>
+                                    <td>
+                                        <input type="text" class="comments">
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="btn btnDefault btnDelete btn_del" onclick="removeList(this, 'target','targetTable')">삭제</div>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><span class="el_required"></span>자격증</th>
+                    <td>
+                        <div class="text-end mb-2">
+                            <div id="addCertificate" class="btn btnDefault btn_add" onclick="addList(this, 'target2')">추가</div>
+                        </div>
+                        <div class="tableResponsive">
+                            <table id="targetTable2" class="table">
+                                <colgroup>
+                                    <col>
+                                    <col>
+                                    <col>
+                                    <col>
+                                    <col style="width: 70px">
+                                </colgroup>
+                                <thead>
+                                <tr>
+                                    <th scope="col">취득일자</th>
+                                    <th scope="col">자격증</th>
+                                    <th scope="col">자격번호</th>
+                                    <th scope="col">발급기관</th>
+                                    <th scope="col">삭제</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr id="target2" class="certificate">
+                                    <td>
+                                        <input type="text" class="el_datePicker dateC">
+                                    </td>
+                                    <td>
+                                        <input type="text" class="certificateName">
+                                    </td>
+                                    <td>
+                                        <input type="text" class="certificateNo">
+                                    </td>
+                                    <td>
+                                        <input type="text" class="orgC">
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="btn btnDefault btnDelete btn_del" onclick="removeList(this, 'target2','targetTable2')">삭제</div>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><span class="el_required"></span>계좌</th>
+                    <td>
+                        <div class="dot_list">
+                            <span class="dot">은행/예금주</span>
+                            <select class="common_select" data-list="bankList" id="bank"></select>
+                            <input th:value="${content[0].userName}" type="text" class="hp_w120" placeholder="예금주" disabled>
+                        </div>
+                        <div class="dot_list">
+                            <span class="dot">계좌번호</span>
+                            <div>
+                                <input id="accountNo" type="text">
+                                <p class="guide_text">※ 계좌번호는 하이픈(-)을 제외하고 숫자만 입력
+                            </div>
+                            </p>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h3  th:if="${content[0].individualAuthorityHistory}"  class="subTitle">권한정보</h3>
+        <div  th:if="${content[0].individualAuthorityHistory}"  class="tableLeftResponsive">
+            <table class="tableLeft">
+                <colgroup>
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                </colgroup>
+                <tbody>
+                <tr>
+                    <th scope="row">상태</th>
+                    <td>
+                        <select id="businessAuthorityApprovalState" class="common_select">
+                            <option value="1" th:if="${content[0].businessAuthorityApprovalState == '1'}" th:selected="${content[0].businessAuthorityApprovalState == '1'}">권한요청</option>
+                            <option value="2" th:if="${content[0].businessAuthorityApprovalState == '1' || content[0].businessAuthorityApprovalState == '2'}" th:selected="${content[0].businessAuthorityApprovalState == '2'}">승인</option>
+                            <option value="3" th:if="${content[0].businessAuthorityApprovalState == '3'}" th:selected="${content[0].businessAuthorityApprovalState == '3'}">해지 요청</option>
+                            <option value="4" th:if="${content[0].businessAuthorityApprovalState == '3' || content[0].businessAuthorityApprovalState == '4'}" th:selected="${content[0].businessAuthorityApprovalState == '4'}">해제</option>
+                            <option value="5" th:if="${content[0].businessAuthorityApprovalState == '1' || content[0].businessAuthorityApprovalState == '3' || content[0].businessAuthorityApprovalState == '5'}" th:selected="${content[0].businessAuthorityApprovalState == '5'}">반려</option>
+                        </select>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+
+        <!-- GRID : BUTTON -->
+        <div class="bl_gridBtns">
+            <div class="bl_gridBtns_rgt">
+                <a class="btn btnDefault btnList" href="/user/web-authority">목록</a>
+                <a th:if="${content[0].individualAuthorityHistory}" class="btn btnDefault btnSave" onclick="saveInstr()">저장</a>
+                <a th:if="${content[0].organizationAuthorityHistory}" class="btn btnDefault btnSave" onclick="saveOrg()">저장</a>
+            </div>
+        </div>
+
+        <!-- POPUP : 매체사 찾아보기 -->
+        <div class="iframe_wrap">
+            <iframe id="findCompany" src="about:blank" width="1000" height="717"></iframe>
+        </div>
+
+        <!-- POPUP : 학교/기관명 찾아보기 -->
+        <div class="iframe_wrap">
+            <iframe id="findOrganization" src="about:blank" width="1000" height="717"></iframe>
+        </div>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            /* <![CDATA[ */
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+                render()
+            }
+
+            var checkFlag = false;
+            var orgFlag =false;
+            $(".orgFlag").bind("change", function (){
+                orgFlag=true;
+            })
+            $('#businessAuthorityApprovalState').bind('change', function (){
+                checkFlag =true;
+            })
+            // 기관 기준으로 데이터 받아서 ajax 요청
+            function saveOrg(){
+                let params = getOrgData();
+                let checkCont = getContent();
+                if(orgFlag){
+                    changeOrg(params)
+                }
+                //상태값이 변한 경우에만 ajax
+                if(checkFlag && (params.businessAuthorityApprovalState != checkCont[0].businessAuthorityApprovalState)){
+                        sendData(params)
+                }else{
+                    if(!orgFlag){
+                        alert('권한신청 상태를 변경해 주세요.');
+                    }else{
+                        window.location.reload();
+                    }
+                }
+            }
+            // 기관 강사 기준으로 데이터 받아서 ajax 요청
+            function saveInstr(){
+                let params = getInstrData();
+                let checkCont = getContent();
+                //상태값이 변한 경우에만 ajax
+                if(checkFlag && (params.businessAuthorityApprovalState != checkCont[0].businessAuthorityApprovalState)){
+                    sendData(params)
+                }else{
+                    alert('권한신청 상태를 변경해 주세요.')
+                }
+            }
+            function changeOrg(params){
+                $.ajax({
+                    type: "PUT",
+                    headers: {'Content-Type' : 'application/json'},
+                    url: "/api/user/web/authority/update",
+                    data: JSON.stringify(params),
+                    dataType: "json",
+                    async:false,
+                    success: function (res){
+                        if(!checkFlag){
+                            alert('권한신청 기관정보를 수정하였습니다.');
+                        }
+                    },
+                    error: function (e){
+                        alert('신청한 기관 정보를 변경하는 과정에서 오류가 발생하였습니다.')
+                    }
+                })
+            }
+            function sendData(params){
+                if(params.businessAuthorityApprovalState=='5' && confirm('정말로 반려하시겠습니까?')){
+                    //반려처리
+                    $.ajax({
+                        type: "PUT",
+                        headers: {'Content-Type' : 'application/json'},
+                        url: "/api/user/web/authority/approval-state",
+                        data: JSON.stringify(params),
+                        dataType: "json",
+                        async:false,
+                        success: function (res){
+                            alert("권한 승인/해제 요청이 반려 처리되었습니다.")
+                            window.location.reload()
+                        },
+                        error: function (e){
+                            alert("반려 처리 과정에서 오류가 발생했습니다.");
+                        }
+                    })
+                } else if(params.businessAuthorityApprovalState=='2'){
+                    //권한 승인
+                    $.ajax({
+                        type: "PUT",
+                        headers: {'Content-Type' : 'application/json'},
+                        url: "/api/user/web/authority/approval-state",
+                        data: JSON.stringify(params),
+                        dataType: "json",
+                        success: function (res){
+                            changeUser('get', params.businessAuthority, getContent());
+                        },
+                        error: function (e){
+                            alert("권한 승인에 실패했습니다.");
+                        }
+                    })
+                }else if(params.businessAuthorityApprovalState=='4'){
+                    //권한 해제
+                    $.ajax({
+                        type: "put",
+                        headers: {'Content-Type' : 'application/json'},
+                        url: "/api/user/web/authority/remove",
+                        data: JSON.stringify(params),
+                        dataType: "json",
+                        success: function (res){
+                            setInstrData('update');
+                        },
+                        error: function (e){
+                            alert("권한 해제에 실패했습니다.")
+                        }
+                    })
+                } else{
+                    $.ajax({
+                        type: "PUT",
+                        headers: {'Content-Type' : 'application/json'},
+                        url: "/api/user/web/authority/approval-state",
+                        data: JSON.stringify(params),
+                        dataType: "json",
+                        success: function (res){
+                            alert('권한신청 상태를 변경하였습니다.');
+                            window.location.reload();
+                        },
+                        error: function (e){
+                            alert("권한 요청 승인에 실패했습니다.");
+                        }
+                    })
+                }
+            }
+
+            // 권한 승인 해제에 따라 강사 정보를 수정하는 함수
+            function setInstrData(flag){
+                if(flag=='create'){
+                    let params = getFormData();
+                    if(params && params!=null){
+                        $.ajax({
+                            type: "POST",
+                            headers: {'Content-Type' : 'application/json'},
+                            url: "/api/user/instructor/create",
+                            data: JSON.stringify(params),
+                            dataType: "json",
+                            success: function (res){
+                                alert('권한신청 상태를 변경하였습니다.');
+                                window.location.reload();
+                            },
+                            error: function (e){
+                                alert("권한 요청 승인에 실패했습니다.");
+                            }
+                        })
+                    }else{
+                        alert('권한신청 상태를 변경하였습니다.');
+                        window.location.reload();
+                    }
+                }else{
+                    alert('권한신청 상태를 변경하였습니다.');
+                    window.location.reload();
+                }
+
+            }
+
+            //강사 정보 매핑
+            function render(){
+                let data = getContent();
+
+                if(data[0].individualAuthorityHistory){
+                    if(data[0].individualAuthorityHistory.antecedents.length>1){
+                        for(let i=1; i<data[0].individualAuthorityHistory.antecedents.length;i++){
+                            $("#addAntecedents").trigger('click')
+                        }
+                    }
+                    if(data[0].individualAuthorityHistory.certificate.length>1){
+                        for(let i=1; i<data[0].individualAuthorityHistory.certificate.length;i++){
+                            $("#addCertificate").trigger('click')
+                        }
+                    }
+
+                    $.each(data[0].individualAuthorityHistory,  function(key,value) {
+                        $(`input#${key}`).val(value);
+                        $(`span#${key}`).text(value);
+                        $(`textarea#${key}`).text(value);
+                        $(`select#${key}`).val(value).prop('selected', true);
+                    });
+                    let regSelect =$(".regionList");
+                    let cDate=$('.dateC');
+                    let cNo=$('.certificateNo');
+                    let cName=$('.certificateName');
+                    let orgC=$('.orgC');
+                    let year=$('.yearR');
+                    let orgR=$('.orgR');
+                    let comments=$('.comments');
+
+                    data[0].individualAuthorityHistory.certificate.forEach(function (item,index){
+                        $(cDate[index]).val(item.date)
+                        $(cName[index]).val(item.certificateName)
+                        $(cNo[index]).val(item.certificateNo)
+                        $(orgC[index]).val(item.organization)
+                    });
+                    data[0].individualAuthorityHistory.antecedents.forEach(function (item,index){
+                        $(year[index]).val(item.year)
+                        $(orgR[index]).val(item.organization)
+                        $(comments[index]).val(item.comments)
+                    });
+                    setSelected(data[0].individualAuthorityHistory.region[0], 'area1')
+                    setSelected(data[0].individualAuthorityHistory.region[1], 'area2')
+                }else if(data[0].organizationAuthorityHistory){
+                        let convertTelNum = data[0].organizationAuthorityHistory.organizationTelNo.replace(/(^02.{0}|^01.{1}|^050.{1}|^[0-9]{3})([0-9]*)([0-9]{4})/, "$1-$2-$3");
+                        let convertFaxNum = data[0].organizationAuthorityHistory.organizationFaxNo.replace(/(^02.{0}|^01.{1}|^050.{1}|^[0-9]{3})([0-9]*)([0-9]{4})/, "$1-$2-$3");
+                        let convertDtelNum = data[0].organizationAuthorityHistory.telNo.replace(/(^02.{0}|^01.{1}|^050.{1}|^[0-9]{3})([0-9]*)([0-9]{4})/, "$1-$2-$3");
+
+                        if(convertTelNum && convertTelNum.indexOf('-')>0){
+                            setSelected(convertTelNum.split('-')[0],'telSelect');
+                            document.getElementById('tel1').setAttribute('value', convertTelNum.split('-')[1])
+                            document.getElementById('tel2').setAttribute('value', convertTelNum.split('-')[2])
+                        }
+                        if(convertFaxNum && convertFaxNum.indexOf('-')>0 ){
+                            setSelected(convertFaxNum.split('-')[0],'faxSelect');
+                            document.getElementById('fax1').setAttribute('value', convertFaxNum.split('-')[1])
+                            document.getElementById('fax2').setAttribute('value', convertFaxNum.split('-')[2])
+                        }
+                        if(convertDtelNum && convertDtelNum.indexOf('-')>0 ){
+                            setSelected(convertDtelNum.split('-')[0],'dTelSelect');
+                            document.getElementById('dTel1').setAttribute('value', convertDtelNum.split('-')[1])
+                            document.getElementById('dTel2').setAttribute('value', convertDtelNum.split('-')[2])
+                        }
+                }
+            }
+
+            function getOrgData(){
+                let cont = getContent();
+                let data =cont[0].organizationAuthorityHistory;
+
+                data.organizationCode = $("#organizationCode").val();
+                data.contents = $("#contents").val();
+                data.representation = $("#representation").val();
+                data.homepage = $("#homepage").val();
+                data.organizationName = $("#organizationName").val();
+                data.organizationAddress1 = $("#organizationAddress1").val();
+                data.organizationAddress2 = $("#organizationAddress2").val();
+                data.organizationZipCode = $("#organizationZipCode").val();
+                data.telNo = $("#dTelSelect").val()+$("#dTel1").val()+$("#dTel2").val();
+                data.rank = $("#rank").val();
+                data.contents = $("#contents").val();
+                data.organizationFaxNo = $("#faxSelect").val()+$("#fax1").val()+$("#fax2").val();
+                data.organizationTelNo = $("#telSelect").val()+$("#tel1").val()+$("#tel2").val();
+                data.businessLicenseNo = $("#bizNo1").val()+$("#bizNo2").val()+$("#bizNo3").val();
+                data.businessAuthorityApprovalState =$("#businessAuthorityApprovalState").val();
+                return data;
+            }
+
+
+            function getFormData(){
+                let instr = getInstrData();
+                let cont = getContent();
+                let params = {}
+                if(instr != null){
+                    params.gender = cont[0].lmsUser.gender;
+                    params.instrAcbgDgr = instr.degree;
+                    params.instrAcbgMjr = instr.major;
+                    params.instrAcbgSchlNm = instr.graduationSchool;
+                    params.instrAcbgYr = instr.graduationYear;
+                    params.instrAcbgYr = instr.graduationYear;
+                    params.instrActno = instr.accountNo;
+                    params.instrAddr1 = instr.userAddress1;
+                    params.instrAddr2 = instr.userAddress2;
+                    params.instrBank = instr.bank;
+                    params.instrBrdt = cont[0].lmsUser.birthDay;
+                    params.instrEml = cont[0].lmsUser.email;
+                    params.userId = cont[0].userId
+                    params.userSN=  cont[0].lmsUser.userSerialNo;
+                    params.instrLctRgn1 = instr.region[0];
+                    params.instrLctRgn2 = instr.region[1];
+                    params.instrMainCn = instr.comments;
+                    params.instrNm = cont[0].userName;
+                    params.instrPctr = instr.picturePath;
+                    params.instrPctrSize = 0;
+                    params.instrSgntrSize = 0;
+                    params.instrSgntr = instr.signPath;
+                    params.instrRelmFrst = ' ';
+                    params.instrRelmLast=' ';
+                    // params.instrRelmFrst = instr.instrRelmFrst; // 강의분야 대분류
+                    // params.instrRelmLast=instr.instrRelmLast; //강의분야 소분류
+                    params.instrSerialNo = 0; // 업데이트를 위해서 확인 필요
+                    params.instrStts = 1; //사용
+                    params.instrTel = cont[0].lmsUser.phone;
+                    params.instrCtgr = "INSTR"; //확인 필요
+                    params.instrZipCd = instr.userZipCode;
+                    params.instructorHistoryApiRequestVOs = instr.antecedents;
+                    params.instructorQualificationApiRequestVOs = instr.certificate;
+                }else{
+                    params =null;
+                }
+
+                return params;
+            }
+            function getInstrData(){
+                let cont = getContent();
+                let data =cont[0].individualAuthorityHistory;
+                if(data){
+                    data.region = []  //강의 가능 지역
+                    data.antecedents = [] //주요이력
+                    data.certificate = [] //자격증
+                    let temp = {}
+                    $(".regionList").each(function (index, item){
+                        data.region.push($(item).val());
+                    })
+                    $(".antecedents").each(function (index, item){
+                        temp ={}
+                        temp.instrHistYr = $(item).find(".yearR").val();
+                        temp.instrOrgNm = $(item).find(".orgR").val();
+                        temp.instrCn = $(item).find(".comments").val()
+                        temp.sequenceNo=0;
+                        temp.instrSerialNo=0;
+                        data.antecedents.push(temp)
+                    })
+                    $(".certificate").each(function (index, item){
+                        temp ={}
+                        temp.instrQlfcYmd = $(item).find(".dateC").val();
+                        temp.instrQlfcNm = $(item).find(".certificateName").val();
+                        temp.instrQlfcNo = $(item).find(".certificateNo").val();
+                        temp.instrQlfcInst = $(item).find(".orgC").val();
+                        temp.sequenceNo=0;
+                        temp.instrSerialNo=0;
+                        data.certificate.push(temp)
+                    })
+                    data.graduationYear=$("#graduationYear").val();
+                    data.userId=$("#userId").text();
+                    data.graduationSchool=$("#graduationSchool").val();
+                    data.major=$("#major").val();
+                    data.degree=$("#degree").val();
+                    data.comments=$("#comments").val();
+                    data.bank=$("#bank").val();
+                    data.accountNo=$("#accountNo").val();
+                    data.businessAuthorityApprovalState =$("#businessAuthorityApprovalState").val();
+                }else{
+                    data = null;
+                }
+
+                return data;
+            }
+
+            
+            function getContent(){
+                let CONT = [[ ${content} ]]
+                if(CONT && CONT[0].individualAuthorityHistory){
+                    CONT[0].individualAuthorityHistory.antecedents = JSON.parse(CONT[0].individualAuthorityHistory.antecedents?CONT[0].individualAuthorityHistory.antecedents:'[]');
+                    CONT[0].individualAuthorityHistory.certificate = JSON.parse(CONT[0].individualAuthorityHistory.certificate?CONT[0].individualAuthorityHistory.certificate:'[]');
+                    CONT[0].individualAuthorityHistory.region = JSON.parse(CONT[0].individualAuthorityHistory.region?CONT[0].individualAuthorityHistory.region:'[]');
+                    for(let i in CONT[0].individualAuthorityHistory.antecedents){
+                        CONT[0].individualAuthorityHistory.antecedents[i].instrCn =CONT[0].individualAuthorityHistory.antecedents[i].comments
+                        CONT[0].individualAuthorityHistory.antecedents[i].instrHistYr = CONT[0].individualAuthorityHistory.antecedents[i].year
+                        CONT[0].individualAuthorityHistory.antecedents[i].instrOrgNm =CONT[0].individualAuthorityHistory.antecedents[i].organization
+                        CONT[0].individualAuthorityHistory.antecedents[i].sequenceNo =0
+                        CONT[0].individualAuthorityHistory.antecedents[i].instrSerialNo =0
+                    }
+                    for(let i in CONT[0].individualAuthorityHistory.certificate){
+                        CONT[0].individualAuthorityHistory.certificate[i].instrQlfcInst =CONT[0].individualAuthorityHistory.certificate[i].organization
+                        CONT[0].individualAuthorityHistory.certificate[i].instrQlfcNm =CONT[0].individualAuthorityHistory.certificate[i].certificateName
+                        CONT[0].individualAuthorityHistory.certificate[i].instrQlfcNo =CONT[0].individualAuthorityHistory.certificate[i].certificateNo
+                        CONT[0].individualAuthorityHistory.certificate[i].instrQlfcYmd =CONT[0].individualAuthorityHistory.certificate[i].date
+                        CONT[0].individualAuthorityHistory.certificate[i].sequenceNo =0
+                        CONT[0].individualAuthorityHistory.certificate[i].instrSerialNo =0
+                    }
+                    return CONT;
+                }else{
+                    return CONT;
+                }
+            }
+
+            function addrSearch() {
+                var width = 500; //팝업의 너비
+                var height = 600; //팝업의 높이
+                new daum.Postcode({
+                    width: width, //생성자에 크기 값을 명시적으로 지정해야 합니다.
+                    height: height,
+                    oncomplete: function(data) {
+                        var zonecode = data.zonecode; // 우편번호 변수
+                        var addr = ''; // 주소 변수
+                        var addr2 = '';
+                        if(!data){
+                            alert('주소 검색 API에서 오류가 발생했습니다.')
+                            return false
+                        }
+
+                        //사용자가 선택한 주소 타입에 따라 해당 주소 값을 가져온다.
+                        if (data.userSelectedType === 'R') { // 사용자가 도로명 주소를 선택했을 경우
+                            addr = data.roadAddress;
+                            if (data.buildingName != '') {
+                                addr2 = data.buildingName;
+                            }
+                        } else { // 사용자가 지번 주소를 선택했을 경우(J)
+                            addr = data.jibunAddress;
+                        }
+                        if(document.getElementById('organizationZipCode')){
+                            document.getElementById('organizationZipCode').value = zonecode;
+                            document.getElementById('organizationZipCode').setAttribute('readonly', 'readonly');
+                            document.getElementById("organizationAddress1").value = addr;
+                            if (addr2 != '') {
+                                document.getElementById("organizationAddress1").value += ' (' + addr2 + ')';
+                            }
+                            document.getElementById("organizationAddress1").setAttribute('readonly', 'readonly');
+                            document.getElementById("organizationAddress2").value = '';
+                            document.getElementById("organizationAddress2").removeAttribute('readonly');
+                        }else{
+                            document.getElementById('userZipCode').value = zonecode;
+                            document.getElementById('userZipCode').setAttribute('readonly', 'readonly');
+                            document.getElementById("userAddress1").value = addr;
+                            if (addr2 != '') {
+                                document.getElementById("userAddress1").value += ' (' + addr2 + ')';
+                            }
+                            document.getElementById("userAddress1").setAttribute('readonly', 'readonly');
+                            document.getElementById("userAddress2").value = '';
+                            document.getElementById("userAddress2").removeAttribute('readonly');
+                        }
+                    }
+                }).open({
+                    left: (window.screen.width / 2) - (width / 2),
+                    top: (window.screen.height / 2) - (height / 2)
+                });
+            }
+            window.addEventListener('message', handleDocHeightMsg, false); // 메시지 수신 이벤트 등록
+
+            function handleDocHeightMsg(eventObj) { // 메시지 수신 처리를 위한 함수
+                setPopData(eventObj.data);
+            }
+            function setPopData(data){
+                if(data && data!=null&& data.organizationCode){
+                    orgFlag=true;
+                    $("#organizationCode").val(data.organizationCode);
+                    $("#organizationName").val(data.organizationName);
+                    $("#organizationSubName").val(data.organizationSubName);
+                    $("#organizationAddress1").val(data.organizationAddress1);
+                    $("#organizationAddress2").val(data.organizationAddress2);
+                    $("#organizationZipCode").val(data.organizationZipCode);
+
+                    let convertTelNum = data.organizationTelNumber.replace(/(^02.{0}|^01.{1}|^050.{1}|^[0-9]{3})([0-9]*)([0-9]{4})/, "$1-$2-$3");
+                    if(convertTelNum && convertTelNum.indexOf('-')){
+                        setSelected(convertTelNum.split('-')[0],'telSelect');
+                        document.getElementById('tel1').setAttribute('value', convertTelNum.split('-')[1])
+                        document.getElementById('tel2').setAttribute('value', convertTelNum.split('-')[2])
+                    }else{
+                        $("#telSelect").val('');
+                        document.getElementById('tel1').setAttribute('value', '')
+                        document.getElementById('tel2').setAttribute('value', '')
+                    }
+                    if (data.bizLicenseNumber) {
+                        let bizLicenseNumber = data.bizLicenseNumber.replace(/([0-9]{3})([0-9]{2})([0-9]{5})/, "$1-$2-$3");
+                        if(bizLicenseNumber && bizLicenseNumber.indexOf('-')){
+                            document.getElementById('bizNo1').setAttribute('value', bizLicenseNumber.split('-')[0])
+                            document.getElementById('bizNo2').setAttribute('value', bizLicenseNumber.split('-')[1])
+                            document.getElementById('bizNo3').setAttribute('value', bizLicenseNumber.split('-')[2])
+                        }
+                    }
+                    let convertFaxNum = data.organizationFaxNumber.replace(/(^02.{0}|^01.{1}|^050.{1}|^[0-9]{3})([0-9]*)([0-9]{4})/, "$1-$2-$3");
+                    if(convertFaxNum && convertFaxNum.indexOf('-')){
+                        setSelected(convertFaxNum.split('-')[0],'faxSelect');
+                        document.getElementById('fax1').setAttribute('value', convertFaxNum.split('-')[1])
+                        document.getElementById('fax2').setAttribute('value', convertFaxNum.split('-')[2])
+                    }else{
+                        $("#faxSelect").val('');
+                        document.getElementById('fax1').setAttribute('value', '')
+                        document.getElementById('fax2').setAttribute('value', '')
+                    }
+                }
+            }
+            function changeUser(a, b, con) {
+                let userObject = {};
+
+                    userObject.businessAuthority = b;
+
+                if (con[0].organizationAuthorityHistory != null) {
+                    userObject.organizationCode = con[0].organizationAuthorityHistory.organizationCode;
+                } else {
+                    userObject.organizationCode = null;
+                }
+
+                userObject.department = con[0].lmsUser.department;
+                userObject.email = con[0].lmsUser.email;
+                userObject.isEmailAgree = con[0].lmsUser.isEmailAgree;
+                userObject.isSmsAgree = con[0].lmsUser.isSmsAgree;
+                userObject.organizationAddress1 = con[0].lmsUser.organizationAddress1;
+                userObject.organizationAddress2 = con[0].lmsUser.organizationAddress2;
+                userObject.organizationFaxNumber = con[0].lmsUser.organizationFaxNumber;
+                userObject.organizationName = con[0].lmsUser.organizationName;
+                userObject.organizationSubName = con[0].lmsUser.organizationSubName;
+                userObject.organizationTelNumber = con[0].lmsUser.organizationTelNumber;
+                userObject.organizationZipCode = con[0].lmsUser.organizationZipCode;
+                userObject.phone = con[0].lmsUser.phone;
+                userObject.position = con[0].lmsUser.position;
+                userObject.rank = con[0].lmsUser.rank;
+                userObject.roleGroup = con[0].lmsUser.roleGroup;
+                userObject.state = con[0].lmsUser.state;
+                userObject.userId = con[0].lmsUser.userId;
+                userObject.userSN=  con[0].lmsUser.userSerialNo;
+
+                $.ajax({
+                    type: "PUT",
+                    headers: {'Content-Type' : 'application/json'},
+                    url: "/api/user/web-user/update",
+                    data: JSON.stringify(userObject),
+                    async:false,
+                    dataType: "json",
+                    success:function (data){
+                        setInstrData('create')
+                    },
+                    error: function (e){
+                        alert("승인 실패했습니다.")
+                    }
+                })
+            }
+            /* ]]> */
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

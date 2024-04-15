@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="homepage-6">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>교재자료 관리</h2>
+        </div>
+        
+        <div class="tableLeftResponsive">
+            <table class="tableLeft">
+                <colgroup>
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                </colgroup>
+                <tbody>
+                    <tr>
+                        <th scope="row">구분</th>
+                        <td>
+                            <select id="teamCategory" class="common_select">
+                                <option value="" th:selected="${true}">전체</option>
+                                <th:block th:each="commonCode : ${commonCode}" th:if="${commonCode.code} == 'TEAM_CTGR'" >
+                                    <option th:each="categories : ${commonCode.subCode}" th:value="${categories.code}"
+                                            th:text="${categories.codeName}" th:selected="${false}"></option>
+                                </th:block>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">유형</th>
+                        <td>
+                            <th:block th:each="commonCode : ${commonCode}" th:if="${commonCode.code} == 'MTRL_TYPE'">
+                                <th:block th:each="types : ${commonCode.subCode}" th:if="${#strings.startsWith(types.code, '1')}">
+                                    <div class="chk_box">
+                                        <input th:id="${types.code}" name="types" type="checkbox" th:value="${types.code}">
+                                        <label th:for="${types.code}">
+                                            <span></span>
+                                            <div th:text="${types.codeName}"></div>
+                                        </label>
+                                    </div>
+                                </th:block>
+                            </th:block>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">작성일</th>
+                        <td>
+                            <div class="bl_dateRange">
+                                <input type="text" id="startDate" class="el_datePicker sdate">
+                                <span class="blank">~</span>
+                                <input type="text" id="endDate" class="el_datePicker edate">
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">검색</th>
+                        <td>
+                            <div class="d-flex gap-2">
+                                <select id="containTextType" class="common_select">
+                                    <option value="1">전체</option>
+                                    <option value="2">제목</option>
+                                    <option value="3">내용</option>
+                                    <option value="4">저자</option>
+                                </select>
+                                <input type="text" id="containText" class="hp_w600">
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="bl_gridBtns">
+            <div class="bl_gridBtns_md">
+                <a class="btn btnDefault btnReset">리셋</a>
+                <div class="btn btnDefault btnSearch">검색</div>
+                <a class="btn btnDefault btnRegister" href="/homepage/archive/edu-data/">등록</a>
+            </div>
+        </div>
+
+        <!-- BOARD : CONTROLLER -->
+        <div class="bl_boardCtrls">
+            <div class="bl_boardCtrls_lft">
+                <p class="bl_boardCtrls_total">총: <strong th:text="${pageable.totalElements}"></strong>건</p>
+                <select class="common_select" data-list="countSortList"></select>
+            </div>
+        </div>
+
+        <div class="tableResponsive overflowMulti">
+            <table class="table">
+                <colgroup>
+                    <col style="width: 50px">
+                    <col>
+                    <col>
+                    <col>
+                    <col>
+                    <col>
+                    <col>
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th scope="col">번호</th>
+                        <th scope="col">구분</th>
+                        <th scope="col">유형</th>
+                        <th scope="col">제목</th>
+                        <th scope="col">저자</th>
+                        <th scope="col">작성일</th>
+                        <th scope="col">조회수</th>
+                    </tr>
+                </thead>
+                <tbody th:if="${content != null && content.size > 0}">
+                    <tr th:each="item, stat: ${content}">
+                        <td>
+                            <span th:text="${pageable.totalElements - ((pageable.page * pageable.size) + stat.index)}">1</span>
+                        </td>
+                        <td>
+                            <span th:if="${item.teamCategory != null}">
+                                <th:block th:each="commonCode : ${commonCode}" th:if="${commonCode.code} == 'TEAM_CTGR'">
+                                    <span th:each="categories : ${commonCode.subCode}" th:if="${item.teamCategory == categories.code}"
+                                          th:text="${categories.codeName}">
+                                    </span>
+                                </th:block>
+                            </span>
+                        </td>
+                        <td>
+                            <span th:if="${item.materialType != null}">
+                                <th:block th:each="commonCode : ${commonCode}" th:if="${commonCode.code} == 'MTRL_TYPE'">
+                                    <span th:each="types : ${commonCode.subCode}" th:if="${item.materialType == types.code}"
+                                          th:text="${types.codeName}">
+                                    </span>
+                                </th:block>
+                            </span>
+                        </td>
+                        <td>
+                            <a th:if="${item.sequenceNo != null}" th:href="@{/homepage/archive/edu-data/{id}(id=${item.sequenceNo})}" class="d-flex">
+                                <span class="hp_ellipsis" th:if="${item.title != null}" th:text="${item.title}">제목입니다.</span>
+                                <i th:if="${item.lmsDataFiles != null && item.lmsDataFiles.size > 0}" class="el_ico"><img th:src="@{/assets/images/icons/file_icon.png}" alt="첨부파일" width="12px"></i>
+                            </a>
+                        </td>
+                        <td th:if="${item.author != null}" th:text="${item.author}">홍길동</td>
+                        <td th:unless="${item.author != null}">-</td>
+                        <td th:if="${item.createDateTime != null}" th:text="${#strings.substring(item.createDateTime,0,10)}">2022.10.01</td>
+                        <td th:if="${item.viewCnt != null}" th:text="${item.viewCnt}">2</td>
+                    </tr>
+                </tbody>
+                <tbody th:unless="${content != null && content.size > 0}">
+                <tr class="empty_data"><td colspan="7">조회된 내용이 없습니다.</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="bl_paginate"></div>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            /* <![CDATA[ */
+            $(".btnSearch").bind('click',function (){
+                let searchQuery = {};
+                let teamCategory = $("#teamCategory").val();
+                let startDate = $("#startDate").val();
+                let endDate = $("#endDate").val();
+                let containText = $("#containText").val();
+                let containTextType = $("#containTextType").val();
+
+                let types=$("input[name=types]:checked").length>0 ? new Array(  $("input[name=types]:checked").length ) :"0";
+                $("input[name=types]:checked").each(function(index, item) {
+                    if($(this).val()!="0" &&types!="0"){
+                        types[index] = $(this).val();
+                    }else{
+                        types = "0";
+                    }
+                })
+                if(types&&types!="0"){
+                    searchQuery.types = types.toString();
+                }
+
+                if (teamCategory){
+                    searchQuery.teamCategory = teamCategory;
+                }
+                if (startDate){
+                    searchQuery.startDate = startDate;
+                }
+                if (endDate){
+                    searchQuery.endDate = endDate;
+                }
+                if(containText){
+                    searchQuery.containText = containText;
+                    searchQuery.containTextType =containTextType;
+                }
+                searchJson(searchQuery)
+            })
+
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+                pagination([[ ${pageable} ]], false)
+            }
+            /* ]]> */
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

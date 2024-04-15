@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="business-5-2">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>결과보고서 관리</h2>
+        </div>
+        <div class="bl_tab2">
+            <ul class="bl_tab2_menu">
+                <li th:classappend="${#httpServletRequest.getParameter('bizOrgRsltRptStts') == '1' ? 'is_active' : ''}">
+                    <a href="/business/organization/report?bizOrgRsltRptStts=1">승인대기(미승인)</a>
+                </li>
+                <li th:classappend="${#httpServletRequest.getParameter('bizOrgRsltRptStts') == '2' ? 'is_active' : ''}">
+                    <a href="/business/organization/report?bizOrgRsltRptStts=2">승인완료</a>
+                </li>
+                <li th:classappend="${#httpServletRequest.getParameter('bizOrgRsltRptStts') == '9' ? 'is_active' : ''}">
+                    <a href="/business/organization/report?bizOrgRsltRptStts=9">반려</a>
+                </li>
+            </ul>
+            <div class="bl_tab2_body js_tab_contents">
+                <div class="sch_box">
+                    <select id="bizPbancYr" class="common_select" data-list="yearList"></select>
+                    <select id="bizPbancType" class="common_select" data-list="businessTemp"></select>
+                    <select id="containTextType" class="common_select">
+                        <option value="1">사업명</option>
+                        <option value="2">수행기관</option>
+                    </select>
+                    <input id="containText" type="text" class="hp_w200">
+                    <a onclick="searchRslt()" class="btn btnDefault btnSearch">검색</a>
+                    <a class="btn btnDefault" th:if="${#strings.equals(param.bizOrgRsltRptStts, '1')}" href="/business/organization/report?bizOrgRsltRptStts=1">리셋</a>
+                    <a class="btn btnDefault" th:if="${#strings.equals(param.bizOrgRsltRptStts, '2')}" href="/business/organization/report?bizOrgRsltRptStts=2">리셋</a>
+                    <a class="btn btnDefault" th:if="${#strings.equals(param.bizOrgRsltRptStts, '9')}" href="/business/organization/report?bizOrgRsltRptStts=9">리셋</a>
+                    <div class="tab1_active">
+                        <a onclick="updateCheckbox(2)" class="btn btnDefault bg_blue" th:unless="${#httpServletRequest.getParameter('bizOrgRsltRptStts') == '2' }">선택 승인</a>
+                        <a onclick="updateCheckbox(9)" class="btn btnDefault bg_red" th:unless="${#httpServletRequest.getParameter('bizOrgRsltRptStts') == '9' }">선택 반려</a>
+                    </div>
+                    <div class="tab1_active tab3_active" th:unless="${#httpServletRequest.getParameter('bizOrgRsltRptStts') == '2' }">
+                        <a onclick="deleteRslt()" class="btn btnDefault">선택 삭제</a>
+                    </div>
+                </div>
+
+                <!-- BOARD : CONTROLLER -->
+                <div class="bl_boardCtrls">
+                    <div class="bl_boardCtrls_lft">
+                        <p class="bl_boardCtrls_total">
+                            총: <strong th:text="${pageable.totalElements}"></strong>건
+                        </p>
+                    </div>
+                    <div class="bl_boardCtrls_rgt">
+                        <a id="pdfDownload" class="btn btnDefault" target="_blank" th:href="@{/business/organization/report/pdf/{total}(total=${pageable.totalElements})}">PDF 다운로드</a>
+                        <a href="/api/business/organization/report/excel" class="btn btnDefault download_excel download_search">excel 다운로드</a>
+                        <select class="common_select" data-list="countSortList"></select>
+                    </div>
+                </div>
+
+                <!-- 승인대기(미승인) -->
+                <div class="bl_tab2_item" th:if="${#httpServletRequest.getParameter('bizOrgRsltRptStts') == '1'}">
+                    <div class="tableResponsive overflowMulti">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">
+                                        <div class="chk_box">
+                                            <input id="all_check" type="checkbox" name="resultReportList">
+                                            <label for="all_check">
+                                                <span class="me-0"></span>
+                                            </label>
+                                        </div>
+                                    </th>
+                                    <th scope="col">번호</th>
+                                    <th scope="col">사업명</th>
+                                    <th scope="col">수행기관</th>
+                                    <th scope="col">교육기간</th>
+                                    <th scope="col">승인강사</th>
+                                    <th scope="col">승인</th>
+                                    <th scope="col">반려</th>
+                                </tr>
+                            </thead>
+                            <tbody th:if="${content != null && content.size > 0}">
+                                <tr th:each="item, stat : ${content}">
+                                    <td>
+                                        <div class="chk_box item_chk">
+                                            <input th:id="${item.bizOrgRsltRptNo}" th:value="${stat.index}" type="checkbox" name="resultReportList">
+                                            <label th:for="${item.bizOrgRsltRptNo}">
+                                                <span class="me-0"></span>
+                                            </label>
+                                        </div>
+                                    </td>
+                                    <td th:text="${pageable.totalElements - ((pageable.page * pageable.size) + stat.index)}"></td>
+                                    <td>
+                                        <a th:href="@{/business/organization/report/{id}(id=${item.bizOrgRsltRptNo})}" th:text="${item.bizOrganizationAply.bizPbancMaster.bizPbancNm}">사업명</a>
+                                    </td>
+                                    <td th:text="${item.organizationInfo.organizationName}">기관명</td>
+                                    <td><span th:text="${item.bizOrganizationAply.bizPbancMaster.bizPbancRcptBgng}">2022-07-12</span> ~ <span th:text="${item.bizOrganizationAply.bizPbancMaster.bizPbancRcptEnd}">2022-07-15</span></td>
+                                    <td>
+                                        <th:block th:each="item2, stat2: ${item.bizOrganizationAply.bizInstructorAsgnms}">
+                                            <span th:text="${item2.bizInstructorAply.bizInstrAplyInstrNm}"></span>
+                                            <span th:unless="${stat2.count==stat2.size}">, </span>
+                                        </th:block>
+                                    </td>
+                                    <td>
+                                        <a onclick="updateBtn(this, 2)" th:value="${item.bizOrgRsltRptNo}" class="btn btnDefault bg_blue">승인</a>
+                                    </td>
+                                    <td>
+                                        <a onclick="updateBtn(this, 9)" th:value="${item.bizOrgRsltRptNo}" class="btn btnDefault bg_red">반려</a>
+                                    </td>
+                                </tr>
+                            </tbody>
+                            <tbody th:unless="${content != null && content.size > 0}">
+                            <tr class="empty_data"><td colspan="8">조회된 내용이 없습니다.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 승인완료 -->
+                <div class="bl_tab2_item" th:if="${#httpServletRequest.getParameter('bizOrgRsltRptStts') == '2'}">
+                    <div class="tableResponsive overflowMulti">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">
+                                        <div class="chk_box">
+                                            <input id="all_check" type="checkbox" name="resultReportList">
+                                            <label for="all_check">
+                                                <span class="me-0"></span>
+                                            </label>
+                                        </div>
+                                    </th>
+                                    <th scope="col">번호</th>
+                                    <th scope="col">사업명</th>
+                                    <th scope="col">수행기관</th>
+                                    <th scope="col">교육기간</th>
+                                    <th scope="col">승인강사</th>
+                                </tr>
+                            </thead>
+                            <tbody th:if="${content != null && content.size > 0}">
+                                <tr th:each="item, stat : ${content}">
+                                    <td>
+                                        <div class="chk_box item_chk">
+                                            <input th:id="${item.bizOrgRsltRptNo}" th:value="${stat.index}" type="checkbox" name="resultReportList">
+                                            <label th:for="${item.bizOrgRsltRptNo}">
+                                                <span class="me-0"></span>
+                                            </label>
+                                        </div>
+                                    </td>
+                                    <td th:text="${pageable.totalElements - ((pageable.page * pageable.size) + stat.index)}"></td>
+                                    <td>
+                                        <a th:href="@{/business/organization/report/{id}(id=${item.bizOrgRsltRptNo})}" th:text="${item.bizOrganizationAply.bizPbancMaster.bizPbancNm}">사업명</a>
+                                    </td>
+                                    <td th:text="${item.organizationInfo.organizationName}">기관명</td>
+                                    <td><span th:text="${item.bizOrganizationAply.bizPbancMaster.bizPbancRcptBgng}">2022-07-12</span> ~ <span th:text="${item.bizOrganizationAply.bizPbancMaster.bizPbancRcptEnd}">2022-07-15</span></td>
+                                    <td>
+                                        <th:block th:each="item2, stat2: ${item.bizOrganizationAply.bizInstructorAsgnms}">
+                                            <span th:text="${item2.bizInstructorAply.bizInstrAplyInstrNm}"></span>
+                                            <span th:unless="${stat2.count==stat2.size}">, </span>
+                                        </th:block>
+                                    </td>
+                                </tr>
+                            </tbody>
+                            <tbody th:unless="${content != null && content.size > 0}">
+                            <tr class="empty_data"><td colspan="6">조회된 내용이 없습니다.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 반려 -->
+                <div class="bl_tab2_item" th:if="${#httpServletRequest.getParameter('bizOrgRsltRptStts') == '9'}">
+                    <div class="tableResponsive overflowMulti">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">
+                                        <div class="chk_box">
+                                            <input id="all_check" type="checkbox" name="resultReportList">
+                                            <label for="all_check">
+                                                <span class="me-0"></span>
+                                            </label>
+                                        </div>
+                                    </th>
+                                    <th scope="col">번호</th>
+                                    <th scope="col">사업명</th>
+                                    <th scope="col">수행기관</th>
+                                    <th scope="col">교육기간</th>
+                                    <th scope="col">승인강사</th>
+                                </tr>
+                            </thead>
+                            <tbody th:if="${content != null && content.size > 0}">
+                                <tr th:each="item, stat : ${content}">
+                                    <td>
+                                        <div class="chk_box item_chk">
+                                            <input th:id="${item.bizOrgRsltRptNo}" th:value="${stat.index}" type="checkbox" name="resultReportList">
+                                            <label th:for="${item.bizOrgRsltRptNo}">
+                                                <span class="me-0"></span>
+                                            </label>
+                                        </div>
+                                    </td>
+                                    <td th:text="${pageable.totalElements - ((pageable.page * pageable.size) + stat.index)}"></td>
+                                    <td>
+                                        <a th:href="@{/business/organization/report/{id}(id=${item.bizOrgRsltRptNo})}" th:text="${item.bizOrganizationAply.bizPbancMaster.bizPbancNm}">사업명</a>
+                                    </td>
+                                    <td th:text="${item.organizationInfo.organizationName}">기관명</td>
+                                    <td><span th:text="${item.bizOrganizationAply.bizPbancMaster.bizPbancRcptBgng}">2022-07-12</span> ~ <span th:text="${item.bizOrganizationAply.bizPbancMaster.bizPbancRcptEnd}">2022-07-15</span></td>
+                                    <td>
+                                        <th:block th:each="item2, stat2: ${item.bizOrganizationAply.bizInstructorAsgnms}">
+                                            <span th:text="${item2.bizInstructorAply.bizInstrAplyInstrNm}"></span>
+                                            <span th:unless="${stat2.count==stat2.size}">, </span>
+                                        </th:block>
+                                    </td>
+                                </tr>
+                            </tbody>
+                            <tbody th:unless="${content != null && content.size > 0}">
+                            <tr class="empty_data"><td colspan="6">조회된 내용이 없습니다.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="bl_paginate"></div>
+            </div>
+        </div>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            function searchRslt(){
+                let searchParams = new URLSearchParams(window.location.search);
+                let stts = searchParams.get("bizOrgRsltRptStts");
+                let searchQuery = {}
+                if(stts) searchQuery.bizOrgRsltRptStts=stts;
+                if(parseInt($("#bizPbancType").val())>=0) searchQuery.bizPbancType=parseInt($("#bizPbancType").val());
+                if(parseInt($("#bizPbancYr").val())) searchQuery.bizPbancYr=parseInt($("#bizPbancYr").val());
+                if($("#containText").val()){
+                    searchQuery.containText=$("#containText").val();
+                    searchQuery.containTextType=$("#containTextType").val();
+                }
+                searchJson(searchQuery);
+            }
+            let index;
+            let count;
+            function updateBtn(btn, stts){
+                if(confirm(stts==2?"정말로 승인하시겠습니까?":"정말로 반려하시겠습니까?")) {
+                    let params = {}
+                    params.bizOrgRsltRptNos = new Array(1)
+                    params.bizOrgRsltRptNos[0] = $(btn).attr('value');
+                    params.bizOrgRsltRptStts = stts;
+                    sendUpdate(params)
+                }
+            }
+            function deleteRslt(){
+                if(confirm('정말로 삭제하시겠습니까?')){
+                    index = $("input:checkbox[name=resultReportList]:checked").length;
+                    count = 0;
+                    let CONT =  getCont();
+                    $("input:checkbox[name=resultReportList]:checked").each(function (ind, item){
+                        count=count+1;
+                        if(parseInt($(item).attr("value"))>=0){
+                            let dataIndex = parseInt($(item).attr("value"))
+                            let params = CONT[dataIndex];
+                            $.ajax({
+                                type: "delete", //http method
+                                url: `/api/business/organization/report/delete/${params.bizOrgRsltRptNo}`,
+                                headers: {'Content-Type': 'application/json'},
+                                data: JSON.stringify(params),
+                                dataType: "json",
+                                async:false,
+                                success: function(data) {
+                                    if(count == index){
+                                        alert("결과보고서를 삭제하였습니다.");
+                                        window.location.reload();
+                                    }
+                                },
+                                error: function(e) {
+                                    if(count == index){
+                                        alert("결과보고서 삭제에 실패했습니다.");
+                                    }
+                                }
+                            })
+                        }
+                    })
+                }
+            }
+            function updateCheckbox(stts){
+                if(confirm(stts==2?"정말로 승인하시겠습니까?":"정말로 반려하시겠습니까?")) {
+                    let params = {}
+                    params.bizOrgRsltRptNos = []
+                    $(".item_chk input:checkbox[name=resultReportList]:checked").each(function (ind, item) {
+                        params.bizOrgRsltRptNos.push($(item).attr("id"))
+                    })
+                    params.bizOrgRsltRptStts = stts;
+                    sendUpdate(params)
+                }
+            }
+            function sendUpdate(params){
+                $.ajax({
+                    type: "put", //http method
+                    url: `/api/business/organization/report/update/stts`, //값을 가져올 경로
+                    headers: {'Content-Type': 'application/json'},
+                    data: JSON.stringify(params),
+                    dataType: "json",
+                    async:false,
+                    success: function(data) {
+                        alert("결과보고서 상태를 수정하였습니다.");
+                        window.location.reload();
+                    },
+                    error: function(e) {
+                        alert("결과보고서 수정에 실패했습니다.");
+                    }
+                })
+            }
+            /* <![CDATA[ */
+            function getCont(){
+                let CONT =  [[ ${content} ]];
+                return CONT;
+            }
+
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+                checkBox();
+                pagination([[ ${pageable} ]], false)
+
+                if(window.location.search && window.location.search!=""){
+                    $("#pdfDownload").attr("href", $("#pdfDownload").attr("href")+window.location.search);
+                }
+
+            }
+            /* ]]> */
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

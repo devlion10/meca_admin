@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="business-4-1">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>모집공고 관리</h2>
+        </div>
+
+        <div class="sch_box flex-wrap">
+            <select id="bizInstrStts" class="common_select">
+                <option>상태</option>
+                <option value="0">CLOSE</option>
+                <option value="1">OPEN</option>
+            </select>
+            <input id="bizInstrNm" type="text" class="hp_w400">
+            <div>
+                <a th:onclick="searchInstrPbanc()" class="btn btnDefault btnSearch">검색</a>
+                <a class="btn btnDefault btnReset">리셋</a>
+            </div>
+        </div>
+
+        <!-- BOARD : CONTROLLER -->
+        <div class="bl_boardCtrls">
+            <div class="bl_boardCtrls_lft">
+                <p class="bl_boardCtrls_total">총: <strong th:text="${pageable.totalElements}">1</strong>건 </p>
+            </div>
+            <div class="bl_boardCtrls_rgt">
+                <select class="common_select" data-list="countSortList"></select>
+            </div>
+        </div>
+
+        <div class="tableResponsive overflowMulti">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">번호</th>
+                        <th scope="col">제목</th>
+                        <th scope="col">모집기간</th>
+                        <th scope="col">상태</th>
+                        <th scope="col">모집사업</th>
+                        <th scope="col">배정시뮬레이션</th>
+                        <th scope="col">관리</th>
+                    </tr>
+                </thead>
+                <tbody th:if="${content != null && content.size > 0}">
+                    <tr th:each="item, stat : ${content}">
+                        <td th:text="${pageable.totalElements - ((pageable.page * pageable.size) + stat.index)}"></td>
+                        <td>
+                            <a th:href="@{/business/instructor/list/{id}(id=${item.bizInstrNo})}" th:text="${item.bizInstrNm}">운영학교 배정 신청 요청</a>
+                        </td>
+                        <td th:if="${item.bizInstructorPbancs == null}">모집사업이 없습니다.</td>
+                        <td th:unless="${item.bizInstructorPbancs == null}">
+                            <span th:text="${item.bizInstructorPbancs[0].bizInstrRcptBgng}">2022.08.08</span> - <span th:text="${item.bizInstructorPbancs[0].bizInstrRcptEnd}">2022.09.30</span>
+                        </td>
+                        <td>
+                            <span class="color_blue" th:if="${item.bizInstrStts == 1}">OPEN</span>
+                            <span class="color_red" th:if="${item.bizInstrStts == 0}">CLOSE</span>
+                        </td>
+                        <td th:if="${item.bizInstructorPbancs == null}">0</td>
+                        <td th:unless="${item.bizInstructorPbancs == null}" th:text="${#lists.size(item.bizInstructorPbancs)}">0</td>
+                        <td>
+                            <a target="_blank" th:href="@{/business/instructor/list/excel(bizInstrNo=${item.bizInstrNo})}" class="btn btnDefault download_excel">excel 다운로드</a>
+                        </td>
+                        <td>
+                            <a th:href="@{/business/instructor/list/{id}(id=${item.bizInstrNo})}" class="btn btnDefault btnModify">수정</a>
+                            <a th:value="${stat.index}" class="btn btnDefault btnDelete">삭제</a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <tbody th:unless="${content != null && content.size > 0}">
+            <tr class="empty_data"><td colspan="7">조회된 내용이 없습니다.</td></tr>
+            </tbody>
+        </div>
+
+        <div class="bl_paginate">
+            <div class="bl_paginate_rgt">
+                <a class="btn btnDefault" href="/business/instructor/list/">등록</a>
+            </div>
+        </div>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            function searchInstrPbanc(){
+                let searchQuery = {}
+                let bizInstrNm = $("#bizInstrNm").val();
+                let bizInstrStts = $("#bizInstrStts").val();
+                if(bizInstrNm){
+                    searchQuery.bizInstrNm = bizInstrNm
+                }
+                if(bizInstrStts && bizInstrStts != "상태"){
+                    searchQuery.bizInstrStts = bizInstrStts
+                }
+                searchJson(searchQuery)
+            }
+
+            $(".btnDelete").bind("click", function (e){
+                e.preventDefault();
+                let index = $(this).attr("value");
+                let params = getData(index);
+                if(confirm(`정말 모집공고 '${params.bizInstrNm}'를 삭제하시겠습니까?`)){
+                    $.ajax({
+                        type: "delete", //http method
+                        url: `/api/business/instructor/list/delete/${params.bizInstrNo}`, //값을 가져올 경로
+                        headers: {'Content-Type': 'application/json'},
+                        data: JSON.stringify(params),
+                        dataType: "json",
+                        success: function(data) {
+                            alert("삭제되었습니다.");
+                            window.location.reload();
+                        },
+                        error:function (e){
+                            if(e && e.responseJSON && e.responseJSON.resultMessage){
+                                alert(e.responseJSON.resultMessage);
+                            }else{
+                                alert('삭제하는 과정에서 오류가 발생했습니다.');
+                            }
+                        }
+                    })
+                }
+            })
+            /* <![CDATA[ */
+            function getData(index){
+                let CONT =[[ ${content} ]];
+                return CONT[index];
+            }
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+                pagination([[ ${pageable} ]], false)
+            }
+            /* ]]> */
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

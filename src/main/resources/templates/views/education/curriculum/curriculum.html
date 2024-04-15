@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="edu-1">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>과정 관리</h2>
+        </div>
+
+        <div class="tableLeftResponsive">
+            <table class="tableLeft">
+                <colgroup>
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                </colgroup>
+                <tbody>
+                    <tr>
+                        <th scope="row">교육유형</th>
+                        <td colspan="3">
+                            <select class="common_select" id="educationType">
+                                <option value="" th:selected="${true}">전체</option>
+                                <th:block th:each="commonCode : ${commonCode}" th:if="${commonCode.code} == 'EDU_TYPE'" >
+                                    <option th:each="educationType : ${commonCode.subCode}" th:value="${educationType.code}" th:text="${educationType.codeName}"></option>
+                                </th:block>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">구분</th>
+                        <td>
+                            <select class="common_select" id="categoryCode" onchange="codeSelector('curriculumAreaCode', this.value)">
+                                <option value="" th:selected="${true}">전체</option>
+                                <th:block th:each="commonCode : ${commonCode}" th:if="${commonCode.code} == 'CTS_CTGR'">
+                                    <option th:each="categoryCode : ${commonCode.subCode}" th:value="${categoryCode.code}" th:text="${categoryCode.codeName}"></option>
+                                </th:block>
+                            </select>
+                        </td>
+                        <th scope="row">분류<div class="guide_text mb-0">구분을 선택해주세요</div></th>
+                        <td>
+                            <select class="common_select" id="curriculumAreaCode" onchange="codeSelector('curriculumAreaCodeDetail', this.value)"></select>
+                            <select class="common_select" id="curriculumAreaCodeDetail"></select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">등록일</th>
+                        <td>
+                            <div class="bl_dateRange">
+                                <input type="text" class="el_datePicker sdate" id="startDate">
+                                <span class="blank">~</span>
+                                <input type="text" class="el_datePicker edate" id="endDate">
+                            </div>
+                        </td>
+                        <th scope="row">상태</th>
+                        <td>
+                            <div class="radio_box">
+                                <input id="use_all" type="radio" name="state" checked>
+                                <label for="use_all">
+                                    <span></span>
+                                    전체
+                                </label>
+                            </div>
+                            <div class="radio_box">
+                                <input id="use" type="radio" name="state">
+                                <label for="use">
+                                    <span></span>
+                                    사용
+                                </label>
+                            </div>
+                            <div class="radio_box">
+                                <input id="not_use" type="radio" name="state">
+                                <label for="not_use">
+                                    <span></span>
+                                    미사용
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">과정명</th>
+                        <td colspan="3">
+                            <input type="text" class="hp_w600" id="curriculumName">
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="bl_gridBtns">
+            <div class="bl_gridBtns_md">
+                <div class="btn btnDefault btnReset">리셋</div>
+                <a class="btn btnDefault btnSearch" th:onclick="goSearch()">검색</a>
+                <a class="btn btnDefault download_excel download_search" href="/api/education/curriculum/excel">excel 다운로드</a>
+                <a href="/education/curriculum/regist/lecture" class="btn btnDefault btnRegister">일반 등록</a>
+                <a href="/education/curriculum/regist/e-learning" class="btn btnDefault btnRegister">이러닝 등록</a>
+            </div>
+        </div>
+
+        <!-- BOARD : CONTROLLER -->
+        <div class="bl_boardCtrls">
+            <div class="bl_boardCtrls_lft">
+                <p class="bl_boardCtrls_total">총: <strong th:text="${pageable.totalElements}"></strong>건</p>
+            </div>
+            <div class="bl_boardCtrls_rgt">
+                <select class="common_select" data-list="countSortList"></select>
+            </div>
+        </div>
+
+        <td class="tableResponsive overflowMulti">
+            <table class="table">
+                <colgroup>
+                    <col style="width: 50px">
+                    <col>
+                    <col>
+                    <col>
+                    <col>
+                    <col>
+                    <col>
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th scope="col">번호</th>
+                        <th scope="col">유형</th>
+                        <th scope="col">카테고리</th>
+                        <th scope="col">분야</th>
+                        <th scope="col">과정명</th>
+                        <th scope="col">담당자</th>
+                        <th scope="col">등록일</th>
+                        <th scope="col">상태</th>
+                        <th scope="col">관리</th>
+                    </tr>
+                </thead>
+                <tbody th:if="${content != null && content.size > 0}">
+                    <tr th:if="${!#lists.isEmpty(content)}" th:each="item, stat: ${content}">
+                        <td th:text="${pageable.totalElements - ((pageable.page * pageable.size) + stat.index)}">1</td>
+                        <td th:switch="${item.educationType}">
+                            <th:block th:each="commonCode : ${commonCode}" th:if="${commonCode.code} == 'EDU_TYPE'">
+                                <span th:each="educationType : ${commonCode.subCode}"
+                                    th:if="${educationType.code == item.educationType}"
+                                    th:value="${educationType.code}" th:text="${educationType.codeName}"></span>
+                            </th:block>
+                        </td>
+                        <td th:switch="${item.categoryCode}">
+                            <th:block th:each="commonCode : ${commonCode}" th:if="${commonCode.code} == 'CTS_CTGR'">
+                                <span th:each="categoryCode : ${commonCode.subCode}"
+                                      th:if="${categoryCode.code == item.categoryCode}"
+                                      th:value="${categoryCode.code}" th:text="${categoryCode.codeName}"></span>
+                            </th:block>
+                        </td>
+                        <td>
+                            <th:block th:switch="${item.curriculumAreaCode}">
+                                <th:block th:each="commonCode : ${commonCode}" th:if="${commonCode.code} == 'EDU_CTGR'">
+                                    <div th:each="curriculumAreaCode : ${commonCode.subCode}"
+                                         th:if="${curriculumAreaCode.code == item.curriculumAreaCode}"
+                                         th:value="${curriculumAreaCode.code}" th:text="${curriculumAreaCode.codeName}"></div>
+                                </th:block>
+                            </th:block>
+                            <th:block th:switch="${item.curriculumAreaCodeDetail}">
+                                <th:block th:each="commonCode : ${commonCode}" th:if="${commonCode.code} == 'EDU_CTGR_SUB'">
+                                    <div th:each="curriculumAreaCodeDetail : ${commonCode.subCode}"
+                                         th:if="${curriculumAreaCodeDetail.code == item.curriculumAreaCodeDetail}"
+                                         th:value="${curriculumAreaCodeDetail.code}" th:text="${curriculumAreaCodeDetail.codeName}"></div>
+                                </th:block>
+                            </th:block>
+                        </td>
+                        <td>
+                            <span class="hp_ellipsis" th:text="${item.curriculumName}">과정명이 들어갑니다.</span>
+                        </td>
+                        <td th:text="${item.managerName}">(담당자명)</td>
+                        <td th:text="${#strings.substring(item.createDateTime, 0, 10)}">2022.10.01</td>
+                        <td>
+                            <span th:if="${item.isUsable == true}" class="state state__blue">사용</span>
+                            <span th:unless="${item.isUsable == true}"  class="state state__red">미사용</span>
+                        </td>
+                        <td>
+                            <a th:href="@{/education/curriculum/{educationType}/{curriculumCode}(educationType=${item.educationType == '3' ? 'e-learning' : 'lecture'} ,curriculumCode=${item.curriculumCode})}" class="btn btnDefault">상세</a>
+                            <th:block th:if="${item.educationType == '3'}">
+                                <a th:href="@{/education/curriculum/{educationType}/exam/{curriculumCode}(educationType=${item.educationType == '3' ? 'e-learning' : 'lecture'} ,curriculumCode=${item.curriculumCode})}" class="btn btnDefault">시험</a>
+                                <a th:href="@{/education/curriculum/{educationType}/question/{curriculumCode}(educationType=${item.educationType == '3' ? 'e-learning' : 'lecture'} ,curriculumCode=${item.curriculumCode})}" class="btn btnDefault">문항</a>
+                            </th:block>
+                            <a th:href="@{/education/curriculum/reference-room/{curriculumCode}(educationType=${item.educationType == '3' ? 'e-learning' : 'lecture'} ,curriculumCode=${item.curriculumCode})}" class="btn btnDefault">자료실</a>
+                        </td>
+                    </tr>
+                </tbody>
+                <tbody th:unless="${content != null && content.size > 0}">
+                    <tr class="empty_data"><td colspan="9">조회된 내용이 없습니다.</td></tr>
+                </tbody>
+            </table>
+            <div class="bl_paginate"></div>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            /* <![CDATA[ */
+            const content = [[ ${content} ]];
+            const commonCode = [[ ${commonCode} ]];
+
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+                pagination([[ ${pageable} ]], false)
+
+                const params = new URLSearchParams(decodeURIComponent(window.location.search).replace("?", ""));
+                if(params.get("startDate")) { document.getElementById('startDate').value = params.get("startDate").replaceAll('-','.'); }
+                if(params.get("endDate")) { document.getElementById('endDate').value = params.get("endDate").replaceAll('-','.'); }
+
+                params.get("isUsable") == null
+                    ? $('input[name=state]')[0].checked = true
+                    : params.get("isUsable") == "true"
+                        ? $('input[name=state]')[1].checked = true
+                        : $('input[name=state]')[2].checked = true;
+
+                if(params.get("educationType")) { document.getElementById('educationType').value = params.get("educationType"); }
+                if(params.get("categoryCode")) {
+                    var cateCode = params.get("categoryCode");
+                    $('#categoryCode').val(cateCode).prop("selected", true)
+                    codeSelector('curriculumAreaCode', cateCode)
+                }
+                if(params.get("curriculumAreaCode")) {
+                    var areaCode = params.get("curriculumAreaCode");
+                    $('#curriculumAreaCode').val(areaCode).prop("selected", true)
+                    codeSelector('curriculumAreaCodeDetail', areaCode)
+                }
+                if(params.get("curriculumAreaCodeDetail")) { $('#curriculumAreaCodeDetail').val(params.get("curriculumAreaCodeDetail")).prop("selected", true) }
+                document.getElementById('curriculumName').value = params.get("curriculumName");
+            }
+
+            function goSearch() {
+                const params = {};
+                if(document.querySelector('#startDate').value) {
+                    params.startDate = document.querySelector('#startDate').value.replaceAll('.','-');
+                }
+                if(document.querySelector('#endDate').value) {
+                    params.endDate = document.querySelector('#endDate').value.replaceAll('.','-');
+                }
+                params.educationType = document.querySelector('#educationType').value;
+                params.categoryCode = document.querySelector('#categoryCode').value;
+                params.curriculumAreaCode = document.querySelector('#curriculumAreaCode').value;
+                params.curriculumAreaCodeDetail = document.querySelector('#curriculumAreaCodeDetail').value;
+                params.isUsable = $('input[name=state]:checked')[0].id == 'use' ? true : $('input[name=state]:checked')[0].id == 'not_use' ? false : null;
+                params.curriculumName = document.querySelector('#curriculumName').value;
+
+                const queryParams = Object.entries(params).filter(data => data[1] != null && data[1] !== '').map(data => data.join('=')).join('&')
+                location.href="/education/curriculum?" + queryParams;
+            }
+
+            // 동적 select - onChange
+            var codeSelector = function (type, value) {
+                var codes = ''
+                var selector = document.querySelector('#'+type)
+                selector.innerHTML = '';
+                var option = document.createElement('option')
+
+                if (type.indexOf('Detail') >= 0) { // id:curriculumAreaCodeDetail 제어
+                    codes = commonCode.filter(code => code.code === "EDU_CTGR_SUB")[0].subCode
+                    option.innerText = '소분류'
+                } else { // id:curriculumAreaCode 제어
+                    codes = commonCode.filter(code => code.code === "EDU_CTGR")[0].subCode
+                    option.innerText = '대분류'
+                    var selector2 = document.querySelector('#'+type+'Detail')
+                    selector2.innerHTML = '';
+                }
+                option.value = ''
+                selector.append(option)
+
+                // select에 옵션 추가, 공통인 value:3 옵션은 모두 넣기
+                codes.forEach(item => {
+                    if (value.startsWith('3')) {
+                        if (item.code.startsWith('3')) {
+                            return $(selector).append(`<option value="${item.code}">${item.codeName}</option>`)
+                        }
+                    } else {
+                        if (item.code.startsWith(value) || item.code.startsWith('3')) {
+                            return $(selector).append(`<option value="${item.code}">${item.codeName}</option>`)
+                        }
+                    }
+                })
+            }
+            /* ]]> */
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

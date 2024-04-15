@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ko"
+    xmlns:th="http://www.thymeleaf.org"
+    xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<th:block th:fragment="include">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
+    <meta name="generator" content="Hugo 0.98.0">
+
+    <title>Korea Press Foundation LMS ADMIN</title>
+
+    <!-- CSS -->
+    <link th:href="@{/css/custom/global.css}" rel="stylesheet"/>
+
+    <!-- JS -->
+    <script th:src="@{/app/js/libs/bootstrap.bundle.min.js}"></script>
+    <script th:src="@{/app/js/libs/jquery-3.6.1.min.js}"></script>
+    <script th:src="@{/app/js/libs/jquery-ui.min.js}"></script>
+    <script th:src="@{/app/js/libs/iscroll.js}"></script>
+    <script th:src="@{/app/js/base.js}"></script>
+    <script th:src="@{/app/js/module-ui.js}"></script>
+    <script th:src="@{/app/js/layout.js}"></script>
+    <script th:src="@{/app/js/util.js}"></script>
+    <script th:src="@{/app/js/common.js}"></script>
+    <script th:src="@{/app/js/pagination.js}"></script>
+    <script th:src="@{/app/js/checkbox.js}"></script>
+    <script th:src="@{/app/js/order.js}"></script>
+    <script th:src="@{/app/js/add_remove_list.js}"></script>
+    <script th:src="@{/app/js/add_line.js}"></script>
+    <script th:src="@{/app/js/popup.js}"></script>
+    <script th:src="@{/app/js/selectbox.js}"></script>
+    <script th:src="@{/app/js/file_upload.js}"></script>
+    <script th:src="@{/app/js/download.js}"></script>
+    <script th:src="@{/app/js/search.js}"></script>
+    <script th:src="@{/app/js/nullcheck.js}"></script>
+    <script th:src="@{/app/js/session-timer.js}"></script>
+
+
+    <!-- template JS-->
+    <script th:src="@{/app/js/libs/fontawesome-free/all.js}"></script>
+    <script th:src="@{/app/js/libs/jstree.js}"></script>
+    <script th:src="@{/app/js/libs/colResizable-1.6.js}"></script>
+    <script th:src="@{/app/js/template_common.js}"></script>
+    <script th:src="@{/app/js/libs/html2canvas.js}"></script>
+    <script th:src="@{/app/js/libs/jspdf.min.js}"></script>
+
+    <!-- 주소 -->
+    <script src="https://developers.kakao.com/sdk/js/kakao.min.js"></script>
+    <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=cfaff7730b3450d561bfcc5b4a9ffd33&libraries=services"></script>
+    <script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+
+    <!-- ckeditor -->
+    <script th:src="@{/app/js/libs/ckeditor/ckeditor.js}"></script>
+
+    <!-- moment -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/locale/ko.js"></script>
+
+    <!-- underscore -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.13.4/underscore-min.js"></script>
+
+    <script th:if="${#authentication.principal != 'anonymousUser'}">
+        authTimer();
+    </script>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            /* global bootstrap: false */
+            (() => {
+                'use strict';
+                const tooltipTriggerList = Array.from(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+                tooltipTriggerList.forEach(tooltipTriggerEl => {
+                    new bootstrap.Tooltip(tooltipTriggerEl);
+                });
+            })();
+
+            const globalEmailList = ['naver.com','daum.net','hanmail.net','gmail.com','nate.com','hotmail.com'];
+            let userList = []; // SMS 전송에 필요한 user data
+        </script>
+    </th:block>
+</th:block>
+</html>

@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="edu-1">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>과정 관리</h2>
+        </div>
+
+        <div class="bl_tab2 js_tab">
+            <!-- 등록 페이지일 때 탭 숨김, 상세 페이지일 때 탭 노출 -->
+            <ul class="bl_tab2_menu">
+                <li>
+                    <a th:href="@{/education/curriculum/e-learning/{curriculumCode}(curriculumCode=${curriculumCode})}">상세</a>
+                </li>
+                <li class="is_active">
+                    <a th:href="@{/education/curriculum/e-learning/exam/{curriculumCode}(curriculumCode=${curriculumCode})}">시험</a>
+                </li>
+                <li>
+                    <a th:href="@{/education/curriculum/e-learning/question/{curriculumCode}(curriculumCode=${curriculumCode})}">문항</a>
+                </li>
+                <li>
+                    <a th:href="@{/education/curriculum/reference-room/{curriculumCode}?educationType=e-learning(curriculumCode=${curriculumCode})}">자료실</a>
+                </li>
+            </ul>
+
+            <div class="bl_tab2_body js_tab_contents">
+                <div class="bl_tab2_item js_tab_item">
+                    <div class="tableLeftResponsive">
+                        <table class="tableLeft">
+                            <colgroup>
+                                <col style="width: 200px">
+                                <col style="width: auto">
+                            </colgroup>
+                            <tbody>
+                                <tr>
+                                    <th scope="row"><span class="el_required">*</span>시험명</th>
+                                    <td>
+                                        <input type="text" class="hp_w600" id="examName" th:value="${content.size > 0 ? content[0].examMaster.examName : null}">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><span class="el_required">*</span>시험내용</th>
+                                    <td>
+                                        <textarea name="contents" class="ckeditor" style="width:100%; height:200px"
+                                                  id="examContents"
+                                                  th:text="${content.size > 0 ? content[0].examMaster.examContents : null}"></textarea>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><span class="el_required">*</span>시험시간</th>
+                                    <td>
+                                        <div class="d-flex-2">
+                                            <!-- Default : 60분 -->
+                                            <input type="text" class="hp_w200" id="examMinute" th:value="${content.size > 0 ? content[0].examMaster.examMinute : null}">분
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><span class="el_required">*</span>보기섞기</th>
+                                    <td>
+                                        <div class="radio_box">
+                                            <input id="exRandomY" type="radio" name="isSelectQuestionRandom" th:checked="${content.size > 0 ? (content[0].examMaster.isSelectQuestionRandom == true ? true : false) : false}">
+                                            <label for="exRandomY">
+                                                <span></span>
+                                                Y
+                                            </label>
+                                        </div>
+                                        <div class="radio_box">
+                                            <input id="exRandomN" type="radio" name="isSelectQuestionRandom" th:checked="${content.size > 0 ? (content[0].examMaster.isSelectQuestionRandom == false ? true : false) : true}">
+                                            <label for="exRandomN">
+                                                <span></span>
+                                                N
+                                            </label>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">난이도[상] 문제 / 배점</th>
+                                    <td>
+                                        <div class="d-flex-3">
+                                            <div class="d-flex-2">
+                                                (객관식 : <input type="text" class="hp_w80" name="gradeFirst" id="gradeFirstSelectQuestionCount" th:value="${content.size > 0 ? content[0].examMaster.gradeFirstSelectQuestionCount : 0}">
+                                                <span>+</span>
+                                                주관식 : <input type="text" class="hp_w80" name="gradeFirst" id="gradeFirstSubExQuestionCount" th:value="${content.size > 0 ? content[0].examMaster.gradeFirstSubExQuestionCount : 0}">) 문제
+                                                <span>×</span>
+                                                <input type="text" class="hp_w80" name="gradeFirst" id="gradeFirstQuestionScore" th:value="${content.size > 0 ? content[0].examMaster.gradeFirstQuestionScore : 0}"> 점
+                                                <span>=</span>
+                                                <input type="text" class="hp_w80" id="gradeFirstTotalScore" disabled> 점
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">난이도[중] 문제 / 배점</th>
+                                    <td>
+                                        <div class="d-flex-3">
+                                            <div class="d-flex-2">
+                                                (객관식 : <input type="text" class="hp_w80" name="gradeSecond" id="gradeSecondSelectQuestionCount" th:value="${content.size > 0 ? content[0].examMaster.gradeSecondSelectQuestionCount : 0}">
+                                                <span>+</span>
+                                                주관식 : <input type="text" class="hp_w80" name="gradeSecond" id="gradeSecondSubExQuestionCount" th:value="${content.size > 0 ? content[0].examMaster.gradeSecondSubExQuestionCount : 0}">) 문제
+                                                <span>×</span>
+                                                <input type="text" class="hp_w80" name="gradeSecond" id="gradeSecondQuestionScore" th:value="${content.size > 0 ? content[0].examMaster.gradeSecondQuestionScore : 0}"> 점
+                                                <span>=</span>
+                                                <input type="text" class="hp_w80" id="gradeSecondTotalScore"disabled> 점
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">난이도[하] 문제 / 배점</th>
+                                    <td>
+                                        <div class="d-flex-3">
+                                            <div class="d-flex-2">
+                                                (객관식 : <input type="text" class="hp_w80" name="gradeThird" id="gradeThirdSelectQuestionCount" th:value="${content.size > 0 ? content[0].examMaster.gradeThirdSelectQuestionCount : 0}">
+                                                <span>+</span>
+                                                주관식 : <input type="text" class="hp_w80" name="gradeThird" id="gradeThirdSubExQuestionCount" th:value="${content.size > 0 ? content[0].examMaster.gradeThirdSubExQuestionCount : 0}">) 문제
+                                                <span>×</span>
+                                                <input type="text" class="hp_w80" name="gradeThird" id="gradeThirdQuestionScore" th:value="${content.size > 0 ? content[0].examMaster.gradeThirdQuestionScore : 0}"> 점
+                                                <span>=</span>
+                                                <input type="text" class="hp_w80" id="gradeThirdTotalScore"disabled> 점
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><span class="el_required">*</span>전체 문제수 / 총점</th>
+                                    <td>
+                                        <div class="d-flex-3">
+                                            <div class="d-flex-2">
+                                                <input type="text" class="hp_w80" id="questionTotalCount" th:value="${content.size > 0 ? content[0].examMaster.questionTotalCount : null}" disabled> 문제
+                                                <span>/</span>
+                                                총 <input type="text" class="hp_w80" id="questionTotalScore" th:value="${content.size > 0 ? '100' : '0'}" disabled> 점
+                                            </div>
+                                            <p class="guide_text mt-0 color_red">※ 총점은 반드시 100점이어야 합니다.</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><span class="el_required">*</span>상태</th>
+                                    <td>
+                                        <div class="radio_box">
+                                            <input id="use" type="radio" name="state"
+                                                   th:checked="${content.size > 0 ? (content[0].examMaster.isUsable == true ? true : false) : false}"
+                                                   th:disabled="${content.size > 0 ? false : true}">
+                                            <label for="use">
+                                                <span></span>
+                                                사용
+                                            </label>
+                                        </div>
+                                        <div class="radio_box">
+                                            <input id="not_use" type="radio" name="state"
+                                                   th:checked="${content.size > 0 ? (content[0].examMaster.isUsable == true ? false : true) : true}">
+                                            <label for="not_use">
+                                                <span></span>
+                                                미사용
+                                            </label>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+            
+                    <div class="bl_gridBtns">
+                        <div class="bl_gridBtns_rgt">
+                            <a class="btn btnDefault btnList" onclick="backToList()">목록</a>
+                            <a th:if="${content.size > 0}" class="btn btnDefault btnRegister" onclick="modify()">수정</a>
+                            <a th:unless="${content.size > 0}" class="btn btnDefault btnRegister" onclick="regist()">등록</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            /* <![CDATA[ */
+            const commonCode = [[ ${commonCode} ]];
+            const content = [[ ${content} ]][0];
+            const params = {};
+
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+
+                Array.from($("input[name=gradeFirst]")).forEach(function (form, index, list) {
+                    form.addEventListener('focusout', ev => {
+                        document.querySelector("#gradeFirstTotalScore").value = (Number.parseInt(document.querySelector("#gradeFirstSelectQuestionCount").value)
+                            + Number.parseInt(document.querySelector("#gradeFirstSubExQuestionCount").value))
+                            * Number.parseInt(document.querySelector("#gradeFirstQuestionScore").value);
+                    });
+                });
+
+                Array.from($("input[name=gradeSecond]")).forEach(function (form, index, list) {
+                    form.addEventListener('focusout', ev => {
+                        document.querySelector("#gradeSecondTotalScore").value = (Number.parseInt(document.querySelector("#gradeSecondSelectQuestionCount").value)
+                            + Number.parseInt(document.querySelector("#gradeSecondSubExQuestionCount").value))
+                            * Number.parseInt(document.querySelector("#gradeSecondQuestionScore").value);
+                    });
+                });
+
+                Array.from($("input[name=gradeThird]")).forEach(function (form, index, list) {
+                    form.addEventListener('focusout', ev => {
+                        document.querySelector("#gradeThirdTotalScore").value = (Number.parseInt(document.querySelector("#gradeThirdSelectQuestionCount").value)
+                            + Number.parseInt(document.querySelector("#gradeThirdSubExQuestionCount").value))
+                            * Number.parseInt(document.querySelector("#gradeThirdQuestionScore").value);
+                    });
+                });
+
+                Array.from($("input")).forEach(function (form, index, list) {
+                    form.addEventListener('focusout', ev => {
+                        document.querySelector("#questionTotalCount").value = Number.parseInt(document.querySelector("#gradeFirstSelectQuestionCount").value)
+                                + Number.parseInt(document.querySelector("#gradeSecondSelectQuestionCount").value)
+                                + Number.parseInt(document.querySelector("#gradeThirdSelectQuestionCount").value)
+                                + Number.parseInt(document.querySelector("#gradeFirstSubExQuestionCount").value)
+                                + Number.parseInt(document.querySelector("#gradeSecondSubExQuestionCount").value)
+                                + Number.parseInt(document.querySelector("#gradeThirdSubExQuestionCount").value);
+
+                        document.querySelector("#questionTotalScore").value = Number.parseInt(document.querySelector("#gradeFirstTotalScore").value)
+                                + Number.parseInt(document.querySelector("#gradeSecondTotalScore").value)
+                                + Number.parseInt(document.querySelector("#gradeThirdTotalScore").value);
+                    });
+                });
+            }
+
+            function backToList() {
+                let url = location.pathname
+                if (url.indexOf("regist") > 0) {
+                    window.location.replace(url.split("/regist")[0])
+                } else {
+                    count = url.lastIndexOf("/");
+                    window.location.replace(url.slice(0,count))
+                }
+            }
+
+            // 미입력된 필수 정보가 있을 경우 alert
+            function requiredChk() {
+
+                if (!document.querySelector("#examName").value) {
+                    alert('시험명은 필수입니다.');
+                    return false;
+                } else params.examName = document.querySelector("#examName").value;
+
+                if (!document.querySelector("#examMinute").value) {
+                    alert('시험시간은 필수입니다.');
+                    return false;
+                } else params.examMinute = document.querySelector("#examMinute").value;
+
+                if (!document.querySelectorAll('iframe')[0].contentWindow.document.body.children[0].textContent) {
+                    alert('시험내용은 필수입니다.');
+                    return false;
+                } else params.examContents = document.querySelectorAll('iframe')[0].contentWindow.document.body.children[0].textContent;
+
+                if (!document.querySelector("#questionTotalCount").value) {
+                    alert('집계 문제 수는 필수입니다.');
+                    return false;
+                } else params.questionTotalCount = document.querySelector("#questionTotalCount").value;
+
+                if(document.querySelector("#questionTotalScore").value !== "100") {
+                    alert('총점은 100점이여야 합니다.');
+                    return false;
+                }
+
+                return true;
+            }
+            /** 등록 */
+            function regist() {
+                Array.from($("a[name=button]")).forEach(function (form, index, list) {
+                    form.disabled = true;
+                });
+                /** 필수 값 체크 */
+                if (!requiredChk()) return;
+                /** 비필수 값 셋팅 */
+                /** 교육과정 코드 */params.curriculumCode = [[ ${curriculumCode} ]];
+                /** 난이도 상 객관식 문제 수 */params.gradeFirstSelectQuestionCount = document.querySelector("#gradeFirstSelectQuestionCount").value;
+                /** 난이도 중 객관식 문제 수 */params.gradeSecondSelectQuestionCount = document.querySelector("#gradeSecondSelectQuestionCount").value;
+                /** 난이도 하 객관식 문제 수 */params.gradeThirdSelectQuestionCount = document.querySelector("#gradeThirdSelectQuestionCount").value;
+                /** 난이도 상 주관식 문제 수 */params.gradeFirstSubExQuestionCount = document.querySelector("#gradeFirstSubExQuestionCount").value;
+                /** 난이도 중 주관식 문제 수 */params.gradeSecondSubExQuestionCount = document.querySelector("#gradeSecondSubExQuestionCount").value;
+                /** 난이도 하 주관식 문제 수 */params.gradeThirdSubExQuestionCount = document.querySelector("#gradeThirdSubExQuestionCount").value;
+                /** 난이도 상 배점 점수 */params.gradeFirstQuestionScore = document.querySelector("#gradeFirstQuestionScore").value;
+                /** 난이도 중 배점 점수 */params.gradeSecondQuestionScore = document.querySelector("#gradeSecondQuestionScore").value;
+                /** 난이도 하 배점 점수 */params.gradeThirdQuestionScore = document.querySelector("#gradeThirdQuestionScore").value;
+                /** 선택 문항 무작위 여부 */params.isSelectQuestionRandom = $("[name=isSelectQuestionRandom]:checked")[0].id === "exRandomY" ? true : false;
+                /** 사용 여부 */params.isUsable = $("[name=state]:checked")[0].id === "use" ? true : false;
+
+                /** 교육과정 시험 등록 */
+                $.ajax({ //jquery ajax
+                    type:"post", //http method
+                    url:"/api/education/curriculum/e-learning/exam/create", //값을 가져올 경로
+                    headers: {'Content-Type': 'application/json'},
+                    data: JSON.stringify(params),
+                    dataType:"json", //html, xml, text, script, json, jsonp 등 다양하게 쓸 수 있음
+                    success: function(result) {   //요청 성공시 실행될 메서드
+                        alert("교육과정 시험 정보 생성이 완료되었습니다.");
+                        window.location.replace('/education/curriculum/e-learning/exam/'+params.curriculumCode);
+                    },
+                    error: function(e){		 //요청 실패시 에러 확인을 위함
+                        alert(e.responseJSON.resultMessage);
+                        Array.from($("a[name=button]")).forEach(function (form, index, list) {
+                            form.disabled = false;
+                        });
+                    }
+                })
+            }
+
+            /** 수정 */
+            function modify() {
+                Array.from($("a[name=button]")).forEach(function (form, index, list) {
+                    form.disabled = true;
+                });
+                /** 필수 값 체크 */
+                if (!requiredChk()) return;
+                /** 비필수 값 셋팅 */
+                /** 교육과정 코드 */params.curriculumCode = [[ ${curriculumCode} ]];
+                /** 교육과정 시험 코드 */params.examSerialNo = content.examMaster.examSerialNo;
+                /** 난이도 상 객관식 문제 수 */params.gradeFirstSelectQuestionCount = document.querySelector("#gradeFirstSelectQuestionCount").value;
+                /** 난이도 중 객관식 문제 수 */params.gradeSecondSelectQuestionCount = document.querySelector("#gradeSecondSelectQuestionCount").value;
+                /** 난이도 하 객관식 문제 수 */params.gradeThirdSelectQuestionCount = document.querySelector("#gradeThirdSelectQuestionCount").value;
+                /** 난이도 상 주관식 문제 수 */params.gradeFirstSubExQuestionCount = document.querySelector("#gradeFirstSubExQuestionCount").value;
+                /** 난이도 중 주관식 문제 수 */params.gradeSecondSubExQuestionCount = document.querySelector("#gradeSecondSubExQuestionCount").value;
+                /** 난이도 하 주관식 문제 수 */params.gradeThirdSubExQuestionCount = document.querySelector("#gradeThirdSubExQuestionCount").value;
+                /** 난이도 상 배점 점수 */params.gradeFirstQuestionScore = document.querySelector("#gradeFirstQuestionScore").value;
+                /** 난이도 중 배점 점수 */params.gradeSecondQuestionScore = document.querySelector("#gradeSecondQuestionScore").value;
+                /** 난이도 하 배점 점수 */params.gradeThirdQuestionScore = document.querySelector("#gradeThirdQuestionScore").value;
+                /** 선택 문항 무작위 여부 */params.isSelectQuestionRandom = $("[name=isSelectQuestionRandom]:checked")[0].id === "exRandomY" ? true : false;
+                /** 사용 여부 */params.isUsable = $("[name=state]:checked")[0].id === "use" ? true : false;
+
+                /** 교육과정 시험 수정 */
+                $.ajax({ //jquery ajax
+                    type:"put", //http method
+                    url:"/api/education/curriculum/e-learning/exam/update", //값을 가져올 경로
+                    headers: {'Content-Type': 'application/json'},
+                    data: JSON.stringify(params),
+                    dataType:"json", //html, xml, text, script, json, jsonp 등 다양하게 쓸 수 있음
+                    success: function(result) {   //요청 성공시 실행될 메서드
+                        alert("교육과정 시험 정보 수정이 완료되었습니다.");
+                        window.location.reload();
+                    },
+                    error: function(e){		 //요청 실패시 에러 확인을 위함
+                        alert(e.responseJSON.resultMessage);
+                        Array.from($("a[name=button]")).forEach(function (form, index, list) {
+                            form.disabled = false;
+                        });
+                    }
+                })
+            }
+
+            /* ]]> */
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
+    <meta name="generator" content="Hugo 0.98.0">
+    <title>Korea Press Foundation LMS ADMIN</title>
+
+    <link th:href="@{/css/custom/global.css}" rel="stylesheet"/>
+    <link th:href="@{/css/error.css}" rel="stylesheet"/>
+</head>
+<body>
+    <div layout:fragment="content" class="error_page">
+        <div>
+            <img th:src="@{/assets/images/icons/icon_error.png}">
+            <div class="error_box">
+                <strong>접근 권한이 거부되었습니다.</strong>
+                <p>페이지 접근이 필요하시다면 관리자에게 문의해주세요.<br>잠시 후 이전 페이지로 이동합니다.</p>
+            </div>
+        </div>
+    </div>
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+        /* <![CDATA[ */
+            window.onload = function() {
+                setTimeout(() => window.history.back(), 5000);
+            }
+        /* ]]> */
+        </script>
+    </th:block>	
+    <form id="joinForm" action="/anonymous/join" method="post" style="visibility: hidden;"></form>
+</body>
+</html>

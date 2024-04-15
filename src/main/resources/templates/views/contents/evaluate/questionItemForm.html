@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="contents-2-1">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>문항 관리</h2>
+        </div>
+
+        <div class="tableLeftResponsive">
+            <table class="tableLeft">
+                <colgroup>
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                </colgroup>
+                <tbody>
+                <tr>
+                    <th scope="row"><span class="el_required">*</span>문제</th>
+                    <td><input type="text" id="questionTitle"
+                               th:value="${content.size > 0 ? content[0].questionTitle : null}"></td>
+                </tr>
+                <tr>
+                    <th scope="row"><span class="el_required">*</span>유형</th>
+                    <td>
+                        <select class="common_select" id="questionType">
+                            <option value="0">제목 및 설명</option>
+                            <th:block th:each="commonCode : ${commonCode}" th:if="${commonCode.code} == 'QUES_TYPE'">
+                                <option th:each="questionType : ${commonCode.subCode}" th:value="${questionType.code}"
+                                        th:text="${questionType.codeName}"
+                                        th:selected="${content.size > 0 ? content[0].questionType == questionType.code : false}"></option>
+                            </th:block>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><span class="el_required">*</span>카테고리</th>
+                    <td>
+                        <select class="common_select" id="questionCategory">
+                            <th:block th:each="commonCode : ${commonCode}"
+                                      th:if="${commonCode.code} == 'EVAL_QUES_CTGR'">
+                                <option th:each="questionCategory : ${commonCode.subCode}"
+                                        th:value="${questionCategory.code}"
+                                        th:text="${questionCategory.codeName}"
+                                        th:selected="${content.size > 0 ? content[0].questionCategory == questionCategory.code : false}"></option>
+                            </th:block>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><span class="el_required etc">*</span>내용</th>
+                    <td>
+                        <textarea name="contents" class="ckeditor" style="width:100%; height:200px"
+                                  id="questionContents"
+                                  th:text="${content.size > 0 ? content[0].questionContents : null}"></textarea>
+                    </td>
+                </tr>
+                <tr id="selectList">
+                    <th scope="row">선택항목</th>
+                    <td>
+                        <div class="tableResponsive mb-0">
+                            <table id="targetTable" class="table" style="border: 1px solid #ddd">
+                                <colgroup>
+                                    <col style="width: auto"/>
+                                    <col style="width: 120px"/>
+                                    <col style="width: 120px"/>
+                                    <col style="width: 120px"/>
+                                </colgroup>
+                                <tbody>
+                                <th:block th:if="${content.size > 0}">
+                                    <tr id="target" th:each="item, stat: ${content[0].questionItemList}">
+                                        <td><input type="text" placeholder="표시할 텍스트를 입력하세요." name="itemValue" th:value="${item.questionItemValue}"></td>
+                                        <td><input type="text" name="sortNo" th:value="${item.questionSortNo}" readonly></td>
+                                        <td class="text-center">
+                                            <span style="text-decoration: none" name="up" onclick="moveRow(this)">▲</span>
+                                            <input style="width: 0px; visibility: hidden">
+                                            <span style="text-decoration: none" name="down" onclick="moveRow(this)">▼</span>
+                                        </td>
+                                        <td class="text-center">
+                                            <a href="javascript: void(0)" class="btn btnDefault btn_del"
+                                               onclick="removeList(this, 'target', 'targetTable')">삭제</a>
+                                        </td>
+                                    </tr>
+                                </th:block>
+                                <th:block th:if="${content.size == 0 || content[0].questionItemList.size == 0}">
+                                    <tr id="target">
+                                        <td><input type="text" placeholder="표시할 텍스트를 입력하세요." name="itemValue"></td>
+                                        <td><input type="text" name="sortNo" readonly></td>
+                                        <td class="text-center">
+                                            <span style="text-decoration: none" name="up" onclick="moveRow(this)">▲</span>
+                                            <input style="width: 0px; visibility: hidden">
+                                            <span style="text-decoration: none" name="down" onclick="moveRow(this)">▼</span>
+                                        </td>
+                                        <td class="text-center">
+                                            <a href="javascript: void(0)" class="btn btnDefault btn_del"
+                                               onclick="removeList(this, 'target', 'targetTable')">삭제</a>
+                                        </td>
+                                    </tr>
+                                </th:block>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="text-end">
+                            <a href="javascript: void(0)" class="btn btnDefault btn_add mt-2"
+                               onclick="addList(this, 'target')">항목
+                                추가</a>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- GRID : BUTTON -->
+        <div class="bl_gridBtns">
+            <div class="bl_gridBtns_lft">
+                <a class="btn btnDefault btnDelete" onclick="deleteData()">삭제</a>
+            </div>
+            <div class="bl_gridBtns_rgt">
+                <a class="btn btnDefault btnList" href="/contents/question">목록</a>
+                <div th:if="${content.size > 0}" class="btn btnDefault btnClone" onclick="regist()">복제</div>
+                <a th:if="${content.size > 0}" class="btn btnDefault btnRegister" onclick="modify()">수정</a>
+                <a th:unless="${content.size > 0}" class="btn btnDefault btnRegister" onclick="regist()">등록</a>
+            </div>
+        </div>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            /* <![CDATA[ */
+            const content = [[ ${content}]][0];
+            const params = {};
+
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode}]])
+
+                /** 유형 변경 시마다 선택항목 영역 숨김 */
+                select_hide();
+                /** 제목 및 설명 유형 내용 필수 제거 */
+                if ($('#questionType').val() == '0') {
+                    $('.etc').hide();
+                } else {
+                    $('#etc').show();
+                }
+                /** 단답형, 서술형 선택항목 영역 숨김 */
+                if ($('#questionType').val() == '0' || $('#questionType').val() == '3' || $('#questionType').val() == '4') {
+                    $('#selectList').hide();
+                } else {
+                    $('#selectList').show();
+                }
+
+                if (window.location.href.indexOf('/regist') >= 0) {
+                    $('.btnDelete').hide();
+                } else {
+                    $('.btnDelete').show();
+                }
+            }
+
+            // 미입력된 필수 정보가 있을 경우 alert
+            function requiredChk() {
+
+                if (!document.querySelector("#questionCategory").value) {
+                    alert('강의 평가 질문 카테고리는 필수입니다.');
+                    return false;
+                } else params.questionCategory = document.querySelector("#questionCategory").value;
+
+                if (!document.querySelector("#questionType").value) {
+                    alert('강의 평가 질문 유형 코드는 필수입니다.');
+                    return false;
+                } else params.questionType = document.querySelector("#questionType").value;
+
+                if (!document.querySelector("#questionTitle").value) {
+                    alert('강의 평가 질문 제목은 필수입니다.');
+                    return false;
+                } else params.questionTitle = document.querySelector("#questionTitle").value;
+
+                params.questionContents = document.querySelectorAll('iframe')[0].contentWindow.document.body.children[0].textContent;
+                return true;
+            }
+
+            /** 행 이동 */
+            function moveRow(object) {
+                const row = $(object).closest('tr');
+                if(object.getAttribute("name") == "up") { row.prev().before(row); }
+                else if(object.getAttribute("name") == "down") { row.next().after(row); }
+            }
+
+            /** 문항 등록 */
+            function regist() {
+                /** 필수 값 체크 */
+                if (!requiredChk()) return;
+
+                // params.questionContents = document.querySelectorAll('iframe')[0].contentWindow.document.body.children[0].textContent;
+                if (document.querySelector("#questionType").value == '1' || document.querySelector("#questionType").value == '2') {
+                    params.questionItemList = []
+                    Array.from(document.querySelector('#targetTable').children[1].children).forEach((data, index, list) => {
+                        params.questionItemList.push({
+                            sortNo: (index + 1),
+                            value: $('input[name=itemValue]')[index].value
+                        })
+                    });
+                }
+
+                /** 강의 평가 문항 등록 */
+                $.ajax({ //jquery ajax
+                    type: "post", //http method
+                    url: "/api/contents/question/create", //값을 가져올 경로
+                    headers: {'Content-Type': 'application/json'},
+                    data: JSON.stringify(params),
+                    dataType: "json", //html, xml, text, script, json, jsonp 등 다양하게 쓸 수 있음
+                    success: function (data) {   //요청 성공시 실행될 메서드
+                        alert("문항 등록이 완료되었습니다.");
+                        window.location.replace('/contents/question');
+                    },
+                    error: function (e) {		 //요청 실패시 에러 확인을 위함
+                        alert(e.responseJSON.resultMessage);
+                    }
+                })
+            }
+
+            /** 문항 수정 */
+            function modify() {
+                /** 필수 값 체크 */
+                if (!requiredChk()) return;
+
+                params.questionSerialNo = content.questionSerialNo;
+                // params.questionContents = document.querySelectorAll('iframe')[0].contentWindow.document.body.children[0].textContent;
+                if (document.querySelector("#questionType").value == '1' || document.querySelector("#questionType").value == '2') {
+                    params.questionItemList = []
+                    Array.from(document.querySelector('#targetTable').children[1].children).forEach((data, index, list) => {
+                        params.questionItemList.push({
+                            sortNo: (index + 1),
+                            value: $('input[name=itemValue]')[index].value
+                        })
+                    });
+                }
+
+                /** 강의 평가 문항 수정 */
+                $.ajax({ //jquery ajax
+                    type: "put", //http method
+                    url: "/api/contents/question/update", //값을 가져올 경로
+                    headers: {'Content-Type': 'application/json'},
+                    data: JSON.stringify(params),
+                    dataType: "json", //html, xml, text, script, json, jsonp 등 다양하게 쓸 수 있음
+                    success: function (data) {   //요청 성공시 실행될 메서드
+                        alert("문항 수정이 완료되었습니다.");
+                        window.location.reload();
+                    },
+                    error: function (e) {		 //요청 실패시 에러 확인을 위함
+                        alert(e.responseJSON.resultMessage);
+                    }
+                })
+            }
+
+            /** 강의 평가 문항 삭제 */
+            function deleteData() {
+                params.questionSerialNo = content.questionSerialNo;
+
+                /** 강의 평가 문항 수정 */
+                $.ajax({ //jquery ajax
+                    type: "delete", //http method
+                    url: "/api/contents/question/delete", //값을 가져올 경로
+                    headers: {'Content-Type': 'application/json'},
+                    data: JSON.stringify(params),
+                    dataType: "json", //html, xml, text, script, json, jsonp 등 다양하게 쓸 수 있음
+                    success: function (data) {   //요청 성공시 실행될 메서드
+                        alert("문항 삭제가 완료되었습니다.");
+                        location.href="/contents/question";
+                    },
+                    error: function (e) {		 //요청 실패시 에러 확인을 위함
+                        alert(e.responseJSON.resultMessage);
+                    }
+                })
+            }
+
+            /** 단답형, 서술형 선택항목 영역 숨김 */
+            function select_hide() {
+                $('#questionType').change(function() {
+                    if ($('#questionType').val() == '0' || $('#questionType').val() == '3' || $('#questionType').val() == '4') {
+                        $('#selectList').hide();
+                    } else {
+                        $('#selectList').show();
+                    }
+
+                    /** 제목 및 설명 유형 내용 필수 제거 */
+                    if ($('#questionType').val() == '0') {
+                        $('.etc').hide();
+                    } else {
+                        $('#etc').show();
+                    }
+                });
+            }
+            /* ]]> */
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

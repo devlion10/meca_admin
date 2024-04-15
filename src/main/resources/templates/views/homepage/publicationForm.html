@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/default_layout}" xmlns:sec="http://www.w3.org/1999/xhtml">
+<body>
+<div layout:fragment="content" data-menu="homepage-7">
+    <div sec:authorize="isAuthenticated()">
+        <div class="bl_boardCtrls">
+            <div class="bl_boardCtrls_lft">
+                <div class="title"><h2>미디어리터러시 관리</h2></div>
+            </div>
+            <div class="bl_boardCtrls_rgt center">
+                <div th:if="${content != null}" class="btn btnDefault btnModify" th:onclick="modify([[${content[0]?.sequenceNo}]])">수정</div>
+                <div th:unless="${content != null}" class="btn btnDefault btnRegister" onclick="regist()">등록</div>
+                <a href="/homepage/archive/publicing/publication" class="btn btnDefault btnList">목록</a>
+            </div>
+        </div>
+
+        <div class="tableLeftResponsive">
+            <table class="tableLeft">
+                <colgroup>
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                </colgroup>
+                <tbody>
+                <tr>
+                    <th th:if="${content != null}" scope="row">출간물코드</th>
+                    <td th:if="${content != null}" th:text="${content[0]?.sequenceNo}">출간물코드</td>
+                </tr>
+                <tr>
+                    <th scope="row"><span class="el_required">*</span>출간물명</th>
+                    <td><input class="hp_w600" id="title" type="text" th:value="${content == null ? '' : content[0]?.title}"></td>
+                </tr>
+                <tr>
+                    <th scope="row">썸네일</th>
+                    <td>
+                        <div class="bl_uploadGrid">
+                            <div class="bl_upload js_upload hp_lg_w462">
+                                <input id="thumbnailFileName" type="text" class="bl_upload_path js_path" th:if="${content != null}"
+                                       th:value="${content[0]?.thumbFilePath != null ? #strings.arraySplit(content[0]?.thumbFilePath, '/')[#strings.arraySplit(content[0]?.thumbFilePath, '/').length - 1] : null}" readonly>
+                                <input id="thumbnailFileName" type="text" class="bl_upload_path js_path" th:unless="${content != null}" readonly>
+                                <label class="btn btnDefault bg-secondary text-white bl_upload_btn">파일선택</label>
+                                <input id="thumbnailFile" type="file" name="file" class="bl_upload_file js_file">
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><span class="el_required">*</span>상태</th>
+                    <td>
+                        <select id="isUse" class="common_select">
+                            <option value=true th:if="${content != null}" th:selected="${content[0]?.isUse == true}">사용</option>
+                            <option value=false th:if="${content != null}" th:selected="${content[0]?.isUse == false}">미사용</option>
+                            <option value=true th:unless="${content != null}">사용</option>
+                            <option value=false th:unless="${content != null}">미사용</option>
+                        </select>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="d-flex justify-content-between" th:if="${content != null}">
+            <div class="contents_lft">
+                <div id="jsTree"></div>
+            </div>
+
+            <div class="contents_rgt">
+                <!-- BOARD : CONTROLLER -->
+                <div class="bl_boardCtrls">
+                    <div class="bl_boardCtrls_rgt">
+                        <div class="bl_uploadGrid">
+                            <div class="bl_upload js_upload hp_lg_w462 me-0">
+                                <input id="publicationFileName" type="text" class="bl_upload_path js_path" readonly="">
+                                <label class="btn btnDefault bg-secondary text-white bl_upload_btn">파일선택</label>
+                                <input id="publicationFile" type="file" name="file" class="bl_upload_file js_file">
+                            </div>
+                        </div>
+                        <a class="btn btnDefault" th:onclick="publicationFileUpload()">선택 파일 업로드</a>
+                        <input type="file" id="zipFile" accept=".zip" style="display:none;" />
+                        <a href="javascript:publicationZipUpload()" class="btn btnDefault">출간물 압축파일 올리기</a>
+                    </div>
+                    <div class="bl_boardCtrls_lft">
+                        <a class="btn btnDefault" th:onclick="publicationFileDelete()">선택삭제</a>
+                    </div>
+                </div>
+
+                <div class="tableResponsive overflowMulti">
+                    <table class="table">
+                        <colgroup>
+                            <col style="width: auto" />
+                            <col style="width: 120px" />
+                            <col style="width: 120px" />
+                            <col style="width: 80px" />
+                        </colgroup>
+                        <thead>
+                        <tr>
+                            <th scope="col">파일명</th>
+                            <th scope="col">크기</th>
+                            <th scope="col">날짜</th>
+                            <th scope="col"></th>
+                        </tr>
+                        </thead>
+                        <tbody id="fileList">
+                        <tr class="empty_data">
+                            <td colspan="4">조회된 파일이 없습니다.</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div sec:authorize="!isAuthenticated()"></div>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            /* <![CDATA[ */
+            const params = {};
+            var data = getCont();
+            function getCont(){
+                let CONT = [[ ${content} ]];
+                return CONT;
+            }
+            if (data != null) var content = data[0]
+            else var content = {};
+
+            let selectedFilePath = "";
+            /* 용량구하기 */
+            function getfileSize(x) {
+                var s = ['bytes', 'kB', 'MB', 'GB', 'TB', 'PB'];
+                var e = Math.floor(Math.log(x) / Math.log(1024));
+                return (x / Math.pow(1024, e)).toFixed(2) + " " + s[e];
+            }
+            /* [탭] 파일 - 출간물 폴더 목록 */
+            const resData = [ { "id" : content.sequenceNo, "parent" : "#", "text" : content.sequenceNo} ];
+
+            /** 로직 개선 필요. 무한 if 문 발생 */
+            if(content.publicationFolderInfos) {
+                content.publicationFolderInfos.forEach(depth1 => {
+                    resData.push({id: resData[0].id + depth1.folderName, parent: resData[0].id, text: depth1.folderName});
+                    if(depth1.publicationFolderInfos) {
+                        depth1.publicationFolderInfos.forEach(depth2 => {
+                            resData.push({id: depth1.folderName + depth2.folderName, parent: resData[0].id + depth1.folderName, text: depth2.folderName});
+                            if(depth2.publicationFolderInfos) {
+                                depth2.publicationFolderInfos.forEach(depth3 => {
+                                    resData.push({id: depth2.folderName + depth3.folderName, parent: depth1.folderName + depth2.folderName, text: depth3.folderName});
+                                    if(depth3.publicationFolderInfos) {
+                                        depth3.publicationFolderInfos.forEach(depth4 => {
+                                            resData.push({id: depth3.folderName + depth4.folderName, parent: depth2.folderName + depth3.folderName, text: depth4.folderName});
+                                        });
+                                    }
+                                });
+                            }
+                        });
+                    }
+                });
+            }
+
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+
+                $("#jsTree").on("changed.jstree", function (event, data) { /** 폴더 선택 시 이벤트 */
+                var subParams = {};
+                    subParams.sequenceNo = content.sequenceNo;
+
+                    subParams.folderPath = "";
+                    let nodeId = data.selected[0];
+                    while(true) {
+                        if ($("#jsTree").jstree(true).get_node(nodeId).parent == '#') {
+                            break;
+                        } else {
+                            subParams.folderPath = "/" + $("#jsTree").jstree(true).get_node(nodeId).text + subParams.folderPath;
+                            nodeId = $("#jsTree").jstree(true).get_node(nodeId).parent;
+                        }
+                    }
+
+                    selectedFilePath = subParams.folderPath;
+                    const queryParams = Object.entries(subParams).filter(data => data != null).map(data => data.join('=')).join('&');
+                    /** 파일 조회 */
+                    $.ajax({ //jquery ajax
+                        type:"get", //http method
+                        url:"/api/homepage/archive/folder-management/file-list?" + queryParams, //값을 가져올 경로
+                        dataType:"json", //html, xml, text, script, json, jsonp 등 다양하게 쓸 수 있음
+                        success: function(data) {   //요청 성공시 실행될 메서드
+                            if(data.content[0].publicationFileInfos) {
+                                document.querySelector("#fileList").innerHTML = "";
+                                data.content[0].publicationFileInfos.forEach(function (fileInfo, index, list) {
+                                    document.querySelector("#fileList").innerHTML += "<tr>" +
+                                        "<td>"+ fileInfo.fileName + "</td>" +
+                                        "<td>" + getfileSize(parseInt(fileInfo.fileSize)) + "</td>" +
+                                        "<td>" + fileInfo.updateDateTime.substr(0, 10) + "</td>" +
+                                        "<td>" +
+                                        "<div className='chk_box''>" +
+                                        "<input id='fileCheckBox" + index + "' name='fileCheckBox' type='checkbox' value='" + fileInfo.fileName + "'>" +
+                                        "<label htmlFor='file1'>" +
+                                        "<span className='mr-0''></span>" +
+                                        "</label>" +
+                                        "</div>" +
+                                        "</td>" +
+                                        "</tr>";
+                                });
+                            } else {
+                                document.querySelector("#fileList").innerHTML = `<tr class="empty_data">
+                                            <td colspan="4">조회된 파일이 없습니다.</td>
+                                            </tr>`;
+                            }
+                        },
+                        error: function(e){		 //요청 실패시 에러 확인을 위함
+                            alert(e.responseJSON.resultMessage);
+                        }
+                    })
+                });
+                $('#jsTree').bind("delete_node.jstree", function(event, data) { /** 폴더 삭제 시 이벤트 */
+                });
+
+                $('#jsTree').bind("move_node.jstree", function(event, data) { /** 폴더 이동 시 이벤트 */
+                });
+
+                $('#jsTree').bind("rename_node.jstree", function(event, data) { /** 폴더명 변경 시 이벤트 */
+                    if($("#jsTree").jstree(true).get_node(data.node.id).parent == '#') {
+                        alert('최상위 폴더명은 변경할 수 없습니다.'); return;
+                        location.href="/homepage/archive/publicing/publication/" + content.sequenceNo;
+                    }
+
+                    const subParams = [];
+
+                    /** 폴더명이 변경된 폴더 경로 */
+                    let nodeId = data.node.id; let renameFolderPath = "";
+                    while(true) {
+                        if ($("#jsTree").jstree(true).get_node(nodeId).parent == '#') {
+                            break;
+                        } else {
+                            renameFolderPath = "/" + $("#jsTree").jstree(true).get_node(nodeId).text + renameFolderPath;
+                            nodeId = $("#jsTree").jstree(true).get_node(nodeId).parent;
+                        }
+                    }
+                    /** 변경 이전 폴더 경로 */
+                    let beforeFolderPath = "";
+                    for(var index = 1; index < renameFolderPath.split('/').length - 1; ++index) {
+                        beforeFolderPath = beforeFolderPath + "/" + renameFolderPath.split('/')[index];
+                    }
+                    beforeFolderPath = beforeFolderPath + "/" + data.old;
+
+                    subParams.push({beforeFolderPath: beforeFolderPath, renameFolderPath: renameFolderPath});
+
+                    if(subParams[0].beforeFolderPath != subParams[0].renameFolderPath) {
+                        /** 폴더명 변경 */
+                        $.ajax({ //jquery ajax
+                            type:"put", //http method
+                            url:"/api/homepage/archive/folder-management/" + content.sequenceNo, //값을 가져올 경로
+                            headers: {'Content-Type': 'application/json'},
+                            data: JSON.stringify(subParams),
+                            dataType:"json", //html, xml, text, script, json, jsonp 등 다양하게 쓸 수 있음
+                            success: function(data) { },  //요청 성공시 실행될 메서드
+                            error: function(e){		 //요청 실패시 에러 확인을 위함
+                                alert(e.responseJSON.resultMessage);
+                                location.href="/homepage/archive/" + content.sequenceNo;
+                            }
+                        })
+                    }
+                });
+            }
+
+            $(document)
+                .on('defaultReadyAfter',function(e){
+                    $('#jsTree').jstree({
+                        "json_data": {},
+                        "plugins": ["json_data", "contextmenu"],
+                        "core": {
+                            "themes": {"icons": true, "dots": true,"stripes" : true},
+                            "check_callback": true, "multiple": false, "data": resData
+                        },
+                    });
+                });
+
+            /** 출간물 집파일 업로드 */
+            $("#zipFile").change(function(e){
+                e.preventDefault();
+                if(confirm('압축파일을 올리시겠습니까?')){
+                    if(document.querySelector('#zipFile').files[0]) {
+                        var form = new FormData();
+                        form.append( "filePath", '');
+                        form.append( "zipFileList", document.querySelector('#zipFile').files[0] );
+                        $.ajax({
+                            type:"put", //http method
+                            url:"/api/homepage/archive/folder-management/zip-file/" + content.sequenceNo, //값을 가져올 경로
+                            processData : false,
+                            contentType : false,
+                            data: form,
+                            async:false,
+                            xhr: function(){
+                                var xhr = $.ajaxSettings.xhr();
+                                xhr.upload.onprogress = function(e){
+                                    var per = e.loaded * 100 / e.total;
+                                };
+                                return xhr;
+                            },
+                            success: function(data) {   //요청 성공시 실행될 메서드
+                                alert("파일 업로드를 성공하였습니다.");
+                                window.location.reload();
+                            }, error: function(e) {
+                                alert(e.responseJSON.resultMessage);
+                            }
+                        })
+                    } else {
+                        alert("대상 파일정보가 유효하지 않습니다.");
+                    }
+                }else{
+
+                }
+            })
+            function publicationZipUpload(){
+                $("#zipFile").click();
+            }
+
+            /** 출간물 파일 업로드 */
+            function publicationFileUpload() {
+                if(document.querySelector('#publicationFile').files[0]) {
+                    var form = new FormData();
+                    form.append( "filePath", selectedFilePath);
+                    form.append( "publicationFileList", document.querySelector('#publicationFile').files[0] );
+                    $.ajax({
+                        type:"put", //http method
+                        url:"/api/homepage/archive/folder-management/file/" + content.sequenceNo, //값을 가져올 경로
+                        processData : false,
+                        contentType : false,
+                        data: form,
+                        async:false,
+                        success: function(data) {   //요청 성공시 실행될 메서드
+                            alert("파일 업로드를 성공하였습니다.");
+                            window.location.reload();
+                        }, error: function(e) {
+                            alert(e.responseJSON.resultMessage);
+                        }
+                    })
+                } else {
+                    alert("대상 파일정보가 유효하지 않습니다.");
+                }
+            }
+
+            /** 출간물 파일 삭제 */
+            function publicationFileDelete() {
+                const subParams = [];
+                const deleteFileList = [];
+                $("input[name=fileCheckBox]:checked").each(function(index, element) {
+                    deleteFileList.push(element.value);
+                });
+                subParams.push({beforeFolderPath: selectedFilePath, deleteFileList: deleteFileList});
+
+                if (deleteFileList.length > 0) {
+                    $.ajax({ //jquery ajax
+                        type:"put", //http method
+                        url:"/api/homepage/archive/folder-management/" + content.sequenceNo, //값을 가져올 경로
+                        headers: {'Content-Type': 'application/json'},
+                        data: JSON.stringify(subParams),
+                        dataType:"json", //html, xml, text, script, json, jsonp 등 다양하게 쓸 수 있음
+                        success: function(data) {   //요청 성공시 실행될 메서드
+                            alert('파일 삭제가 완료되었습니다.');
+                        },
+                        error: function(e){		 //요청 실패시 에러 확인을 위함
+                            alert(e.responseJSON.resultMessage);
+                        }
+                    })
+                } else alert('삭제할 파일을 선택해주세요.');
+            }
+
+            /** 행 이동 */
+            function moveRow(object) {
+                const row = $(object).closest('tr');
+                if(object.getAttribute("name") == "up") { row.prev().before(row); }
+                else if(object.getAttribute("name") == "down") { row.next().after(row); }
+            }
+
+            // 미입력된 필수 정보가 있을 경우 alert
+            function requiredChk() {
+                /** 출간물명 */
+                if(!document.querySelector('#title').value) {
+                    alert('출간물 명은 필수입니다.'); return false;
+                } else params.title = document.querySelector('#title').value;
+
+                /** 상태 */
+                if(document.querySelector('#isUse').value === "") {
+                    alert('상태는 필수입니다.'); return false;
+                } else {
+                    params.isUse = document.querySelector('#isUse').value;
+                }
+                return true;
+            }
+
+            /** 출간물 수정 */
+            function modify(sequenceNo) {
+                if (confirm("등록 시 입력한 기본정보(출간물명, 썸네일, 상태)만 수정됩니다. 수정하시겠습니까?")) {
+                    let datas = getCont();
+                    /** 필수 값 체크 */
+                    if(!document.querySelector('#title').value) {
+                        alert('출간물 명은 필수입니다.'); return false;
+                    } else datas[0].title = document.querySelector('#title').value;
+                    datas[0].isUse = document.querySelector('#isUse').value;
+                    datas[0].publicationFolderInfos ='';
+                    /** 출간물 수정 */
+                    $.ajax({ //jquery ajax
+                        type:"put", //http method
+                        url:"/api/homepage/archive/update", //값을 가져올 경로
+                        headers: {'Content-Type': 'application/json'},
+                        data: JSON.stringify(datas[0]),
+                        dataType:"json", //html, xml, text, script, json, jsonp 등 다양하게 쓸 수 있음
+                        success: function(data) {   //요청 성공시 실행될 메서드
+                            if(document.querySelector('#thumbnailFile').files[0]) {
+                                var form = new FormData();
+                                form.append( "attachFile", document.querySelector('#thumbnailFile').files[0] );
+                                $.ajax({
+                                    type:"put", //http method
+                                    url:"/api/homepage/archive/thumbnail/" + datas[0].sequenceNo, //값을 가져올 경로
+                                    processData : false,
+                                    contentType : false,
+                                    data: form,
+                                    success: function(subData) {   //요청 성공시 실행될 메서드
+                                        alert("출간물 정보 수정이 완료되었습니다.");
+                                    }, error: function(e) {
+                                        alert(e.responseJSON.resultMessage);
+                                    }
+                                })
+                            } else {
+                                alert("출간물 정보 수정이 완료되었습니다.");
+                            }
+                        },
+                        error: function(e){		 //요청 실패시 에러 확인을 위함
+                            if (e && e.responseJSON && e.responseJSON.resultMessage) alert(e.responseJSON.resultMessage);
+                        }
+                    })
+                }
+            }
+
+            /** 출간물 등록 */
+            function regist() {
+                /** 필수 값 체크 */
+                if(!requiredChk()) return;
+                params.teamCategory = 0;
+                params.materialCategory = 5;
+                params.materialType = "00";
+                params.contents = ".";
+                params.author = ".";
+                params.viewCnt = 0;
+                /** 출간물 수정 */
+                $.ajax({ //jquery ajax
+                    type:"post", //http method
+                    url:"/api/homepage/archive/create", //값을 가져올 경로
+                    headers: {'Content-Type': 'application/json'},
+                    data: JSON.stringify(params),
+                    dataType:"json", //html, xml, text, script, json, jsonp 등 다양하게 쓸 수 있음
+                    success: function(data) {   //요청 성공시 실행될 메서드
+                        if(document.querySelector('#thumbnailFile').files[0]) {
+                            var form = new FormData();
+                            form.append( "attachFile", document.querySelector('#thumbnailFile').files[0] );
+                            $.ajax({
+                                type:"put", //http method
+                                url:"/api/homepage/archive/thumbnail/" + data.sequenceNo, //값을 가져올 경로
+                                processData : false,
+                                contentType : false,
+                                data: form,
+                                success: function(subData) {   //요청 성공시 실행될 메서드
+                                    alert("출간물 정보 수정이 완료되었습니다.");
+                                    window.location.reload();
+                                }, error: function(e) {
+                                    alert(e.responseJSON.resultMessage);
+                                }
+                            })
+                        } else {
+                            alert("출간물 정보 등록이 완료되었습니다.");
+                            window.location.replace('/homepage/archive/publicing/publication');
+                        }
+                    },
+                    error: function(e){		 //요청 실패시 에러 확인을 위함
+                        alert(e.responseJSON.resultMessage);
+                    }
+                })
+            }
+            /* ]]> */
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

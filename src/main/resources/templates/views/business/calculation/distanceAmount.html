@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="business-5-3">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>강사료 정산</h2>
+        </div>
+
+        <div class="bl_tab2 js_tab">
+            <ul class="bl_tab2_menu">
+                <li>
+                    <a href="/business/instructor/calculate">정산마감일</a>
+                </li>
+                <li>
+                    <a href="/business/instructor/calculate/target">정산요청 목록</a>
+                </li>
+                <li>
+                    <a href="/business/instructor/calculate/list?groupType=instr">정산금액 조회</a>
+                </li>
+                <li class="is_active">
+                    <a href="/business/instructor/calculate/distance/amount">이동거리 기준단가</a>
+                </li>
+            </ul>
+
+            <!-- BOARD : CONTROLLER -->
+            <div class="bl_boardCtrls">
+                <div class="bl_boardCtrls_lft">
+                    <p class="bl_boardCtrls_total">
+                         총: <strong th:text="${pageable.totalElements}"></strong>건
+                    </p>
+                </div>
+                <div class="bl_boardCtrls_rgt">
+                    <a class="btn btnDefault btnRegister" href="/business/instructor/calculate/distance/amount/">등록</a>
+                </div>
+            </div>
+
+            <div class="tableResponsive overflowMulti">
+                <table class="table">
+                    <colgroup>
+                        <col style="width: 50px">
+                        <col>
+                        <col>
+                        <col>
+                    </colgroup>
+                    <thead>
+                        <tr>
+                            <th scope="col">번호</th>
+                            <th scope="col">년도</th>
+                            <th scope="col">강의료 기준단가</th>
+                            <th scope="col">관리</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="item,stat:${content}">
+                            <td th:text="${pageable.totalElements - ((pageable.page * pageable.size) + stat.index)}"></td>
+                            <td><span th:text="${item.bizInstrDistCrtrAmtYr}"></span>년도</td>
+                            <td><span th:text="${item.bizInstrDistCrtrAmtValue}"></span>원</td>
+                            <td>
+                                <a th:href="@{/business/instructor/calculate/distance/amount/{id}(id=${item.bizInstrDistCrtrAmtNo})}" class="btn btnDefault btnModify icon_none">수정</a>
+                                <a onclick="removeAmt(this)" th:value="${stat.index}" class="btn btnDefault btnModify icon_none">삭제</a>
+                            </td>
+                        </tr>
+                    </tbody>
+                    <tbody th:unless="${content != null && content.size > 0}">
+                    <tr class="empty_data"><td colspan="4">조회된 내용이 없습니다.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="bl_paginate"></div>
+        </div>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            /* <![CDATA[ */
+            function removeAmt(btn){
+                let index = parseInt($(btn).attr("value"));
+                let CONT = [[ ${content} ]]
+                if(confirm('정말로 삭제하시겠습니까?') && index>=0){
+                    let params = CONT[index];
+                    params.bizInstructorDistCrtrAmtItems.forEach(item=>{
+                        $.ajax({
+                            type: "delete",
+                            headers: {'Content-Type' : 'application/json'},
+                            url: `/api/business/instructor/calculate/distance/amount/item/delete/${item.bizInstrDistCrtrAmtItemNo}`,
+                            data: JSON.stringify(item),
+                            dataType: "json",
+                            async:false,
+                        })
+
+                    })
+                    $.ajax({
+                        type: "delete",
+                        headers: {'Content-Type' : 'application/json'},
+                        url: `/api/business/instructor/calculate/distance/amount/delete/${params.bizInstrDistCrtrAmtNo}`,
+                        data: JSON.stringify(params),
+                        dataType: "json",
+                        success:function (data){
+                            alert('이동거리 기준단가가 삭제되었습니다.');
+                            window.location.reload();
+                        },error:function (e){
+                            if(e && e.responseJSON && e.responseJSON.resultMessage){
+                                alert(e.responseJSON.resultMessage);
+                            }else{
+                                alert('삭제하는 과정에서 오류가 발생했습니다.');
+                            }
+                        }
+                    })
+                }
+            }
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+                pagination([[ ${pageable} ]], false)
+
+                /** 연도 고정값 기능(정산금액조회만) */
+                let YYYY=new Date.getFullYear();
+                $("div.bl_tab2 a[href*='/business/instructor/calculate/list?groupType']").each((index, item) => {
+                    let url = $(item).attr("href")
+                    $(item).attr("href", url+"&year="+YYYY)
+                })
+            }
+            /* ]]> */
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

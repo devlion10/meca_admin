@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ko"
+      xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head>
+    <th:block th:replace="fragments/include :: include"></th:block>
+</head>
+<body>
+    <header th:replace="fragments/header :: header"></header>
+    <div class="container-fluid">
+        <div class="row">
+            <div th:replace="fragments/sidebar :: sidebar"></div>
+            <div layout:fragment="content" class="col-md-9 ms-sm-auto col-lg-10 px-md-4" style="padding-bottom: 30px"></div>
+        </div>
+    </div>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            /* <![CDATA[ */
+            window.onload = function () {
+                if ([[ ${errorMessage}]]) { alert([[ ${errorMessage}]]); }
+                if ([[${#authentication.name}]] === "anonymousUser") {
+                    const loginForm = document.querySelector('#loginForm');
+                    const loginButton = document.querySelector('#loginButton');
+                    loginButton.addEventListener('click', function () {
+                        loginForm.submit();
+                    });
+                }
+
+                if ([[ ${pageable} ]] != null) {
+                    PAGEABLE = [[ ${pageable} ]];
+                }
+                onLoadSubmit();
+            }
+            /* ]]> */
+        </script>
+    </th:block>
+
+</body>
+</html>

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="homepage-13">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>행사소개 관리</h2>
+        </div>
+        
+        <div class="tableLeftResponsive">
+            <table class="tableLeft">
+                <colgroup>
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                </colgroup>
+                <tbody>
+                    <tr>
+                        <th scope="row">작성일</th>
+                        <td>
+                            <div class="bl_dateRange">
+                                <input type="text" id="startDate" class="el_datePicker sdate">
+                                <span class="blank">~</span>
+                                <input type="text" id="endDate" class="el_datePicker edate">
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">검색</th>
+                        <td>
+                            <div class="d-flex gap-2">
+                                <select id="containTextType" class="common_select">
+                                    <option value="1">제목+내용</option>
+                                    <option value="2">제목</option>
+                                    <option value="3">내용</option>
+                                </select>
+                                <input id="containText" type="text" class="hp_w600">
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="bl_gridBtns">
+            <div class="bl_gridBtns_md">
+                <div class="btn btnDefault btnReset">리셋</div>
+                <div class="btn btnDefault btnSearch">검색</div>
+                <a class="btn btnDefault btnRegister" href="/homepage/press/">등록</a>
+            </div>
+        </div>
+
+        <!-- BOARD : CONTROLLER -->
+        <div class="bl_boardCtrls">
+            <div class="bl_boardCtrls_lft">
+                <p class="bl_boardCtrls_total">총: <strong th:text="${pageable.totalElements}">1</strong>건 </p>
+                <select class="common_select" data-list="countSortList"></select>
+            </div>
+        </div>
+
+        <div class="tableResponsive overflowMulti">
+            <table class="table">
+                <colgroup>
+                    <col style="width: 50px">
+                    <col style="width: auto">
+                    <col style="width: 120px">
+                    <col style="width: 120px">
+                    <col style="width: 120px">
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th scope="col">번호</th>
+                        <th scope="col">제목</th>
+                        <th scope="col">작성자</th>
+                        <th scope="col">작성일</th>
+                        <th scope="col">조회수</th>
+                    </tr>
+                </thead>
+                <tbody th:if="${content != null && content.size > 0}">
+                    <tr th:if="${content.size > 0}" th:each="item, stat : ${content}">
+                        <td th:text="${pageable.totalElements - ((pageable.page * pageable.size) + stat.index)}">1</td>
+                        <td>
+                            <a th:href="@{/homepage/press/{id}(id=${item.sequenceNo})}" class="d-flex">
+                                <span class="hp_ellipsis" th:text="${item.title}">제목입니다.</span>
+                                <i th:if="${item.atchFilePath != null}" class="el_ico"><img th:src="@{/assets/images/icons/file_icon.png}" alt="첨부파일" width="12px"></i>
+                            </a>
+                        </td>
+                        <td>
+                            <span th:if="${item.lmsUser.userName != null}" th:text="${item.lmsUser.userName}">홍길동</span>
+                            (<span th:if="${item.lmsUser.userId != null}" th:text="${item.lmsUser.userId}">test12</span>)
+                        </td>
+                        <td th:text="${item.createDateTime}">2022.10.01</td>
+                        <td th:text="${item.viewCount}">10</td>
+                    </tr>
+                </tbody>
+                <tbody th:unless="${content != null && content.size > 0}">
+                <tr class="empty_data"><td colspan="5">조회된 내용이 없습니다.</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="bl_paginate"></div>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            /* <![CDATA[ */
+            $(".btnSearch").bind('click',function (){
+                let searchQuery = {};
+                let startDate = $("#startDate").val();
+                let endDate = $("#endDate").val();
+                if (startDate && endDate) {
+                    searchQuery.startDate = startDate;
+                    searchQuery.endDate = endDate;
+                } else if (startDate || endDate) {
+                    alert('검색 시작일과 종료일을 모두 입력해야 합니다.')
+                }
+
+                let searchType = $("#containTextType").val();
+                let name = $("#containText").val();
+                if(name){
+                    searchQuery.containText = name;
+                    searchQuery.containTextType = searchType;
+                }
+                searchJson(searchQuery)
+            });
+
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+                pagination([[ ${pageable} ]], false)
+            }
+            /* ]]> */
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

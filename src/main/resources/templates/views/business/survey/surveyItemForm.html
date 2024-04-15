@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="business-6-1">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>문항 관리</h2>
+        </div>
+
+        <div class="tableLeftResponsive">
+            <table class="tableLeft">
+                <colgroup>
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                </colgroup>
+                <tbody>
+                <tr>
+                    <th scope="row"><span class="el_required">*</span>구분</th>
+                    <td>
+                        <select id="bizSurveyQitemCategory" class="common_select" th:if="${content == null}">
+                            <option value="1">강사평가</option>
+                            <option value="2">기관평가</option>
+                        </select>
+                        <select id="bizSurveyQitemCategory" class="common_select" th:unless="${content == null}">
+                            <option value="1" th:selected="${content[0].bizSurveyQitemCategory == 1}">강사평가</option>
+                            <option value="2" th:selected="${content[0].bizSurveyQitemCategory == 2}">기관평가</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><span class="el_required">*</span>문제</th>
+                    <td>
+                        <input id="bizSurveyQitemName" type="text" class="hp_w600" th:if="${content == null}">
+                        <input id="bizSurveyQitemName" type="text" class="hp_w600" th:value="${content[0].bizSurveyQitemName}" th:unless="${content == null}">
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><span class="el_required">*</span>유형</th>
+                    <td>
+                        <select id="bizSurveyQitemType" class="common_select" th:if="${content == null}">
+                            <option value="0">단일선택</option>
+                            <option value="1">다중선택</option>
+                            <option value="2">단답형</option>
+                            <option value="3">서술형</option>
+                        </select>
+                        <select id="bizSurveyQitemType" class="common_select" th:unless="${content == null}">
+                            <option value="0" th:selected="${content[0].bizSurveyQitemType == 0}">단일선택</option>
+                            <option value="1" th:selected="${content[0].bizSurveyQitemType == 1}">다중선택</option>
+                            <option value="2" th:selected="${content[0].bizSurveyQitemType == 2}">단답형</option>
+                            <option value="3" th:selected="${content[0].bizSurveyQitemType == 3}">서술형</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">내용</th>
+                    <td>
+                        <textarea name="contents" class="ckeditor" style="width:100%; height:200px" th:if="${content == null}"></textarea>
+                        <textarea name="contents" class="ckeditor" style="width:100%; height:200px" th:unless="${content == null}" th:text="${content[0].bizSurveyQitemContent}"></textarea>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">기타항목</th>
+                    <td>
+                        <select id="bizSurveyQitemEtc" class="common_select" th:if="${content == null}">
+                            <option value="1">있음</option>
+                            <option value="0">없음</option>
+                        </select>
+                        <select id="bizSurveyQitemEtc" class="common_select" th:unless="${content == null}">
+                            <option value="1" th:selected="${content[0].bizSurveyQitemEtc == 1}">있음</option>
+                            <option value="0" th:selected="${content[0].bizSurveyQitemEtc == 0}">없음</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">사용</th>
+                    <td>
+                        <select id="bizSurveyQitemStatus" class="common_select" th:if="${content == null}">
+                            <option value="1">사용함</option>
+                            <option value="0">사용안함</option>
+                        </select>
+                        <select id="bizSurveyQitemStatus" class="common_select" th:unless="${content == null}">
+                            <option value="1" th:selected="${content[0].bizSurveyQitemStatus == 1}">사용함</option>
+                            <option value="0" th:selected="${content[0].bizSurveyQitemStatus == 0}">사용안함</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">선택항목</th>
+                    <td>
+                        <div class="tableResponsive mb-0">
+                            <table class="table" style="border: 1px solid #ddd">
+                                <colgroup>
+                                    <col style="width: auto"/>
+                                    <col style="width: 120px"/>
+                                    <col style="width: 120px"/>
+                                    <col style="width: 120px"/>
+                                </colgroup>
+
+                                <tbody id="__listRanderArea" th:if="${content == null}">
+                                    <tr id="row1" class="qItemTr">
+                                        <td>
+                                            <input class="biz_survey_qitem bizSurveyQitemItemCn" type="text" placeholder="표시할 텍스트를 입력하세요." data-key="bizSurveyQitemItemCn">
+                                        </td>
+                                        <td>
+                                            <input class="biz_survey_qitem bizSurveyQitemItemScr" type="text" placeholder="점수" data-key="bizSurveyQitemItemScr">
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="orderBtn" name="up" onclick="moveRow(this)">▲</span>
+                                            <span class="orderBtn" name="down" onclick="moveRow(this)">▼</span>
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="btn btnDefault btn_del" onclick="removeItem(this)">삭제</div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                                <tbody id="__listRanderArea" th:unless="${content == null}">
+                                    <tr id="row1" class="qItemTr" th:each="item, stat: ${content[0].bizSurveyQitemItems}">
+                                        <td>
+                                            <input class="biz_survey_qitem bizSurveyQitemItemCn" type="text" placeholder="표시할 텍스트를 입력하세요." data-key="bizSurveyQitemItemCn" th:value="${item.bizSurveyQitemItemCn}">
+                                            <input type="hidden" class="bizSurveyQitemItemNo" th:value="${item.bizSurveyQitemItemNo}">
+                                        </td>
+                                        <td>
+                                            <input class="biz_survey_qitem bizSurveyQitemItemScr" type="text" placeholder="점수" data-key="bizSurveyQitemItemScr"  th:value="${item.bizSurveyQitemItemScr}">
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="orderBtn" name="up" onclick="moveRow(this)">▲</span>
+                                            <span class="orderBtn" name="down" onclick="moveRow(this)">▼</span>
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="btn btnDefault btn_del" th:value="${stat.index}" onclick="removeItem(this)">삭제</div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="text-end">
+                            <div class="btn btnDefault btn_add mt-2"onclick="addList(this,'row1')">항목 추가</div>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="bl_gridBtns">
+            <div class="bl_gridBtns_rgt">
+                <a href="/business/survey/qitem" class="btn btnDefault btnList">목록</a>
+                <!-- 1. 등록 화면일 경우 -->
+                <span href="" class="btn btnDefault btnRegister" th:if="${content == null}" onclick="create()">등록</span>
+
+                <!-- 2. 수정 화면일 경우 -->
+                <span href="" class="btn btnDefault btnClone" th:unless="${content == null}" onclick="create()">복제</span>
+                <span href="" class="btn btnDefault btnDelete" th:unless="${content == null}" onclick="removeQitem()">삭제</span>
+                <span href="" class="btn btnDefault btnModify" th:unless="${content == null}" onclick="update()">수정</span>
+            </div>
+        </div>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+
+
+    <style>
+        #__listRanderArea .handle{
+            cursor:move !important;
+        }
+    </style>
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            /* <![CDATA[ */
+            function removeItem(btn){
+                if(confirm('정말로 삭제하시겠습니까?')){
+                    let tr = $(btn).parent().parent();
+                    if($(btn).attr('value')&& parseInt($(btn).attr('value'))>=0){
+                        let index = parseInt($(btn).attr('value'));
+                        let item = CONT[0].bizSurveyQitemItems[index];
+                        if(item){
+                            $.ajax({
+                                type:"DELETE", //http method
+                                url:`/api/business/survey/qitem/item/delete/${item.bizSurveyQitemItemNo}`,
+                                headers: {'Content-Type': 'application/json'},
+                                data: JSON.stringify(item),
+                                dataType: "json",
+                                success: function(data) {
+                                    alert("선택문항이 삭제되었습니다.");
+                                    $(tr).remove();
+                                }, error: function(e) {
+                                    if(e && e.responseJSON && e.responseJSON.resultMessage){
+                                        alert(e.responseJSON.resultMessage);
+                                    }else{
+                                        alert("선택문항을 삭제하는 과정에서 오류가 발생하였습니다.");
+                                    }
+                                }
+                            })
+                        }
+                    }else{
+                        $(tr).remove();
+                    }
+                }
+
+            }
+            function removeQitem(){
+                let params = CONT[0];
+                $.ajax({
+                    type:"DELETE", //http method
+                    url:`/api/business/survey/qitem/delete/${params.bizSurveyQitemNo}`,
+                    headers: {'Content-Type': 'application/json'},
+                    data: JSON.stringify(params),
+                    dataType: "json",
+                    success: function(data) {
+                        alert("상호평가 문항이 삭제되었습니다.");
+                        window.location.replace('/business/survey/qitem');
+                    }, error: function(e) {
+                        if(e && e.responseJSON && e.responseJSON.resultMessage){
+                            alert(e.responseJSON.resultMessage);
+                        }else{
+                            alert("상호평가 문항을 삭제하는 과정에서 오류가 발생하였습니다.");
+                        }
+                    }
+                })
+            }
+            function update(){
+                let params = getFormData();
+                $.ajax({
+                    type:"PUT", //http method
+                    url:`/api/business/survey/qitem/update`,
+                    headers: {'Content-Type': 'application/json'},
+                    data: JSON.stringify(params),
+                    dataType: "json",
+                    success: function(data) {
+                        alert("상호평가 문항을 수정하였습니다.");
+                        window.location.reload();
+                    }, error: function(e) {
+                        if(e && e.responseJSON && e.responseJSON.resultMessage){
+                            alert(e.responseJSON.resultMessage);
+                        }else{
+                            alert("상호평가 문항을 수정하는 과정에서 오류가 발생하였습니다.");
+                        }
+                    }
+                })
+            }
+            function create(){
+                if(CONT){
+                    let params = CONT[0];
+                    params.bizSurveyQitemName = params.bizSurveyQitemName+'(복사본)';
+                    $.ajax({
+                        type:"POST", //http method
+                        url:`/api/business/survey/qitem/create`,
+                        headers: {'Content-Type': 'application/json'},
+                        data: JSON.stringify(params),
+                        dataType: "json",
+                        success: function(data) {
+                            alert("상호평가 문항이 복제되었습니다.");
+                            window.location.replace('/business/survey/qitem');
+                        }, error: function(e) {
+                            if(e && e.responseJSON && e.responseJSON.resultMessage){
+                                alert(e.responseJSON.resultMessage);
+                            }else{
+                                alert("상호평가 문항을 복제하는 과정에서 오류가 발생하였습니다.");
+                            }
+                        }
+                    })
+                }else{
+                    let params = getFormData();
+                    $.ajax({
+                        type:"POST", //http method
+                        url:`/api/business/survey/qitem/create`,
+                        headers: {'Content-Type': 'application/json'},
+                        data: JSON.stringify(params),
+                        dataType: "json",
+                        success: function(data) {
+                            alert("상호평가 문항을 등록하였습니다.");
+                            window.location.replace('/business/survey/qitem');
+                        }, error: function(e) {
+                            if(e && e.responseJSON && e.responseJSON.resultMessage){
+                                alert(e.responseJSON.resultMessage);
+                            }else{
+                                alert("상호평가 문항을 등록하는 과정에서 오류가 발생하였습니다.");
+                            }
+                        }
+                    })
+                }
+            }
+            function getFormData(){
+                let params ={};
+                let itemTemp={}
+
+                if(CONT){
+                    params.bizSurveyQitemNo =CONT[0].bizSurveyQitemNo;
+                }
+
+                params.bizSurveyQitemItems=$(".qItemTr").length>0?new Array($(".qItemTr").length):[];
+                $(".qItemTr").each((index, item)=>{
+                    itemTemp={}
+                    itemTemp.bizSurveyQitemItemCn = $(item).find('.bizSurveyQitemItemCn').val();
+                    itemTemp.bizSurveyQitemItemScr = $(item).find('.bizSurveyQitemItemScr').val();
+                    if( $(item).find('.bizSurveyQitemItemNo').val()){
+                        itemTemp.bizSurveyQitemItemNo = $(item).find('.bizSurveyQitemItemNo').val();
+                    }else{
+                        itemTemp.bizSurveyQitemItemNo ="0"
+                    }
+                    if(params.bizSurveyQitemNo){
+                        itemTemp.bizSurveyQitemNo = params.bizSurveyQitemNo;
+                    }else{
+                        itemTemp.bizSurveyQitemNo ="0";
+                    }
+                    params.bizSurveyQitemItems[index] = itemTemp;
+                })
+
+                params.bizSurveyQitemName = $("#bizSurveyQitemName").val();
+                params.bizSurveyQitemContent = CKEDITOR.instances.contents.getData();
+                params.bizSurveyQitemName = $("#bizSurveyQitemName").val();
+                params.bizSurveyQitemCategory = $("#bizSurveyQitemCategory").val() *1;
+                params.bizSurveyQitemType = $("#bizSurveyQitemType").val() *1;
+                params.bizSurveyQitemEtc = $("#bizSurveyQitemEtc").val() *1;
+                params.bizSurveyQitemStatus = $("#bizSurveyQitemStatus").val() *1;
+                return params;
+            }
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+
+            }
+            const CONT = [[ ${content} ]];
+
+            /** 행 이동 */
+            function moveRow(object) {
+                const row = $(object).closest('tr');
+                if(object.getAttribute("name") == "up") { row.prev().before(row); }
+                else if(object.getAttribute("name") == "down") { row.next().after(row); }
+            }
+            /* ]]> */
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

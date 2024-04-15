@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="user-5-2">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>회원 권한</h2>
+        </div>
+
+        <div class="tableResponsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">기관담당자</th>
+                        <th scope="col">학교담당자</th>
+                        <th scope="col">미디어강사</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td th:text="${countAgency}">700명</td>
+                        <td th:text="${countSchool}">2900명</td>
+                        <td th:text="${countInstructor}">400명</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="tableLeftResponsive">
+            <table class="tableLeft">
+                <colgroup>
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                </colgroup>
+                <tbody>
+                    <tr>
+                        <th scope="row">요청권한</th>
+                        <td colspan="3">
+                            <div class="chk_box">
+                                <input id="company_manager" type="checkbox" name="businessAuthoritys" value="AGENCY">
+                                <label for="company_manager">
+                                    <span></span>
+                                    기관담당자
+                                </label>
+                            </div>
+                            <div class="chk_box">
+                                <input id="school_manager" type="checkbox" name="businessAuthoritys" value="SCHOOL">
+                                <label for="school_manager">
+                                    <span></span>
+                                    학교담당자
+                                </label>
+                            </div>
+                            <div class="chk_box">
+                                <input id="media_teacher" type="checkbox" name="businessAuthoritys" value="INSTR">
+                                <label for="media_teacher">
+                                    <span></span>
+                                    미디어강사
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">이름</th>
+                        <td>
+                            <input id="userName" name="userName" type="text">
+                        </td>
+                        <th scope="row">아이디</th>
+                        <td>
+                            <input id="userId" name="userId" type="text">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">요청일</th>
+                        <td>
+                            <div class="bl_dateRange hp_md_w100p">
+                                <input type="text" class="el_datePicker sdate" id="applyBgngDate" name="applyBgngDate">
+                                <span class="blank">~</span>
+                                <input type="text" class="el_datePicker edate" id="applyEndDate" name="applyEndDate">
+                            </div>
+                        </td>
+                        <th scope="row">처리일</th>
+                        <td>
+                            <div class="bl_dateRange hp_md_w100p">
+                                <input type="text" class="el_datePicker sdate" id="apprvBgngDate" name="apprvBgngDate">
+                                <span class="blank">~</span>
+                                <input type="text" class="el_datePicker edate" id="apprvEndDate" name="apprvEndDate">
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">상태</th>
+                        <td colspan="3">
+                            <div class="radio_box">
+                                <input id="state_all" type="radio" name="businessAuthorityApprovalState" value="0" checked>
+                                <label for="state_all">
+                                    <span></span>
+                                    전체
+                                </label>
+                            </div>
+                            <div class="radio_box">
+                                <input id="auth_request" type="radio" name="businessAuthorityApprovalState" value="1">
+                                <label for="auth_request">
+                                    <span></span>
+                                    권한요청
+                                </label>
+                            </div>
+                            <div class="radio_box">
+                                <input id="cancel_request" type="radio" name="businessAuthorityApprovalState" value="3">
+                                <label for="cancel_request">
+                                    <span></span>
+                                    해지요청
+                                </label>
+                            </div>
+                            <div class="radio_box">
+                                <input id="reject_request" type="radio" name="businessAuthorityApprovalState" value="5">
+                                <label for="reject_request">
+                                    <span></span>
+                                    요청반려
+                                </label>
+                            </div>
+                            <div class="radio_box">
+                                <input id="auth_approval" type="radio" name="businessAuthorityApprovalState" value="2">
+                                <label for="auth_approval">
+                                    <span></span>
+                                    권한승인
+                                </label>
+                            </div>
+                            <div class="radio_box">
+                                <input id="revocation" type="radio" name="businessAuthorityApprovalState" value="4">
+                                <label for="revocation">
+                                    <span></span>
+                                    해제
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- GRID : BUTTON -->
+        <div class="bl_gridBtns">
+            <div class="bl_gridBtns_md">
+                <div class="btn btnDefault btnReset">리셋</div>
+                <a class="btn btnDefault btnSearch" th:onclick="searchUser()">검색</a>
+                <a class="btn btnDefault download_excel download_search" href="/api/user/web/authority/excel">excel 다운로드</a>
+            </div>
+        </div>
+
+        <!-- BOARD : CONTROLLER -->
+        <div class="bl_boardCtrls">
+            <div class="bl_boardCtrls_lft">
+                <p class="bl_boardCtrls_total">
+                     총: <strong th:text="${pageable.totalElements}"></strong>건
+                </p>
+            </div>
+            <div class="bl_boardCtrls_rgt">
+                <select class="common_select" data-list="countSortList"></select>
+            </div>
+        </div>
+
+        <div class="tableResponsive overflowMulti">
+            <table class="table">
+                <colgroup>
+                    <col style="width: 50px" />
+                    <col style="width: 50px" />
+                    <col style="width: auto" />
+                    <col style="width: auto" />
+                    <col style="width: auto" />
+                    <col style="width: auto" />
+                    <col style="width: auto" />
+                    <col style="width: auto" />
+                    <col style="width: auto" />
+                    <col style="width: auto" />
+                    <col style="width: auto" />
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th scope="col">
+                            <div class="chk_box">
+                                <input id="all_check" name="userAll" type="checkbox" class="all_checkbox">
+                                <label for="all_check">
+                                    <span class="me-0"></span>
+                                </label>
+                            </div>
+                        </th>
+                        <th scope="col">번호</th>
+                        <th scope="col">회원유형</th>
+                        <th scope="col">이름</th>
+                        <th scope="col">아이디</th>
+                        <th scope="col">연락처</th>
+                        <th scope="col">가입일</th>
+                        <th scope="col">요청일</th>
+                        <th scope="col">요청권한</th>
+                        <th scope="col">처리일</th>
+                        <th scope="col">상태</th>
+                    </tr>
+                </thead>
+                <tbody th:if="${content != null && content.size > 0}">
+                    <tr class="rows" th:each="item,stat:${content}">
+                        <td>
+                            <div class="chk_box item_chk">
+                                <input th:id="${item.userId + ',' + stat.index}" name="user" type="checkbox">
+                                <label th:for="${item.userId + ',' + stat.index}">
+                                    <span class="me-0"></span>
+                                </label>
+                            </div>
+                        </td>
+                        <td th:text="${pageable.totalElements - ((pageable.page * pageable.size) + stat.index)}"></td>
+                        <td>
+                            <span th:if="${item.roleGroup == 'JOURNALIST'}">언론인</span>
+                            <span th:if="${item.roleGroup == 'TEACHER'}">일반(교원)</span>
+                            <span th:if="${item.roleGroup == 'STUDENT'}">일반(학생)</span>
+                            <span th:if="${item.roleGroup == 'PARENTS'}">일반(학부모)</span>
+                            <span th:if="${item.roleGroup == 'GENERAL'}">일반(일반인)</span>
+                            <span th:if="${item.roleGroup == 'SUPER'}">관리자</span>
+                        </td>
+                        <td>
+                            <a th:href="@{/user/web-authority/{id}/{userId}(id=${item.sequenceNo},userId=${item.userId})}" th:text="${item.userName}">홍길동</a>
+                        </td>
+                        <td>
+                            <a th:href="@{/user/web-authority/{id}/{userId}(id=${item.sequenceNo},userId=${item.userId})}" th:text="${item.userId}">hong</a>
+                        </td>
+                        <td th:text="${item.phone}">010-1234-1234</td>
+                        <td th:text="${#strings.substring(item.lmsUser.createDateTime, 0, 10)}">2022.02.02</td>
+                        <td th:if="${item.organizationAuthorityHistory != null}" th:text="${#strings.substring(item.organizationAuthorityHistory.createDateTime, 0, 10)}">2022.09.01</td>
+                        <td th:if="${item.individualAuthorityHistory != null}" th:text="${#strings.substring(item.individualAuthorityHistory.createDateTime, 0, 10)}">2022.09.01</td>
+                        <td>
+                            <span th:if="${item.businessAuthority == 'SCHOOL'}">학교담당자</span>
+                            <span th:if="${item.businessAuthority == 'AGENCY'}">기관담당자</span>
+                            <span th:if="${item.businessAuthority == 'INSTR'}">미디어강사</span>
+                        </td>
+                        <td th:if="${item.organizationAuthorityHistory != null}" th:text="${#strings.substring(item.organizationAuthorityHistory.updateDateTime, 0, 10)}">2022.09.01</td>
+                        <td th:if="${item.individualAuthorityHistory != null}" th:text="${#strings.substring(item.individualAuthorityHistory.updateDateTime, 0, 10)}">2022.09.01</td>
+                        <td>
+                            <span th:if="${item.businessAuthorityApprovalState == '1'}" class="color_brown">권한요청</span>
+                            <span th:if="${item.businessAuthorityApprovalState == '2'}" class="color_blue">승인</span>
+                            <span th:if="${item.businessAuthorityApprovalState == '3'}" class="color_brown">해지요청</span>
+                            <span th:if="${item.businessAuthorityApprovalState == '4'}" class="color_red">해제</span>
+                            <span th:if="${item.businessAuthorityApprovalState == '5'}" class="color_red">반려</span>
+                        </td>
+                    </tr>
+                </tbody>
+                <tbody th:unless="${content != null && content.size > 0}">
+                <tr class="empty_data"><td colspan="11">조회된 내용이 없습니다.</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- GRID : BUTTON -->
+        <div class="bl_gridBtns">
+            <div class="bl_gridBtns_rgt">
+                <a class="btn btnDefault" id="update_btn" th:onclick="changeState()">선택승인</a>
+                <a class="btn btnDefault" onclick="removeConfirm()">선택반려</a>
+            </div>
+        </div>
+        <div class="bl_paginate"></div>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+
+            let myIndex=0;
+            let count =0;
+            // 강사 정보 등록하기
+            function setInstrData(a, lastFlag){
+                let params = a;
+                if(params && params!=null){
+                    $.ajax({
+                        type: "POST",
+                        headers: {'Content-Type' : 'application/json'},
+                        url: "/api/user/instructor/create",
+                        data: JSON.stringify(params),
+                        dataType: "json",
+                        success: function (res){
+                            if(lastFlag){
+                                alert('권한신청 상태를 변경하였습니다.');
+                                window.location.reload();
+                            }
+                        },
+                        error: function (e){
+                            if(lastFlag){
+                                alert("권한신청 상태를 변경하였습니다.");
+                                window.location.reload();
+                            }
+                        }
+                    })
+                }else {
+                    if(lastFlag){
+                        alert('권한신청 상태를 변경하였습니다.');
+                        window.location.reload();
+                    }
+                }
+            }
+
+            //강사 정보 가져오기
+            function getFormData(dataIndex){
+                let cont = getContent(dataIndex);
+                let params = {}
+                if(cont.individualAuthorityHistory){
+                    let instr = cont.individualAuthorityHistory;
+                    params.gender = cont.lmsUser.gender;
+                    params.instrAcbgDgr = instr.degree;
+                    params.instrAcbgMjr = instr.major;
+                    params.instrAcbgSchlNm = instr.graduationSchool;
+                    params.instrAcbgYr = instr.graduationYear;
+                    params.instrAcbgYr = instr.graduationYear;
+                    params.instrActno = instr.accountNo;
+                    params.instrAddr1 = instr.userAddress1;
+                    params.instrAddr2 = instr.userAddress2;
+                    params.instrBank = instr.bank;
+                    params.instrBrdt = cont.lmsUser.birthDay.substring(0,4)+"-"+cont.lmsUser.birthDay.substring(4,6)+"-"+cont.lmsUser.birthDay.substring(6,8);
+                    params.instrEml = cont.lmsUser.email;
+                    params.userId = cont.userId
+                    params.userSN = cont.lmsUser.userSerialNo
+                    params.instrLctRgn1 = instr.region[0];
+                    params.instrLctRgn2 = instr.region[1];
+                    params.instrMainCn = instr.comments;
+                    params.instrNm = cont.userName;
+                    params.instrPctr = instr.picturePath;
+                    params.instrPctrSize = 0;
+                    params.instrSgntrSize = 0;
+                    params.instrSgntr = instr.signPath;
+                    params.instrRelmFrst = ' ';
+                    params.instrRelmLast=' ';
+                    // params.instrRelmFrst = instr.instrRelmFrst; // 강의분야 대분류
+                    // params.instrRelmLast=instr.instrRelmLast; //강의분야 소분류
+                    params.instrSerialNo = 0; // 업데이트를 위해서 확인 필요
+                    params.instrStts = 1; //사용
+                    params.instrTel = cont.lmsUser.phone;
+                    params.instrCtgr = "INSTR"; //확인 필요
+                    params.instrZipCd = instr.userZipCode;
+                    params.instructorHistoryApiRequestVOs = instr.antecedents;
+                    params.instructorQualificationApiRequestVOs = instr.certificate;
+
+                }else {
+                    params=null;
+                }
+                return params;
+            }
+            $(".all_checkbox").bind('click',function (e){
+                if($(this).is(":checked")){
+                    $(`input:checkbox[name=user]`).prop("checked", true);
+                }else{
+                    $(`input:checkbox[name=user]`).prop("checked", false);
+
+                }
+            })
+            function searchUser(){
+                let searchQuery = {}
+                let uid = $("#userId").val();
+                let name = $("#userName").val();
+                let state = $('input:radio[name=businessAuthorityApprovalState]:checked').val();
+                let type =$("input[name=businessAuthoritys]:checked").length>0 ? new Array(  $("input[name=businessAuthoritys]:checked").length ) :"0";
+                let applyBgngDate=$("#applyBgngDate").val();
+                let applyEndDate =$("#applyEndDate").val();
+                let apprvBgngDate=$("#apprvBgngDate").val();
+                let apprvEndDate=$("#apprvEndDate").val();
+                $("input[name=businessAuthoritys]:checked").each(function(index, item) {
+                    if($(this).val()!="0" &&type!="0"){
+                        type[index] = $(this).val();
+                    }else{
+                        type = "0";
+                    }
+                })
+                if(uid){
+                    searchQuery.userId = uid
+                }
+                if(name){
+                    searchQuery.userName = name
+                }
+                if(type&&type!="0"){
+                    searchQuery.businessAuthoritys = type.toString();
+                }
+                if(state && state!="0"){
+                    searchQuery.businessAuthorityApprovalState = state
+                }
+                if(applyBgngDate){
+                    searchQuery.applyBgngDate=applyBgngDate;
+                }
+                if(applyEndDate){
+                    searchQuery.applyEndDate=applyEndDate;
+                }
+                if(apprvBgngDate){
+                    searchQuery.apprvBgngDate=apprvBgngDate;
+                }
+                if(apprvEndDate){
+                    searchQuery.apprvEndDate=apprvEndDate;
+                }
+                searchJson(searchQuery)
+            }
+            /* <![CDATA[ */
+            function getCont(){
+                const cont = [[ ${content} ]]
+                return cont;
+            }
+            function removeConfirm(){
+                let cont = getCont();
+                let params = new Array($('input:checkbox[name=user]:checked').length)
+                if(confirm('정말로 반려하시겠습니까?')){
+                    $('input:checkbox[name=user]:checked').each(function (index,item){
+                            let num = $(item).attr("id").split(",")[1];
+                            params[index] ={};
+                            params[index].userId = $(item).attr("id").split(",")[0];
+                            params[index].sequenceNo = cont[num].sequenceNo;
+                            params[index].businessAuthority = cont[num].businessAuthority;
+                            params[index].businessAuthorityApprovalState=cont[num].businessAuthorityApprovalState;
+                            if (params[index].businessAuthorityApprovalState === "1"||params[index].businessAuthorityApprovalState === "3") {
+                                params[index].businessAuthorityApprovalState = "5";
+
+                                $.ajax({
+                                    type: "PUT",
+                                    headers: {'Content-Type' : 'application/json'},
+                                    url: "/api/user/web/authority/approval-state",
+                                    data: JSON.stringify(params[index]),
+                                    dataType: "json",
+                                    async:false,
+                                    success: function (res){
+                                        if(index==($('input:checkbox[name=user]:checked').length-1)){
+                                            alert("권한 승인/해제 요청이 반려 처리되었습니다.")
+                                        }
+                                    },
+                                    error: function (e){
+                                        flag = false
+                                        alert("반려 처리 과정에서 오류가 발생했습니다.");
+                                    }
+                                })
+                            }else{
+                                alert('선택하신 항목은 이미 처리된 권한 신청입니다.')
+                            }
+                    })
+                }
+            }
+            function changeState(){
+                let cont = getCont();
+                myIndex = $('input:checkbox[name=user]:checked').length
+                let params = new Array($('input:checkbox[name=user]:checked').length)
+                $('input:checkbox[name=user]:checked').each(function (index,item){
+                    let num = $(item).attr("id").split(",")[1];
+                    let flag = false;
+                    count+=1;
+                    if(myIndex==count){
+                        flag = true;
+                    }
+                    if (cont[num].businessAuthorityApprovalState === "1") {
+                        params[index] ={};
+                        params[index].userId = $(item).attr("id").split(",")[0];
+                        params[index].sequenceNo = cont[num].sequenceNo;
+                        params[index].businessAuthority = cont[num].businessAuthority;
+                        params[index].businessAuthorityApprovalState = "2";
+
+                        $.ajax({
+                            type: "PUT",
+                            headers: {'Content-Type' : 'application/json'},
+                            url: "/api/user/web/authority/approval-state",
+                            data: JSON.stringify(params[index]),
+                            dataType: "json",
+                            success: function (res){
+                                changeUser(getFormData(num), params[index].businessAuthority, cont[num], flag);
+                            },
+                            error: function (e){
+                                alert("권한 요청 승인에 실패했습니다.");
+                            }
+                        })
+                    } else if (cont[num].businessAuthorityApprovalState === "3") {
+                        params[index] ={};
+                        params[index].userId = $(item).attr("id").split(",")[0];
+                        params[index].sequenceNo = cont[num].sequenceNo;
+                        params[index].businessAuthority = cont[num].businessAuthority;
+                        params[index].businessAuthorityApprovalState = "4";
+
+                        $.ajax({
+                            type: "put",
+                            headers: {'Content-Type' : 'application/json'},
+                            url: "/api/user/web/authority/remove",
+                            data: JSON.stringify(params[index]),
+                            dataType: "json",
+                            success: function (res){
+                                if(flag){
+                                    alert('권한신청 상태를 변경하였습니다.');
+                                    window.location.reload();
+                                }
+                            },
+                            error: function (e){
+                                alert("권한 해제에 실패했습니다.")
+                            }
+                        })
+                    } else {
+                        if(flag){
+                            alert("선택한 항목은 변경이 불가능한 상태입니다. 이미 승인/해제 되었습니다.");
+                            window.location.reload();
+                        }
+                    }
+                })
+            }
+            function changeUser(a, b, con, flag) {
+                let userObject = {};
+
+                userObject.businessAuthority = b;
+                if (con.organizationAuthorityHistory != null) {
+                    userObject.organizationCode = con.organizationAuthorityHistory.organizationCode;
+                } else {
+                    userObject.organizationCode = null;
+                }
+
+                userObject.department = con.lmsUser.department;
+                userObject.email = con.lmsUser.email;
+                userObject.isEmailAgree = con.lmsUser.isEmailAgree;
+                userObject.isSmsAgree = con.lmsUser.isSmsAgree;
+                userObject.organizationAddress1 = con.lmsUser.organizationAddress1;
+                userObject.organizationAddress2 = con.lmsUser.organizationAddress2;
+                userObject.organizationFaxNumber = con.lmsUser.organizationFaxNumber;
+                userObject.organizationName = con.lmsUser.organizationName;
+                userObject.organizationSubName = con.lmsUser.organizationSubName;
+                userObject.organizationTelNumber = con.lmsUser.organizationTelNumber;
+                userObject.organizationZipCode = con.lmsUser.organizationZipCode;
+                userObject.phone = con.lmsUser.phone;
+                userObject.position = con.lmsUser.position;
+                userObject.rank = con.lmsUser.rank;
+                userObject.roleGroup = con.lmsUser.roleGroup;
+                userObject.state = con.lmsUser.state;
+                userObject.userId = con.lmsUser.userId;
+
+                $.ajax({
+                    type: "PUT",
+                    headers: {'Content-Type' : 'application/json'},
+                    url: "/api/user/web-user/update",
+                    data: JSON.stringify(userObject),
+                    dataType: "json",
+                    async:false,
+                    success: function (res){
+                        setInstrData(a,flag);
+                    },
+                    error: function (e){
+                        alert("승인 실패했습니다.")
+                    }
+                })
+            }
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+                pagination([[ ${pageable} ]]);
+                hide_check()
+            }
+            function getContent(dataIndex){
+                let CONT = [[ ${content} ]]
+                dataIndex = parseInt(dataIndex);
+                if(CONT && CONT[dataIndex].individualAuthorityHistory){
+                    CONT[dataIndex].individualAuthorityHistory.antecedents = JSON.parse(CONT[dataIndex].individualAuthorityHistory.antecedents?CONT[dataIndex].individualAuthorityHistory.antecedents:'[]');
+                    CONT[dataIndex].individualAuthorityHistory.certificate = JSON.parse(CONT[dataIndex].individualAuthorityHistory.certificate?CONT[dataIndex].individualAuthorityHistory.certificate:'[]');
+                    CONT[dataIndex].individualAuthorityHistory.region = JSON.parse(CONT[dataIndex].individualAuthorityHistory.region?CONT[dataIndex].individualAuthorityHistory.region:'[]');
+                    for(let i in CONT[dataIndex].individualAuthorityHistory.antecedents){
+                        CONT[dataIndex].individualAuthorityHistory.antecedents[i].instrCn =CONT[dataIndex].individualAuthorityHistory.antecedents[i].comments
+                        CONT[dataIndex].individualAuthorityHistory.antecedents[i].instrHistYr = CONT[dataIndex].individualAuthorityHistory.antecedents[i].year
+                        CONT[dataIndex].individualAuthorityHistory.antecedents[i].instrOrgNm =CONT[dataIndex].individualAuthorityHistory.antecedents[i].organization
+                        CONT[dataIndex].individualAuthorityHistory.antecedents[i].instrSerialNo =0
+                    }
+                    for(let i in CONT[dataIndex].individualAuthorityHistory.certificate){
+                        CONT[dataIndex].individualAuthorityHistory.certificate[i].instrQlfcInst =CONT[dataIndex].individualAuthorityHistory.certificate[i].organization
+                        CONT[dataIndex].individualAuthorityHistory.certificate[i].instrQlfcNm =CONT[dataIndex].individualAuthorityHistory.certificate[i].certificateName
+                        CONT[dataIndex].individualAuthorityHistory.certificate[i].instrQlfcNo =CONT[dataIndex].individualAuthorityHistory.certificate[i].certificateNo
+                        CONT[dataIndex].individualAuthorityHistory.certificate[i].instrQlfcYmd =CONT[dataIndex].individualAuthorityHistory.certificate[i].date
+                        CONT[dataIndex].individualAuthorityHistory.certificate[i].instrSerialNo =0
+                    }
+                    return CONT[dataIndex];
+                }else{
+                    return CONT[dataIndex];
+                }
+            }
+
+            function hide_check() {
+                $('.rows').each((index, item) => {
+                    let CONT = [[ ${content} ]]
+                    if (CONT[index].businessAuthorityApprovalState == "2" || CONT[index].businessAuthorityApprovalState == "4") {
+                        $(item).find('.item_chk').hide()
+                    }
+                })
+            }
+            /* ]]> */
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

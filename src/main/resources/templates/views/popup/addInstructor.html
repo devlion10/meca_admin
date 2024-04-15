@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/pop_layout}">
+<body>
+<div layout:fragment="pop">
+    <article class="pop_page">
+        <div class="pop_secondary">
+            <div class="pop_head">
+                <div class="tit">강사등록</div>
+            </div>
+            <div class="pop_cont">
+                <div class="sch_box">
+                    <select id="containTextType" class="common_select">
+                        <option value="1">이름</option>
+                        <option value="2">아이디</option>
+                    </select>
+                    <input id="containText" type="text" class="hp_w400">
+                    <a onclick="searchInstr()" class="btn btnDefault btnSearch">검색</a>
+                </div>
+
+                <!-- BOARD : CONTROLLER -->
+                <div class="bl_boardCtrls">
+                    <div class="bl_boardCtrls_lft">
+                        <p class="bl_boardCtrls_total">
+                             총: <strong th:text="${pageable.totalElements}"></strong>건
+                        </p>
+                    </div>
+                </div>
+
+                <div class="tableResponsive overflowMulti">
+                    <table class="table">
+                        <colgroup>
+                            <col width="50px">
+                            <col>
+                            <col>
+                            <col class="instr_check">
+                            <col width="100px">
+                            <col width="100px" class="instr_find">
+                        </colgroup>
+                        <thead>
+                            <tr>
+                                <th scope="col">번호</th>
+                                <th scope="col" class="instr_check">구분</th>
+                                <th scope="col">강사명</th>
+                                <th scope="col">아이디</th>
+                                <th scope="col" class="instr_check">소속</th>
+                                <th scope="col">사용여부</th>
+                                <th scope="col" class="instr_find">선택</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:if="${!#lists.isEmpty(content)}" th:each="item, stat: ${content}">
+                                <td th:text="${pageable.totalElements - ((pageable.page * pageable.size) + stat.index)}"></td>
+                                <td class="instr_check">
+                                    <div th:if="${#strings.contains(item.instrCtgr, 'INSTR')}">미디어강사</div>
+                                    <div th:if="${#strings.contains(item.instrCtgr, 'LECTURER')}">미디어교육강사</div>
+                                    <div th:if="${#strings.contains(item.instrCtgr, 'READER')}">언론인연수강사</div>
+                                </td>
+                                <td th:text="${item.instrNm}">홍길동</td>
+                                <td th:if="${item.lmsUser==null}">회원계정없음</td>
+                                <td th:unless="${item.lmsUser==null}" th:text="${item.lmsUser.userId}">test123</td>
+                                <td class="instr_check">
+                                    <div th:text="${item.orgName}">기관명</div>
+                                </td>
+                                <td>
+                                    <span th:if="${item.instrStts == 0}" class="color_red">미사용</span>
+                                    <span th:if="${item.instrStts == 1}" class="color_blue">사용</span>
+                                </td>
+                                <td class="instr_find">
+                                    <div th:if="${item.lmsUser==null}" class="btn btnDefault" onclick="alert('강사의 MECA 회원 계정이 없습니다.')">선택 불가</div>
+                                    <div th:unless="${item.lmsUser==null}" class="btn btnDefault" th:onclick="sendData( [[${stat.index}]] )">선택</div>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(content)}" class="empty_data">
+                                <td colspan="10">조회된 강사 정보가 없습니다.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div th:if="${!#lists.isEmpty(content)}" class="bl_paginate"></div>
+            </div>
+
+            <button type="button" class="pop_close pop-close" onclick="parent.window.closePop()">닫기</button>
+        </div>
+    </article>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            function searchInstr(){
+                let searchQuery = {}
+                let text = $("#containText").val();
+                let type = $("#containTextType").val();
+                if(text){
+                    if(type =="1"){
+                        searchQuery.instrNm = text;
+                    }else if(type =="2"){
+                        searchQuery.userId = text;
+                    }
+                    searchQuery.containTextType=type;
+                }
+                searchJson(searchQuery)
+            }
+            /* <![CDATA[ */
+            const CONT = [[ ${content} ]];
+
+            function sendData(index){
+                window.parent.postMessage(CONT[index],'*')
+                parent.window.closePop()
+            }
+
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+                pagination([[ ${pageable} ]], false);
+                checkShow();
+
+                let searchText = new URLSearchParams(window.location.search);
+                if(searchText.get("instrNm")){
+                    $("#containText").val(searchText.get("instrNm"))
+                }else if(searchText.get("userId")){
+                    $("#containText").val(searchText.get("userId"))
+                }
+            }
+
+            function checkShow() {
+                let url = window.location.pathname;
+
+                if (url.indexOf("find") > -1) {
+                    $('.tit').text('강사등록')
+                    $('.sch_box').show()
+                    $('.instr_find').show()
+                    $('.instr_check').hide()
+                } else {
+                    $('.tit').text('강사확인')
+                    $('.sch_box').hide()
+                    $('.instr_find').hide()
+                    $('.instr_check').show()
+                }
+            }
+            /* ]]> */
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="user-5-1">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>관리시스템 권한</h2>
+        </div>
+
+        <div class="tableLeftResponsive">
+            <table class="tableLeft">
+                <colgroup>
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                </colgroup>
+                <tbody>
+                    <tr>
+                        <th scope="row">권한명</th>
+                        <td>
+                            <input id="roleGroupName" type="text" class="hp_w400">
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- GRID : BUTTON -->
+        <div class="bl_gridBtns">
+            <div class="bl_gridBtns_md">
+                <div class="btn btnDefault btnReset">리셋</div>
+                <a class="btn btnDefault btnSearch" onclick="searchAuth()">검색</a>
+                <a th:if="${#authentication.principal.roleGroup=='SUPER'}" class="btn btnDefault btnRegister" href="/user/authority/">등록</a>
+            </div>
+        </div>
+
+        <!-- BOARD : CONTROLLER -->
+        <div class="bl_boardCtrls">
+            <div class="bl_boardCtrls_lft">
+                <p class="bl_boardCtrls_total">
+                     총: <strong th:text="${pageable.totalElements}"></strong>건
+                </p>
+            </div>
+            <div class="bl_boardCtrls_rgt">
+                <select class="common_select" data-list="countSortList"></select>
+            </div>
+        </div>
+
+        <div class="tableResponsive overflowMulti">
+            <table class="table">
+                <colgroup>
+                    <col style="width: 50px">
+                    <col style="width: 50px">
+                    <col style="width: 150px">
+                    <col style="width: 150px">
+                    <col style="width: auto">
+                    <col style="width: 150px">
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th scope="col">
+                            <div class="chk_box">
+                                <input id="all_check" type="checkbox" name="rights">
+                                <label for="all_check">
+                                    <span class="me-0"></span>
+                                </label>
+                            </div>
+                        </th>
+                        <th scope="col">번호</th>
+                        <th scope="col">권한 코드</th>
+                        <th scope="col">권한명</th>
+                        <th scope="col">설명</th>
+                        <th scope="col">등록일</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="item,stat:${content}">
+                        <td>
+                            <div class="chk_box item_chk">
+                                <input th:id="'right'+${stat.index}" type="checkbox" name="rights">
+                                <label th:for="'right'+${stat.index}">
+                                    <span class="me-0"></span>
+                                </label>
+                            </div>
+                        </td>
+                        <td th:text="${pageable.totalElements - ((pageable.page * pageable.size) + stat.index)}">1</td>
+                        <td>
+                            <a th:href="@{/user/authority/{code}(code=${item.roleGroupCode})}" th:text="${item.roleGroupCode}">ROLE_ADMIN</a>
+                        </td>
+                        <td th:text="${item.roleGroupName}">운영자권한</td>
+                        <td th:text="${item.memo}">설명글 영역입니다.</td>
+                        <td th:text="${#strings.substring(item.createDateTime,0,10)}">2022.01.01</td>
+                    </tr>
+                </tbody>
+                <tbody th:unless="${content != null && content.size > 0}">
+                    <tr class="empty_data"><td colspan="10">조회된 내용이 없습니다.</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- GRID : BUTTON -->
+        <div class="bl_gridBtns" th:if="${#authentication.principal.roleGroup=='SUPER'}">
+            <div class="bl_gridBtns_lft">
+                <a class="btn btnDefault btnDelete" href="">삭제</a>
+            </div>
+        </div>
+        <div class="bl_paginate"></div>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            $("#all_check").bind('click',function (e){
+                if($(this).is(":checked")){
+                    let name=$(this).attr("name");
+                    $(`input:checkbox[name=${name}]`).prop("checked", true);
+                }else{
+                    let name=$(this).attr("name");
+                    $(`input:checkbox[name=${name}]`).prop("checked", false);
+                }
+            })
+            function searchAuth(){
+                let searchQuery = {}
+                let name = $("#roleGroupName").val();
+                if(name){
+                    searchQuery.roleGroupName = name
+                }
+                searchJson(searchQuery)
+            }
+            /* <![CDATA[ */
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+	
+                pagination([[ ${pageable} ]])
+            }
+            /* ]]> */
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

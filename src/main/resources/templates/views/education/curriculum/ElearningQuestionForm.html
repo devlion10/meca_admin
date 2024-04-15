@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="edu-1">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>과정 관리</h2>
+        </div>
+
+        <div class="bl_tab2 js_tab">
+            <ul class="bl_tab2_menu">
+                <li>
+                    <a th:href="@{/education/curriculum/e-learning/{curriculumCode}(curriculumCode=${curriculumCode})}">상세</a>
+                </li>
+                <li>
+                    <a th:href="@{/education/curriculum/e-learning/exam/{curriculumCode}(curriculumCode=${curriculumCode})}">시험</a>
+                </li>
+                <li class="is_active">
+                    <a th:href="@{/education/curriculum/e-learning/question/{curriculumCode}(curriculumCode=${curriculumCode})}">문항</a>
+                </li>
+                <li>
+                    <a th:href="@{/education/curriculum/reference-room/{curriculumCode}?educationType=e-learning(curriculumCode=${curriculumCode})}">자료실</a>
+                </li>
+            </ul>
+
+            <div class="bl_tab2_body js_tab_contents">
+                <div class="bl_tab2_item js_tab_item">
+                    <div class="tableLeftResponsive">
+                        <table class="tableLeft">
+                            <colgroup>
+                                <col style="width: 200px">
+                                <col style="width: auto">
+                            </colgroup>
+                            <tbody>
+                                <tr>
+                                    <th scope="row">카테고리명</th>
+                                    <th:block th:each="commonCode : ${commonCode}"
+                                              th:if="${commonCode.code} == 'CTS_CTGR'">
+                                        <td th:each="categoryCode : ${commonCode.subCode}"
+                                            th:if="${categoryCode.code == educationCategoryCode}"
+                                            th:text="${categoryCode.codeName}"></td>
+                                    </th:block>
+                                </tr>
+                                <tr>
+                                    <th scope="row">과정명</th>
+                                    <td th:text="${curriculumName}">과정명</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="tableLeftResponsive">
+                        <table class="tableLeft">
+                            <colgroup>
+                                <col style="width: 200px">
+                                <col style="width: auto">
+                                <col style="width: 200px">
+                                <col style="width: auto">
+                            </colgroup>
+                            <tbody>
+                                <tr>
+                                    <th scope="row"><span class="el_required">*</span>문제</th>
+                                    <td colspan="3">
+                                        <input type="text" class="hp_w600" id="questionTitle" th:value="${content.size > 0 ? content[0].examQuestionMaster.questionTitle : null}">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><span class="el_required">*</span>난이도</th>
+                                    <td colspan="3">
+                                        <select class="common_select" id="questionLevel">
+                                            <th:block th:each="commonCode : ${commonCode}" th:if="${commonCode.code} == 'QUE_LEVEL'">
+                                                <option th:each="questionLevel : ${commonCode.subCode}"
+                                                        th:value="${questionLevel.code}"
+                                                        th:text="${questionLevel.codeName}"
+                                                        th:selected="${content.size > 0 ? (content[0].examQuestionMaster.questionLevel == questionLevel.code ? true : false ): false}"></option>
+                                            </th:block>
+                                        </select>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><span class="el_required">*</span>문제설명</th>
+                                    <td colspan="3">
+                                        <textarea name="contents" class="ckeditor" style="width:100%; height:200px"
+                                                  id="questionContents"
+                                                  th:text="${content.size > 0 ? content[0].examQuestionMaster.questionContents : null}"></textarea>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">문제파일</th>
+                                    <td colspan="3">
+                                        <div class="bl_uploadGrid">
+                                            <div class="bl_upload js_upload hp_lg_w462">
+                                                <input id="questionFileName" type="text" class="bl_upload_path js_path"
+                                                       th:value="${content.size > 0 ? (content[0].examQuestionMaster.questionFilePath != null ? content[0].examQuestionMaster.questionFilePath : null) : null}"
+                                                       readonly>
+                                                <label class="btn btnDefault bg-secondary text-white bl_upload_btn">파일선택</label>
+                                                <input id="questionFile" type="file" name="file" class="bl_upload_file js_file">
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><span class="el_required">*</span>문제유형</th>
+                                    <td>
+                                        <select id="questionType" class="common_select">
+                                            <th:block th:each="commonCode : ${commonCode}" th:if="${commonCode.code} == 'QUES_TYPE'">
+                                                <option th:each="questionType : ${commonCode.subCode}"
+                                                        th:value="${questionType.code}"
+                                                        th:text="${questionType.codeName}"
+                                                        th:selected="${content.size > 0 ? (content[0].examQuestionMaster.questionType == questionType.code ? true : false ): false}">
+                                                </option>
+                                            </th:block>
+                                        </select>
+                                    </td>
+                                    <th scope="row"><span class="el_required">*</span>문항개수</th>
+                                    <td>
+                                        <select id="itemCount" class="common_select">
+                                            <option value="2" th:selected="${content.size > 0 ? (content[0].examQuestionMaster.questionItemCount == 2 ? true : false) : true}">2개</option>
+                                            <option value="3" th:selected="${content.size > 0 ? (content[0].examQuestionMaster.questionItemCount == 3 ? true : false) : false}">3개</option>
+                                            <option value="4" th:selected="${content.size > 0 ? (content[0].examQuestionMaster.questionItemCount == 4 ? true : false) : false}">4개</option>
+                                            <option value="5" th:selected="${content.size > 0 ? (content[0].examQuestionMaster.questionItemCount == 5 ? true : false) : false}">5개</option>
+                                        </select>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><span class="el_required">*</span>문항</th>
+                                    <td colspan="3">
+                                        <div class="tableResponsive overflowMulti">
+                                            <table id="q_table" class="table">
+                                                <colgroup>
+                                                    <col style="width: 50px">
+                                                    <col style="width: 50px">
+                                                    <col>
+                                                </colgroup>
+                                                <thead>
+                                                    <tr>
+                                                        <th scope="col">정답</th>
+                                                        <th scope="col">번호</th>
+                                                        <th scope="col">내용</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="itemBody">
+                                                <th:block th:if="${content.size > 0}">
+                                                    <tr th:each="item, stat: ${content[0].examQuestionMaster.questionItemList}">
+                                                        <td>
+                                                            <div>
+                                                                <input th:id="|q_${stat.index + 1}|" type="checkbox" name="question" th:value="${stat.index + 1}"
+                                                                       th:checked="${item.isCorrectAnswer}">
+                                                                <label th:for="|q_${stat.index + 1}|">
+                                                                    <span class="me-0"></span>
+                                                                </label>
+                                                            </div>
+                                                        </td>
+                                                        <td th:text="${item.questionSortNo}">1</td>
+                                                        <td th:id="${item.questionItemSerialNo}">
+                                                            <th:block th:if="${stat.index == 0}">
+                                                                <textarea id="answerLong" cols="30" rows="10"
+                                                                          th:text="${item.questionItemValue}"></textarea>
+                                                            </th:block>
+                                                            <input id="answerShort" name="questionValue" type="text" class="hp_w600"
+                                                                   th:value="${item.questionItemValue}">
+                                                            <div class="bl_uploadGrid mt-1">
+                                                                <div class="bl_upload js_upload hp_lg_w462">
+                                                                    <input type="text" class="bl_upload_path js_path"
+                                                                           th:value="${item.questionItemFilePath != null ? item.questionItemFilePath : null}" readonly>
+                                                                    <label class="btn btnDefault bg-secondary text-white bl_upload_btn">파일선택</label>
+                                                                    <input type="file" name="questionItemFile" class="bl_upload_file js_file">
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                    <th:block th:if="${content[0].examQuestionMaster.questionItemList.size < 5}">
+                                                    <tr th:each="number : ${#numbers.sequence(content[0].examQuestionMaster.questionItemList.size + 1, 5)} ">
+                                                        <td>
+                                                            <div>
+                                                                <input th:id="|q_${number}|" type="radio" name="question" th:value="${number}">
+                                                                <label th:for="|q_${number}|">
+                                                                    <span class="me-0"></span>
+                                                                </label>
+                                                            </div>
+                                                        </td>
+                                                        <td th:text="${number}">3</td>
+                                                        <td>
+                                                            <input type="text" name="questionValue" class="hp_w600">
+                                                            <div class="bl_uploadGrid mt-1">
+                                                                <div class="bl_upload js_upload hp_lg_w462">
+                                                                    <input type="text" class="bl_upload_path js_path" readonly>
+                                                                    <label class="btn btnDefault bg-secondary text-white bl_upload_btn">파일선택</label>
+                                                                    <input type="file" name="questionItemFile" class="bl_upload_file js_file">
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                    </th:block>
+                                                </th:block>
+                                                <th:block th:unless="${content.size > 0}">
+                                                    <tr>
+                                                        <td>
+                                                            <div>
+                                                                <input id="q_1" type="radio" name="question" value="1">
+                                                                <label for="q_1">
+                                                                    <span class="me-0"></span>
+                                                                </label>
+                                                            </div>
+                                                        </td>
+                                                        <td>1</td>
+                                                        <td>
+                                                            <input id="answerShort" name="questionValue" type="text" class="hp_w600">
+                                                            <textarea id="answerLong" cols="30" rows="10"></textarea>
+                                                            <div class="bl_uploadGrid mt-1">
+                                                                <div class="bl_upload js_upload hp_lg_w462">
+                                                                    <input type="text" class="bl_upload_path js_path" readonly>
+                                                                    <label class="btn btnDefault bg-secondary text-white bl_upload_btn">파일선택</label>
+                                                                    <input type="file" name="questionItemFile" class="bl_upload_file js_file">
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            <div>
+                                                                <input id="q_2" type="radio" name="question" value="2">
+                                                                <label for="q_2">
+                                                                    <span class="me-0"></span>
+                                                                </label>
+                                                            </div>
+                                                        </td>
+                                                        <td>2</td>
+                                                        <td>
+                                                            <input type="text" name="questionValue" class="hp_w600">
+                                                            <div class="bl_uploadGrid mt-1">
+                                                                <div class="bl_upload js_upload hp_lg_w462">
+                                                                    <input type="text" class="bl_upload_path js_path" readonly>
+                                                                    <label class="btn btnDefault bg-secondary text-white bl_upload_btn">파일선택</label>
+                                                                    <input type="file" name="questionItemFile" class="bl_upload_file js_file">
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            <div>
+                                                                <input id="q_3" type="radio" name="question" value="3">
+                                                                <label for="q_3">
+                                                                    <span class="me-0"></span>
+                                                                </label>
+                                                            </div>
+                                                        </td>
+                                                        <td>3</td>
+                                                        <td>
+                                                            <input type="text" name="questionValue" class="hp_w600">
+                                                            <div class="bl_uploadGrid mt-1">
+                                                                <div class="bl_upload js_upload hp_lg_w462">
+                                                                    <input type="text" class="bl_upload_path js_path" readonly>
+                                                                    <label class="btn btnDefault bg-secondary text-white bl_upload_btn">파일선택</label>
+                                                                    <input type="file" name="questionItemFile" class="bl_upload_file js_file">
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            <div>
+                                                                <input id="q_4" type="radio" name="question" value="4">
+                                                                <label for="q_4">
+                                                                    <span class="me-0"></span>
+                                                                </label>
+                                                            </div>
+                                                        </td>
+                                                        <td>4</td>
+                                                        <td>
+                                                            <input type="text" name="questionValue" class="hp_w600">
+                                                            <div class="bl_uploadGrid mt-1">
+                                                                <div class="bl_upload js_upload hp_lg_w462">
+                                                                    <input type="text" class="bl_upload_path js_path" readonly>
+                                                                    <label class="btn btnDefault bg-secondary text-white bl_upload_btn">파일선택</label>
+                                                                    <input type="file" name="questionItemFile" class="bl_upload_file js_file">
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            <div>
+                                                                <input id="q_5" type="radio" name="question" value="5">
+                                                                <label for="q_5">
+                                                                    <span class="me-0"></span>
+                                                                </label>
+                                                            </div>
+                                                        </td>
+                                                        <td>5</td>
+                                                        <td>
+                                                            <input type="text" name="questionValue" class="hp_w600">
+                                                            <div class="bl_uploadGrid mt-1">
+                                                                <div class="bl_upload js_upload hp_lg_w462">
+                                                                    <input type="text" class="bl_upload_path js_path" readonly>
+                                                                    <label class="btn btnDefault bg-secondary text-white bl_upload_btn">파일선택</label>
+                                                                    <input type="file" name="questionItemFile" class="bl_upload_file js_file">
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                </th:block>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">정답설명</th>
+                                    <td colspan="3">
+                                        <textarea name="contents" class="ckeditor" style="width:100%; height:200px"
+                                                  id="correctAnswerDescription"
+                                                  th:text="${content.size > 0 ? content[0].examQuestionMaster.questionContents : null}"></textarea>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">사용여부</th>
+                                    <td colspan="3">
+                                        <div class="radio_box">
+                                            <input id="use" type="radio" name="state" th:checked="${content.size > 0 ? (content[0].examQuestionMaster.isUsable == true ? true : false) : true}">
+                                            <label for="use">
+                                                <span></span>
+                                                사용
+                                            </label>
+                                        </div>
+                                        <div class="radio_box">
+                                            <input id="not_use" type="radio" name="state" th:checked="${content.size > 0 ? (content[0].examQuestionMaster.isUsable == true ? false : true) : false}">
+                                            <label for="not_use">
+                                                <span></span>
+                                                미사용
+                                            </label>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="bl_gridBtns">
+                        <div class="bl_gridBtns_rgt">
+                            <a class="btn btnDefault btnList" onclick="backToList()">목록</a>
+                            <a th:if="${content.size > 0}" class="btn btnDefault btnRegister" onclick="modify()">수정</a>
+                            <a th:unless="${content.size > 0}" class="btn btnDefault btnRegister" onclick="regist()">등록</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            /* <![CDATA[ */
+            const commonCode = [[ ${commonCode} ]];
+            const content = [[ ${content} ]][0];
+            const params = {};
+
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+            }
+
+            function backToList() {
+                let url = location.pathname
+                if (url.indexOf("regist") > 0) {
+                    window.location.replace(url.split("/regist")[0])
+                } else {
+                    count = url.lastIndexOf("/");
+                    window.location.replace(url.slice(0,count))
+                }
+            }
+
+            //문제유형 selected 값에 따른 처리
+            function qTypeSelected() {
+                let selected = $('#questionType option:selected').text();
+
+                $('#q_table input#answerShort').show();
+                $('#q_table textarea#answerLong').hide();
+
+                if (selected == '단답형' || selected == '서술형') {
+                    //문항개수 비활성화
+                    $('#itemCount').attr('disabled', 'disabled');
+                    $('#itemCount').css('color','transparent');
+
+                    //정답, 번호 컬럼 숨김
+                    $('#q_table colgroup').hide();
+                    $('#q_table th:first-child').hide();
+                    $('#q_table th:nth-child(2)').hide();
+                    $('#q_table tr:not(:first-child)').hide();
+                    $('#q_table tr:first-child td:first-child').hide();
+                    $('#q_table tr:first-child td:nth-child(2)').hide();
+
+                    if (selected == '서술형') {
+                        $('#q_table input#answerShort').hide();
+                        $('#q_table textarea#answerLong').show();
+                    }
+                } else {
+                    //문항개수 활성화
+                    $('#itemCount').removeAttr('disabled');
+                    $('#itemCount').css('color','#555');
+
+                    //정답, 번호 컬럼 보여줌
+                    $('#q_table colgroup').show();
+                    $('#q_table th:first-child').show();
+                    $('#q_table th:nth-child(2)').show();
+                    $('#q_table tr:not(:first-child)').show();
+                    $('#q_table tr:first-child td:first-child').show();
+                    $('#q_table tr:first-child td:nth-child(2)').show();
+
+                    //단일선택, 다중선택 show/hide 처리
+                    if (selected == '단일선택') {
+                        $('input[name="question"]').parent().removeClass('chk_box');
+                        $('input[name="question"]').parent().addClass('radio_box');
+                        $('input[name="question"]').attr('type', 'radio');
+                    } else if (selected == '다중선택') {
+                        $('input[name="question"]').parent().removeClass('radio_box');
+                        $('input[name="question"]').parent().addClass('chk_box');
+                        $('input[name="question"]').attr('type', 'checkbox');
+                    }
+                }
+            }
+            qTypeSelected();
+            $('#questionType').change(qTypeSelected);
+
+            //문항개수 selected 값에 따른 처리
+            function qNumSelected() {
+                let selected = $('#itemCount option:selected').text();
+
+                switch (selected) {
+                    case "2개":
+                        $('#q_table tbody tr').eq(2).hide();
+                        $('#q_table tbody tr').eq(3).hide();
+                        $('#q_table tbody tr').eq(4).hide();
+                        break;
+                    case "3개":
+                        $('#q_table tbody tr').eq(2).show();
+                        $('#q_table tbody tr').eq(3).hide();
+                        $('#q_table tbody tr').eq(4).hide();
+                        break;
+                    case "4개":
+                        $('#q_table tbody tr').eq(2).show();
+                        $('#q_table tbody tr').eq(3).show();
+                        $('#q_table tbody tr').eq(4).hide();
+                        break;
+                    case "5개":
+                        $('#q_table tbody tr').eq(2).show();
+                        $('#q_table tbody tr').eq(3).show();
+                        $('#q_table tbody tr').eq(4).show();
+                        break;
+                }
+            }
+            qNumSelected();
+            $('#itemCount').change(qNumSelected);
+
+            /** 미입력된 필수 정보가 있을 경우 alert */
+            function requiredChk() {
+
+                if (!document.querySelector("#questionTitle").value) {
+                    alert('문제 제목은 필수입니다.');
+                    return false;
+                } else params.questionTitle = document.querySelector("#questionTitle").value;
+
+                if (!document.querySelector("#questionLevel").value) {
+                    alert('난이도는 필수입니다.');
+                    return false;
+                } else params.questionLevel = document.querySelector("#questionLevel").value;
+
+                if (!document.querySelector("#questionType").value) {
+                    alert('문제유형은 필수입니다.');
+                    return false;
+                } else params.questionType = document.querySelector("#questionType").value;
+
+                params.examQuestionItemList = [];
+                switch (document.querySelector("#questionType").value) {
+                    case "1":
+                        if (!$("[name=question]:checked").val()) {
+                            alert('정답은 필수입니다.');
+                            return false;
+                        }
+
+                        Array.from($("[name=questionValue]")).forEach(function(data, index, list) {
+                            if(index < Number.parseInt(document.querySelector("#itemCount").value)) {
+                                if(!data.value) { alert('정답 내용은 필수입니다.'); return false; }
+                                params.examQuestionItemList.push({
+                                    questionItemSerialNo: data.parentElement.parentElement.children[2].id,
+                                    questionSortNo: (index + 1),
+                                    questionItemValue: data.value,
+                                    questionItemFile: $("[name=questionItemFile]")[index].files[0],
+                                    isCorrectAnswer: Number.parseInt($("[name=question]:checked").val()) == (index + 1) ? true : false
+                                })
+                            }
+                        })
+
+                        break;
+                    case "2":
+                        if (!$("[name=question]:checked").length > 0) {
+                            alert('정답은 필수입니다.');
+                            return false;
+                        }
+
+                        Array.from($("[name=questionValue]")).forEach(function(data, index, list) {
+                            if(index < Number.parseInt(document.querySelector("#itemCount").value)) {
+                                if(!data.value) { alert('정답 내용은 필수입니다.'); return false; }
+                                params.examQuestionItemList.push({
+                                    questionItemSerialNo: data.parentElement.parentElement.children[2].id,
+                                    questionSortNo: (index + 1),
+                                    questionItemValue: data.value,
+                                    questionItemFile: $("[name=questionItemFile]")[index].files[0],
+                                    isCorrectAnswer: Array.from($("[name=question]:checked")).filter(data => data.value == (index + 1)).length > 0 ? true : false
+                                })
+                            }
+                        })
+
+                        break;
+                    case "3":
+                        if(!document.querySelector("#answerShort").value) {
+                            alert('정답은 필수입니다.');
+                            return false;
+                        }
+
+                        params.examQuestionItemList.push({
+                            questionItemSerialNo: document.querySelector("#answerShort").parentElement.parentElement.children[2].id,
+                            questionSortNo: 1,
+                            questionItemValue: document.querySelector("#answerShort").value,
+                            questionItemFile: $("[name=questionItemFile]")[0].files[0],
+                            isCorrectAnswer: true
+                        });
+
+                        break;
+                    case "4":
+                        if(!document.querySelector("#answerLong").value) {
+                            alert('정답은 필수입니다.');
+                            return false;
+                        }
+
+                        params.examQuestionItemList.push({
+                            questionItemSerialNo: document.querySelector("#answerLong").parentElement.parentElement.children[2].id,
+                            questionSortNo: 1,
+                            questionItemValue: document.querySelector("#answerLong").value,
+                            questionItemFile: $("[name=questionItemFile]")[0].files[0],
+                            isCorrectAnswer: true
+                        });
+
+                        break;
+                    default:
+                        break;
+                }
+
+                if (!document.querySelectorAll('iframe')[0].contentWindow.document.body.children[0].textContent) {
+                    alert('문제 설명은 필수입니다.');
+                    return false;
+                } else params.questionContents = document.querySelectorAll('iframe')[0].contentWindow.document.body.children[0].textContent;
+
+                return true;
+            }
+
+            /** 등록 */
+            function regist() {
+                Array.from($("a[name=button]")).forEach(function (form, index, list) {
+                    form.disabled = true;
+                });
+                /** 필수 값 체크 */
+                if (!requiredChk()) return;
+                /** 비필수 값 셋팅 */
+                /** 교육과정 코드 */params.curriculumCode = [[ ${curriculumCode} ]];
+                /** 정답 설명 */params.correctAnswerDescription = document.querySelectorAll('iframe')[1].contentWindow.document.body.children[0].textContent;
+                /** 사용 여부 */params.isUsable = $("[name=state]:checked")[0].id === "use" ? true : false;
+
+                const form = new FormData();
+                const fileSortNo = [];
+                Array.from($("[name=questionValue]")).forEach(function(data, index, list) {
+                    if(index < Number.parseInt(document.querySelector("#itemCount").value)) {
+                        if($("[name=questionItemFile]")[index].files[0]) {
+                            form.append("itemFiles", $("[name=questionItemFile]")[index].files[0]);
+                            fileSortNo.push(index + 1)
+                        }
+                    }
+                })
+                form.append("fileSortNo", new Blob([JSON.stringify(fileSortNo)], { type: "application/json" }));
+                form.append("questionFile", document.querySelector("#questionFile").files[0]);
+                form.append("requestObject", new Blob([JSON.stringify(params)], { type: "application/json" }));
+
+                /** 교육과정 시험 문제 등록 */
+                $.ajax({ //jquery ajax
+                    type:"post", //http method
+                    url:"/api/education/curriculum/e-learning/question/create", //값을 가져올 경로
+                    enctype: "multipart/form-data", //form data 설정
+                    processData : false,
+                    contentType : false,
+                    data: form,
+                    success: function(result) {   //요청 성공시 실행될 메서드
+                        alert("교육과정 시험 문제 생성이 완료되었습니다.");
+                        window.location.replace('/education/curriculum/e-learning/question/'+params.curriculumCode);
+                    },
+                    error: function(e){		 //요청 실패시 에러 확인을 위함
+                        alert(e.responseJSON.resultMessage);
+                        Array.from($("a[name=button]")).forEach(function (form, index, list) {
+                            form.disabled = false;
+                        });
+                    }
+                })
+            }
+
+            /** 수정 */
+            function modify() {
+                Array.from($("a[name=button]")).forEach(function (form, index, list) {
+                    form.disabled = true;
+                });
+                /** 필수 값 체크 */
+                if (!requiredChk()) return;
+                /** 비필수 값 셋팅 */
+                /** 교육과정 코드 */params.curriculumCode = [[ ${curriculumCode} ]];
+                /** 교육과정 코드 */params.questionSerialNo = content.questionSerialNo;
+                /** 정답 설명 */params.correctAnswerDescription = document.querySelectorAll('iframe')[1].contentWindow.document.body.children[0].textContent;
+                /** 사용 여부 */params.isUsable = $("[name=state]:checked")[0].id === "use" ? true : false;
+
+                const form = new FormData();
+                const fileSortNo = [];
+                Array.from($("[name=questionValue]")).forEach(function(data, index, list) {
+                    if(index < Number.parseInt(document.querySelector("#itemCount").value)) {
+                        if($("[name=questionItemFile]")[index].files[0]) {
+                            form.append("itemFiles", $("[name=questionItemFile]")[index].files[0]);
+                            fileSortNo.push(index + 1)
+                        }
+                    }
+                })
+                form.append("fileSortNo", new Blob([JSON.stringify(fileSortNo)], { type: "application/json" }));
+                form.append("questionFile", document.querySelector("#questionFile").files[0]);
+                form.append("requestObject", new Blob([JSON.stringify(params)], { type: "application/json" }));
+
+                /** 교육과정 시험 문제 수정 */
+                $.ajax({ //jquery ajax
+                    type:"put", //http method
+                    url:"/api/education/curriculum/e-learning/question/update", //값을 가져올 경로
+                    enctype: "multipart/form-data", //form data 설정
+                    processData : false,
+                    contentType : false,
+                    data: form,
+                    success: function(result) {   //요청 성공시 실행될 메서드
+                        alert("교육과정 시험 문제 수정이 완료되었습니다.");
+                        window.location.reload();
+                    },
+                    error: function(e){		 //요청 실패시 에러 확인을 위함
+                        alert(e.responseJSON.resultMessage);
+                        Array.from($("a[name=button]")).forEach(function (form, index, list) {
+                            form.disabled = false;
+                        });
+                    }
+                })
+            }
+
+            /* ]]> */
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

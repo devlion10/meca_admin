@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="business-3">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>사업신청 관리(언론인)</h2>
+        </div>
+
+        <div class="sch_box flex-wrap">
+            <select id="bizPbancYr" class="common_select" data-list="yearList"></select>
+            <select id="bizPbancRnd" class="common_select" data-list="numList"></select>
+            <input id="containText" type="text" class="hp_w400" placeholder="사업명, 신청자명">
+            <div class="d-flex-1">
+                <div th:onclick="searchPbancApply()" class="btn btnDefault btnSearch">검색</div>
+                <div href="/business/apply/journalist" class="btn btnDefault btnReset">리셋</div>
+                <div id="apply_delete" class="btn btnDefault btnDelete icon_none">선택삭제</div>
+            </div>
+        </div>
+
+        <!-- BOARD : CONTROLLER -->
+        <div class="bl_boardCtrls">
+            <div class="bl_boardCtrls_lft">
+                <p class="bl_boardCtrls_total">
+                     총: <strong th:text="${pageable.totalElements}"></strong>건
+                </p>
+            </div>
+            <div class="bl_boardCtrls_rgt">
+                <a href="/api/business/apply/journalist/excel" class="btn btnDefault download_excel download_search">excel 다운로드</a>
+                <select class="common_select" data-list="countSortList"></select>
+            </div>
+        </div>
+
+        <div class="tableResponsive overflowMulti">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th scope="col">
+                        <div class="chk_box">
+                            <input id="all_check" type="checkbox">
+                            <label for="all_check">
+                                <span class="me-0"></span>
+                            </label>
+                        </div>
+                    </th>
+                    <th scope="col">번호</th>
+                    <th scope="col">년도</th>
+                    <th scope="col">사업명</th>
+                    <th scope="col">차수</th>
+                    <th scope="col">등록일시</th>
+                    <th scope="col">신청자명</th>
+                    <th scope="col">소속명</th>
+                    <th scope="col">부서/직급/직책</th>
+                    <th scope="col">신청서</th>
+                    <th scope="col">관리</th>
+                </tr>
+                </thead>
+                <tbody th:if="${content != null && content.size > 0}">
+                    <tr th:each="item, stat : ${content}">
+                        <td>
+                            <div class="chk_box item_chk">
+                                <input th:id="'application'+${stat.index}" type="checkbox" name="business_application" th:value="${stat.index}" >
+                                <label th:for="'application'+${stat.index}">
+                                    <span class="me-0"></span>
+                                </label>
+                            </div>
+                        </td>
+                        <td th:text="${pageable.totalElements - ((pageable.page * pageable.size) + stat.index)}"></td>
+                        <td th:text="${item.bizPbancMaster.bizPbancYr}">2022</td>
+                        <td>
+                            <a th:href="@{/business/pbanc/list/{type}/{id}(type=${item.bizPbancMaster.bizPbancType}, id=${item.bizPbancMaster.bizPbancNo})}" th:text="${item.bizPbancMaster.bizPbancNm}">사업명</a>
+                        </td>
+                        <td th:text="${item.bizPbancMaster.bizPbancRnd}">3</td>
+                        <td th:text="${item.createDateTime}">2022.08.08 20:52:59</td>
+                        <td th:text="${item.lmsUser.userName}">신청자명</td>
+                        <td>
+                            <div th:if="${item.lmsUser.organizationInfo != null}" th:text="${item.lmsUser.organizationInfo.organizationName}"></div>
+                            <div th:if="${item.lmsUser.mediaInfo != null}" th:text="${item.lmsUser.mediaInfo.mediaName}"></div>
+                        </td>
+                        <td>
+                            <div th:if="${item.lmsUser.department != null}" th:text="${item.lmsUser.department}"></div>
+                            <div>
+                                <span th:if="${item.lmsUser.rank != null}" th:text="${item.lmsUser.rank}"></span>
+                                <span th:if="${not #strings.isEmpty(item.lmsUser.rank) && not #strings.isEmpty(item.lmsUser.position)}"> / </span>
+                                <span th:if="${item.lmsUser.position != null}" th:text="${item.lmsUser.position}"></span>
+                            </div>
+                        </td>
+                        <td>
+                            <a th:href="@{/api/business/apply/download/(attachFilePath=${item.bizAplyFile})}" class="btn btnDefault download_ajax">다운로드</a>
+                        </td>
+                        <td>
+                            <a th:value="${stat.index}" class="btn btnDefault btnDelete icon_none apply_delete">삭제</a>
+                        </td>
+                    </tr>
+                </tbody>
+                <tbody th:unless="${content != null && content.size > 0}">
+                <tr class="empty_data"><td colspan="11">조회된 내용이 없습니다.</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="bl_paginate"></div>
+
+        <th:block layout:fragment="script">
+            <script th:inline="javascript">
+                let searchParams = new URLSearchParams(window.location.search);
+                function searchPbancApply(){
+                    let searchQuery = {}
+                    let year = $("#bizPbancYr").val();
+                    let rnd = $("#bizPbancRnd").val();
+                    let name = $("#containText").val();
+                    if(year && year!=0){
+                        searchQuery.bizPbancYr = year
+                    }
+                    if(rnd && rnd!=0){
+                        searchQuery.bizPbancRnd =rnd
+                    }
+                    if(name){
+                        searchQuery.containText = name
+                    }
+                    searchJson(searchQuery)
+                }
+                $("#apply_delete").bind("click", function (e){
+                    if (confirm("정말로 삭제하시겠습니까?")) {
+                        $('input:checkbox[name=business_application]:checked').each(function (index){
+                            let dataIndex = $(this).val();
+                            let params = updateData(dataIndex);
+                            $.ajax({
+                                type: "delete", //http method
+                                url: `/api/business/apply/delete/${params.sequenceNo}`, //값을 가져올 경로
+                                headers: {'Content-Type': 'application/json'},
+                                data: JSON.stringify(params),
+                                dataType: "json",
+                                success: function(data) {
+                                    if((index+1) == $('input:checkbox[name=business_application]:checked').length){
+                                        alert("삭제가 완료되었습니다.");
+                                        window.location.reload();
+                                    }
+                                },
+                                error: function(data) {
+                                    alert(data.responseJSON.resultMessage);
+                                }
+                            })
+
+                        });
+                    }
+                })
+                $(".apply_delete").bind("click", function (e){
+                    e.preventDefault();
+                    if(confirm("정말로 삭제하시겠습니까?")){
+                        let dataIndex = $(this).attr("value");
+                        let params = updateData(dataIndex);
+                        $.ajax({
+                            type: "delete", //http method
+                            url: `/api/business/apply/delete/${params.sequenceNo}`,
+                            headers: {'Content-Type': 'application/json'},
+                            data: JSON.stringify(params),
+                            dataType: "json",
+                            success: function(data) {
+                                alert("삭제되었습니다.");
+                                window.location.reload();
+                            },
+                            error: function(data) {
+                                alert("오류가 발생했습니다.")
+                            }
+                        })
+                    }
+                })
+
+                /* <![CDATA[ */
+                function updateData(index){
+                    let CONT = [[ ${content} ]];
+                    return CONT[index]
+                }
+                function onLoadSubmit() {
+                    console.log('commonCode: ', [[ ${commonCode} ]] )
+                    checkBox()
+                    pagination([[ ${pageable} ]])
+                }
+                /* ]]> */
+            </script>
+        </th:block>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+</div>
+</body>
+</html>

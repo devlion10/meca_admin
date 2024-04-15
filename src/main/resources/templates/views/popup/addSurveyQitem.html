@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/pop_layout}">
+<body>
+<div layout:fragment="pop">
+    <article class="pop_page">
+        <div class="pop_secondary">
+            <div class="pop_head">
+                <div class="tit">문항 추가</div>
+            </div>
+            <div class="pop_cont">
+                <div class="sch_box">
+                    <select id="bizSurveyQitemCategory" class="common_select">
+                        <option value="">구분 전체</option>
+                        <option value="1">강사평가</option>
+                        <option value="2">기관평가</option>
+                    </select>
+                    <select id="bizSurveyQitemType" class="common_select">
+                        <option value="">유형 전체</option>
+                        <option value="0">단일선택</option>
+                        <option value="1">다중선택</option>
+                        <option value="2">단답형</option>
+                        <option value="3">서술형</option>
+                    </select>
+                    <input id="containText" type="text" class="hp_w200" placeholder="제목을 입력해주세요.">
+                    <div onclick="search()" class="btn btnDefault btnSearch">검색</div>
+                </div>
+
+                <div class="tableResponsive overflowMulti">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th scope="col">구분</th>
+                                <th scope="col">유형</th>
+                                <th scope="col">문제</th>
+                                <th scope="col">선택</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:if="${!#lists.isEmpty(content)}" th:each="item, stat: ${content}">
+                                <td>
+                                    <span th:if="${item.bizSurveyQitemCategory == 1}">강사평가</span>
+                                    <span th:if="${item.bizSurveyQitemCategory == 2}">기관평가</span>
+                                </td>
+                                <td>
+                                    <span th:if="${item.bizSurveyQitemType == 0}">단일선택</span>
+                                    <span th:if="${item.bizSurveyQitemType == 1}">다중선택</span>
+                                    <span th:if="${item.bizSurveyQitemType == 2}">단답형</span>
+                                    <span th:if="${item.bizSurveyQitemType == 3}">서술형</span>
+                                </td>
+                                <td th:text="${item.bizSurveyQitemName}">홍길동</td>
+                                <td>
+                                    <div th:onclick="sendData( [[${stat.index}]] )" class="btn btnDefault">선택</div>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(content)}" class="empty_data">
+                                <td colspan="4">조회된 문항이 없습니다.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div th:if="${!#lists.isEmpty(content)}" class="bl_paginate"></div>
+            </div>
+
+            <button type="button" class="pop_close pop-close" onclick="parent.window.closePop()">닫기</button>
+        </div>
+    </article>
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            function search(){
+                let searchQuery = {}
+                $(".sch_box select").each((index, item)=>{
+                    if($(item).val()){
+                        searchQuery[$(item).attr('id')] = $(item).val()
+                    }
+                })
+                if($("#containText").val()){
+                    searchQuery.containText=$("#containText").val();
+                    searchQuery.containTextType=1;
+                }
+                searchJson(searchQuery);
+            }
+            /* <![CDATA[ */
+            const CONT = [[ ${content} ]];
+
+            function sendData(index){
+                window.parent.postMessage(CONT[index],'*')
+                parent.window.closePop()
+            }
+
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+                pagination([[ ${pageable} ]], false);
+            }
+            /* ]]> */
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

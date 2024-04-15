@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/pop_layout}">
+<body>
+<div layout:fragment="pop">
+  <article class="pop_page" id="popReceivingAgency">
+    <div class="pop_secondary">
+      <div class="pop_head">
+        <h1 class="tit">접수 기관 리스트</h1>
+      </div>
+      <div class="pop_cont">
+        <div class="tableResponsive overflowMulti">
+          <table class="table">
+            <thead>
+            <tr>
+              <th scope="col">번호</th>
+              <th scope="col">기관명</th>
+              <th scope="col">교육기간</th>
+              <th scope="col">교육시간</th>
+              <th scope="col">신청자</th>
+            </tr>
+            </thead>
+            <tbody id="popupRandPoint">
+            <tr th:each="item, stat: ${content}">
+              <td th:text="${pageable.totalElements - ((pageable.page * pageable.size) + stat.index)}"></td>
+              <td th:text="${item.organizationInfo.organizationName}">기관명</td>
+              <td><span th:text="${item.bizOrgAplyLsnPlanBgng}"></span>~<span th:text="${item.bizOrgAplyLsnPlanEnd}"></span></td>
+              <td th:text="${item.bizOrgAplyTime}">24.0</td>
+              <td th:text="${item.bizOrgAplyPicNm}">담당자명</td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(content)}" class="empty_data">
+              <td colspan="5">접수된 신청서가 없습니다.</td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="bl_paginate"></div>
+      </div>
+
+      <button type="button" class="pop_close pop-close" onclick="parent.window.closePop()">닫기</button>
+    </div>
+  </article>
+
+  <th:block layout:fragment="script">
+    <script th:inline="javascript">
+      /* <![CDATA[ */
+      function onLoadSubmit() {
+        console.log('commonCode: ', [[ ${commonCode} ]] )
+        pagination([[ ${pageable} ]])
+      }
+      /* ]]> */
+    </script>
+  </th:block>
+</div>
+</body>
+</html>

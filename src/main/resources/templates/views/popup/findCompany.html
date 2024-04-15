@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/pop_layout}">
+<body>
+<div layout:fragment="pop">
+    <article class="pop_page">
+        <div class="pop_secondary" style="height: auto">
+            <div class="pop_head">
+                <div class="tit">매체사 찾아보기</div>
+            </div>
+            <div class="pop_cont" style="max-height: 667px">
+                <div class="sch_box">
+                    <input  id="organizationName" name="organizationName"  type="text" class="hp_w200" placeholder="매체사">
+                    <input id="organizationAddress1" name="organizationAddress1" type="text" class="hp_w400" placeholder="주소">
+                    <a class="btn btnDefault btnSearch">검색</a>
+                </div>
+
+                <!-- BOARD : CONTROLLER -->
+                <div class="bl_boardCtrls">
+                    <div class="bl_boardCtrls_lft">
+                        <p class="bl_boardCtrls_total">
+                            총: <strong th:text="${pageable.totalElements}"></strong>건
+                        </p>
+                    </div>
+                </div>
+
+                <div class="tableResponsive overflowMulti">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th scope="col">번호</th>
+                                <th scope="col">매체사</th>
+                                <th scope="col">매체</th>
+                                <th scope="col">주소</th>
+                                <th scope="col">전화번호</th>
+                                <th scope="col">선택</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="item, stat: ${content}">
+                                <td>
+                                    <span th:text="${pageable.totalElements - ((pageable.page * pageable.size) + stat.index)}"></span>
+                                </td>
+                                <td th:text="${item.organizationName}">매체사1</td>
+                                <td>
+                                    <span th:if="${not #strings.isEmpty(item.organizationSubName)}" th:text="${item.organizationSubName}"></span>
+                                    <span th:if="${#strings.isEmpty(item.organizationSubName)}">-</span>
+                                </td>
+                                <td>
+                                    <span th:if="${not #strings.isEmpty(item.organizationAddress1)}" th:text="${item.organizationAddress1}"></span>
+                                    <span th:if="${not #strings.isEmpty(item.organizationAddress2)}" class="me-1">,</span>
+                                    <span th:if="${not #strings.isEmpty(item.organizationAddress2)}" th:text="${item.organizationAddress2}"></span>
+                                    <span th:if="${#strings.isEmpty(item.organizationAddress1)} and ${#strings.isEmpty(item.organizationAddress2)}">-</span>
+                                </td>
+                                <td>
+                                    <span th:text="${item.organizationTelNumber}"></span>
+                                </td>
+                                <td>
+                                    <div class="btn btnDefault" th:onclick="sendData([[${stat.index}]])">선택</div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="bl_paginate"></div>
+            </div>
+    
+            <button type="button" class="pop_close pop-close" onclick="parent.window.closePop()">닫기</button>
+        </div>
+    </article>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            const CONT = [[ ${content} ]];
+            $(".btnSearch").bind("click", function (e){
+                let searchQuery = {}
+                let name = $("#organizationName").val();
+                let addr = $("#organizationAddress1").val();
+                if(name){
+                    searchQuery.organizationName = name;
+                }
+                if(addr){
+                    searchQuery.organizationAddress1 = addr;
+                }
+                searchJson(searchQuery)
+            })
+
+            function sendData(index){
+                window.parent.postMessage(CONT[index],'*')
+                parent.window.closePop()
+            }
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+                pagination([[ ${pageable} ]], false)
+            }
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

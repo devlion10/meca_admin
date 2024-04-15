@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="business-5-1">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>강의확인서 관리</h2>
+        </div>
+        <div class="bl_tab2">
+            <ul class="bl_tab2_menu js_tab_menu">
+                <li th:classappend="${#httpServletRequest.requestURI == '/business/instructor/identify' ? 'is_active' : ''}">
+                    <a href="/business/instructor/identify">승인대기(미승인)</a>
+                </li>
+                <li th:classappend="${#httpServletRequest.requestURI == '/business/instructor/identify/result' ? 'is_active' : ''}">
+                    <a href="/business/instructor/identify/result">승인완료</a>
+                </li>
+            </ul>
+            <div class="bl_tab2_body js_tab_contents">
+                <div class="sch_box">
+                    <select id="year" class="common_select" data-list="yearList"></select>
+                    <select id="month" class="common_select" data-list="monthList"></select>
+                    <select id="bizPbancType" class="common_select" data-list="businessTemp"></select>
+                    <select id="bizPbancRnd" class="common_select" data-list="numList"></select>
+                    <select id="bizDistBgngNm" class="common_select" data-list="submissionList"></select>
+                    <select id="bizInstrIdntyStts" class="common_select">
+                        <option value="0">승인 상태</option>
+                        <option value="1">승인대기</option>
+                        <option value="2">기관승인</option>
+                        <option value="3">지출대기</option>
+                        <option value="4">지출완료</option>
+                    </select>
+                    <select id="containTextType" class="common_select">
+                        <option value="0">전체</option>
+                        <option value="1">강사명</option>
+                        <option value="2">강사아이디</option>
+                        <option value="3">수행기관</option>
+                    </select>
+                    <input id="containText" type="text" class="hp_w200">
+                    <a th:onclick="searchInstrId()" class="btn btnDefault btnSearch">검색</a>
+                    <a class="btn btnDefault btnReset">리셋</a>
+                    <div class="tab2_active">
+                        <a onclick="updateAprv(1)" class="btn btnDefault state__blue">선택 승인대기</a>
+                        <a onclick="updateAprv(2)" class="btn btnDefault state__green">선택 기관승인</a>
+                    </div>
+                </div>
+
+                <!-- BOARD : CONTROLLER -->
+                <div class="bl_boardCtrls">
+                    <div class="bl_boardCtrls_lft">
+                        <p class="bl_boardCtrls_total">
+                            총: <strong th:text="${pageable.totalElements}"></strong>건
+                        </p>
+                        <div class="bl_boardCtrls_select">
+                            <select id="bizInstrIdntyAprvDt" class="common_select">
+                                <option value="0">현재일시</option>
+                                <th:block th:each="item:${bizInstructorClclnDdlns}">
+                                    <option th:if="${item.bizInstrClclnDdlnMm<10}" th:value="${item.bizInstrClclnDdlnValue+' '+item.bizInstrClclnDdlnTm}" th:text="${'['+item.bizInstrClclnDdlnYr+'0'+item.bizInstrClclnDdlnMm+']'+item.bizInstrClclnDdlnValue+' '+item.bizInstrClclnDdlnTm}">[202210]2022-11-15 11:00:00</option>
+                                    <option th:if="${item.bizInstrClclnDdlnMm>9}" th:value="${item.bizInstrClclnDdlnValue+' '+item.bizInstrClclnDdlnTm}" th:text="${'['+item.bizInstrClclnDdlnYr+item.bizInstrClclnDdlnMm+']'+item.bizInstrClclnDdlnValue+' '+item.bizInstrClclnDdlnTm}">[202210]2022-11-15 11:00:00</option>
+                                </th:block>
+                            </select>
+                            <span>날짜로</span>
+
+                            <div class="tab1_active" th:if="${#httpServletRequest.requestURI == '/business/instructor/identify'}">
+                                <a onclick="updateAprv(2)" class="btn btnDefault state__green">기관승인</a>
+                            </div>
+                            <div class="tab1_active" th:if="${#httpServletRequest.requestURI == '/business/instructor/identify'}">
+                                <a onclick="updateAprvStts2(3)" class="btn btnDefault state__gray">기관승인만 지출대기</a>
+                            </div>
+                            <div class="tab2_active" th:if="${#httpServletRequest.requestURI == '/business/instructor/identify/result'}">
+                                <a onclick="updateAprv(-1)" class="btn btnDefault state__green">기관승인 날짜 변경</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bl_boardCtrls_rgt">
+                        <a id="pdfDownload" target="_blank" th:if="${#httpServletRequest.requestURI == '/business/instructor/identify/result'}" th:href="@{/business/instructor/identify/pdf/{total}?sttsType=2(total=${pageable.totalElements})}" class="btn btnDefault">PDF 다운로드</a>
+                        <a id="pdfDownload" target="_blank" th:if="${#httpServletRequest.requestURI == '/business/instructor/identify'}" th:href="@{/business/instructor/identify/pdf/{total}?sttsType=1(total=${pageable.totalElements})}" class="btn btnDefault">PDF 다운로드</a>
+                        <a id="excelDownload" th:if="${#httpServletRequest.requestURI == '/business/instructor/identify/result'}" href="/api/business/instructor/identify/excel?sttsType=2" class="btn btnDefault download_excel">excel 다운로드</a>
+                        <a id="excelDownload" th:if="${#httpServletRequest.requestURI == '/business/instructor/identify'}" href="/api/business/instructor/identify/excel?sttsType=1" class="btn btnDefault download_excel">excel 다운로드</a>
+                        <a id="excelDownload" th:if="${#httpServletRequest.requestURI == '/business/instructor/identify/result'}" href="/api/business/instructor/identify/detail/excel?sttsType=2" class="btn btnDefault download_excel">강의주제 excel 다운로드</a>
+                        <a id="excelDownload" th:if="${#httpServletRequest.requestURI == '/business/instructor/identify'}" href="/api/business/instructor/identify/detail/excel?sttsType=1" class="btn btnDefault download_excel">강의주제 excel 다운로드</a>
+                        <select class="common_select" data-list="countSortList"></select>
+                    </div>
+                </div>
+
+                <!-- 승인대기(미승인) -->
+                <div class="bl_tab2_item" th:if="${#httpServletRequest.requestURI == '/business/instructor/identify'}">
+                    <div class="tableResponsive overflowMulti">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">
+                                        <div class="chk_box">
+                                            <input id="all_check" type="checkbox" name="identifyList">
+                                            <label for="all_check">
+                                                <span class="me-0"></span>
+                                            </label>
+                                        </div>
+                                    </th>
+                                    <th scope="col">번호</th>
+                                    <th scope="col">작성자</th>
+                                    <th scope="col">제출처</th>
+                                    <th scope="col">년도</th>
+                                    <th scope="col">사업명</th>
+                                    <th scope="col">차수</th>
+                                    <th scope="col">수행기관</th>
+                                    <th scope="col">강의기간</th>
+                                    <th scope="col">강의시간</th>
+                                    <th scope="col">언택트 강의<br />포함유무</th>
+                                    <th scope="col">년월</th>
+                                    <th scope="col">승인</th>
+                                    <th scope="col">작성일</th>
+                                </tr>
+                            </thead>
+                            <tbody th:if="${content != null && content.size > 0}">
+                                <tr th:each="item, stat : ${content}">
+                                    <td>
+                                        <div class="chk_box item_chk">
+                                            <input th:id="${item.bizInstrIdntyNo}"  th:value="${stat.index}"  type="checkbox" name="identifyList">
+                                            <label th:for="${item.bizInstrIdntyNo}">
+                                                <span class="me-0"></span>
+                                            </label>
+                                        </div>
+                                    </td>
+                                    <td th:text="${pageable.totalElements - ((pageable.page * pageable.size) + stat.index)}"></td>
+                                    <td><span th:text="${item.userName}">신소영</span>(<span th:text="${item.registUserId}">soyoung8733</span>)</td>
+                                    <td th:if="${item.bizOrganizationAply!=null}" th:text="${item.bizOrganizationAply.bizOrgAplyRgn}">서울</td>
+                                    <td th:unless="${item.bizOrganizationAply!=null}" >-</td>
+                                    <td th:text="${item.bizPbancMaster.bizPbancYr}">2022</td>
+                                    <td>
+                                        <a th:href="@{/business/instructor/identify/{id}(id=${item.bizInstrIdntyNo})}" th:text="${item.bizPbancMaster.bizPbancNm}">사업명</a>
+                                    </td>
+                                    <td th:text="${item.bizPbancMaster.bizPbancRnd}">1</td>
+                                    <td th:text="${item.organizationName}">기관명</td>
+                                    <td>
+                                        <th:block th:if="${#lists.isEmpty(item.bizInstructorIdentifyDtls)}"> - </th:block>
+                                        <th:block th:unless="${#lists.isEmpty(item.bizInstructorIdentifyDtls)}">
+                                            <span th:text="${item.bizInstructorIdentifyDtls[0].bizOrganizationAplyDtl.bizOrgAplyLsnDtlYmd}">2022-07-12</span> ~
+                                            <span th:text="${item.bizInstructorIdentifyDtls[#lists.size(item.bizInstructorIdentifyDtls)-1].bizOrganizationAplyDtl.bizOrgAplyLsnDtlYmd}">2022-07-15</span>
+                                        </th:block>
+                                    </td>
+                                    <td th:text="${item.bizInstrIdntyTime}">24.0</td>
+                                    <td class="__target">
+                                        <span class="color_red">포함(<span class="__cnt"></span>건)</span>
+                                        <span>미포함</span>
+                                    </td>
+                                    <td><span th:text="${#strings.substring(item.bizInstrIdntyYm,0,4)}">2022</span>년 <span th:text="${#strings.substring(item.bizInstrIdntyYm,4,6)}">07</span>월</td>
+                                    <td>
+                                        <span class="state state__blue" th:if="${item.bizInstrIdntyStts == 1}">승인대기</span>
+                                        <span class="state state__green" th:if="${item.bizInstrIdntyStts == 2}">기관승인</span>
+                                        <span class="state state__red" th:if="${item.bizInstrIdntyStts == 9}">반려</span>
+                                    </td>
+                                    <td th:text="${#strings.substring(item.createDateTime,0,10)}">
+                                        2022-08-01
+                                    </td>
+                                </tr>
+                            </tbody>
+                            <tbody th:unless="${content != null && content.size > 0}">
+                            <tr class="empty_data"><td colspan="14">조회된 내용이 없습니다.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 승인완료 -->
+                <div class="bl_tab2_item" th:if="${#httpServletRequest.requestURI == '/business/instructor/identify/result'}">
+                    <div class="tableResponsive overflowMulti">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">
+                                        <div class="chk_box">
+                                            <input id="all_check" type="checkbox" name="identifyList">
+                                            <label for="all_check">
+                                                <span class="me-0"></span>
+                                            </label>
+                                        </div>
+                                    </th>
+                                    <th scope="col">번호</th>
+                                    <th scope="col">작성자</th>
+                                    <th scope="col">제출처</th>
+                                    <th scope="col">년도</th>
+                                    <th scope="col">사업명</th>
+                                    <th scope="col">차수</th>
+                                    <th scope="col">수행기관</th>
+                                    <th scope="col">강의기간</th>
+                                    <th scope="col">강의시간</th>
+                                    <th scope="col">언택트 강의<br />포함유무</th>
+                                    <th scope="col">년월</th>
+                                    <th scope="col">작성일<br />(승인일시)</th>
+                                    <th scope="col">반려가능여부</th>
+                                </tr>
+                            </thead>
+                            <tbody th:if="${content != null && content.size > 0}">
+                                <tr th:each="item, stat : ${content}">
+                                    <td>
+                                        <div class="chk_box item_chk">
+                                            <input th:id="${item.bizInstrIdntyNo}" th:value="${stat.index}" type="checkbox" name="identifyList">
+                                            <label th:for="${item.bizInstrIdntyNo}">
+                                                <span class="me-0"></span>
+                                            </label>
+                                        </div>
+                                    </td>
+                                    <td th:text="${pageable.totalElements - ((pageable.page * pageable.size) + stat.index)}"></td>
+                                    <td>
+                                        <span th:text="${item.userName}">신소영</span>(<span th:text="${item.registUserId}">soyoung8733</span>)
+                                    </td>
+                                    <td th:if="${item.bizOrganizationAply!=null}" th:text="${item.bizOrganizationAply.bizOrgAplyRgn}">서울</td>
+                                    <td th:unless="${item.bizOrganizationAply!=null}" >-</td>
+                                    <td th:text="${item.bizPbancMaster.bizPbancYr}">2022</td>
+                                    <td>
+                                        <a th:href="@{/business/instructor/identify/{id}(id=${item.bizInstrIdntyNo})}" th:text="${item.bizPbancMaster.bizPbancNm}">사업명</a>
+                                    </td>
+                                    <td th:text="${item.bizPbancMaster.bizPbancRnd}">1</td>
+                                    <td th:text="${item.organizationName}">기관명</td>
+                                    <td>
+                                        <th:block th:if="${#lists.isEmpty(item.bizInstructorIdentifyDtls)}">
+                                            -
+                                        </th:block>
+                                        <th:block th:unless="${#lists.isEmpty(item.bizInstructorIdentifyDtls)}">
+                                            <span th:text="${item.bizInstructorIdentifyDtls[0].bizOrganizationAplyDtl.bizOrgAplyLsnDtlYmd}">2022-07-12</span> ~
+                                            <span th:text="${item.bizInstructorIdentifyDtls[#lists.size(item.bizInstructorIdentifyDtls)-1].bizOrganizationAplyDtl.bizOrgAplyLsnDtlYmd}">2022-07-15</span>
+                                        </th:block>
+                                    </td>
+                                    <td th:text="${item.bizInstrIdntyTime}">24.0</td>
+                                    <td class="__target">
+                                        <span class="color_red">포함(<span class="__cnt"></span>건)</span>
+                                        <span>미포함</span>
+                                    </td>
+                                    <td><span th:text="${#strings.substring(item.bizInstrIdntyYm,0,4)}">2022</span>년 <span th:text="${#strings.substring(item.bizInstrIdntyYm,4,6)}">07</span>월</td>
+                                    <td>
+                                        <span th:text="${#strings.substring(item.createDateTime,0,10)}">2022-08-01</span><br/>
+                                        (<span th:text="${item.bizInstrIdntyAprvDt}">2022-08-03 23:59:00.0</span>)
+                                    </td>
+                                    <td>
+                                        <span class="state state__gray " th:if="${item.bizInstrIdntyStts == 3}">정산대기</span>
+                                        <span class="state state__blue" th:if="${item.bizInstrIdntyStts == 4}">정산완료</span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                            <tbody th:unless="${content != null && content.size > 0}">
+                            <tr class="empty_data"><td colspan="14">조회된 내용이 없습니다.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="bl_paginate"></div>
+            </div>
+        </div>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+
+            function searchInstrId(){
+                let searchQuery = {}
+                let year = $("#year").val();
+                let month = $("#month").val();
+                let bizPbancType =$("#bizPbancType").val();
+                let bizPbancRnd = $("#bizPbancRnd").val();
+                let bizInstrIdntyStts = parseInt($("#bizInstrIdntyStts").val());
+                let dist = $("#bizDistBgngNm").val();
+                let containText = $("#containText").val(); //검색
+                let containTextType = $("#containTextType").val();
+
+                if(year && year!=0){
+                    searchQuery.year = year
+                }
+                if(month && month!=0){
+                    searchQuery.month =month
+                }
+                if(bizPbancType){
+                    searchQuery.bizPbancType = bizPbancType
+                }
+                if(bizPbancRnd){
+                    searchQuery.bizPbancRnd = bizPbancRnd
+                }
+                if(bizInstrIdntyStts){
+                    searchQuery.bizInstrIdntyStts = bizInstrIdntyStts
+                }
+                if(dist && dist!="제출처"){
+                    searchQuery.bizDistBgngNm=dist;
+                }
+                if (containText) {
+                    searchQuery.containText = containText;
+                    searchQuery.containTextType =containTextType;
+                }
+                searchJson(searchQuery)
+            }
+
+            /* <![CDATA[ */
+            let index;
+            let count;
+            function updateAprv(stts){
+                let bizInstrIdntyAprvDt;
+                index = $(".item_chk input:checkbox[name=identifyList]:checked").length;
+                count = 0;
+                if(index==0){
+                    alert('상태를 변경할 강의확인서를 선택해 주세요.')
+                }else{
+                    if($("#bizInstrIdntyAprvDt").val().length > 0 && $("#bizInstrIdntyAprvDt").val()!="0"){
+                        bizInstrIdntyAprvDt = $("#bizInstrIdntyAprvDt").val();
+                    } else if (stts==2) {
+                        let now = new Date(); // 선택일+현재시간
+                        bizInstrIdntyAprvDt = now.toISOString().split("T")[0]+' '+now.toTimeString().split(" ")[0]
+                    }
+
+                    let CONT =  [[ ${content} ]];
+                    $(".item_chk input:checkbox[name=identifyList]:checked").each(function (ind, item){
+                        count=count+1;
+                        if(parseInt($(item).attr("value"))>=0){
+                            let dataIndex = parseInt($(item).attr("value"))
+                            let params = CONT[dataIndex];
+                            params.bizInstrIdntyAprvDt=bizInstrIdntyAprvDt;
+                            if(stts>=0){
+                                params.bizInstrIdntyStts = stts;
+                                if (stts==2)
+                                    params.bizInstrIdntyAprvDt=bizInstrIdntyAprvDt;
+                            }
+                            sendUpdate(params);
+                        }
+                    })
+                }
+            }
+            function updateAprvStts2(stts){
+                index = $(".item_chk input:checkbox[name=identifyList]").length;
+                count = 0;
+                let CONT =  [[ ${content} ]];
+                $(".item_chk input:checkbox[name=identifyList]").each(function (ind, item){
+                    count=count+1;
+                    if(parseInt($(item).attr("value"))>=0){
+                        let dataIndex = parseInt($(item).attr("value"))
+                        let params = CONT[dataIndex];
+                        if(params.bizInstrIdntyStts==2){
+                            params.bizInstrIdntyStts = stts;
+                            sendUpdate(params);
+                        }else if(count == index){
+                            alert("강의확인서 상태를 수정하였습니다.");
+                            window.location.reload();
+                        }
+                    }
+                })
+            }
+
+            function sendUpdate(params){
+                $.ajax({
+                    type: "put", //http method
+                    url: `/api/business/instructor/identify/update`, //값을 가져올 경로
+                    headers: {'Content-Type': 'application/json'},
+                    data: JSON.stringify(params),
+                    dataType: "json",
+                    async:false,
+                    success: function(data) {
+                        if(count == index){
+                            alert("강의확인서 상태를 수정하였습니다.");
+                            window.location.reload();
+                        }
+                    },
+                    error: function(e) {
+                        if(count == index){
+                            alert("강의확인서 수정에 실패했습니다.");
+                        }
+                    }
+                })
+            }
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+                pagination([[ ${pageable} ]], false)
+                checkBox();
+                const CONT =  [[ ${content} ]];
+
+                if(window.location.search && window.location.search!=""){
+                    $("#pdfDownload").attr("href", $("#pdfDownload").attr("href")+"&"+window.location.search.replace("?",""));
+                    $("#excelDownload").attr("href", $("#excelDownload").attr("href")+"&"+window.location.search.replace("?",""));
+                }
+
+                for(let i=0; i<CONT.length; i++){
+                    if( CONT[i].bizInstructorIdentifyDtls.length === 0){
+                        // 미포함으로 나와야 함. - 포함 부분 안보이게하기
+                        $('.bl_tab2_item .__target')[i].firstElementChild.style.display = 'none';
+                    }else{
+                        let cnt = 0;
+                        for(let j=0; j<CONT[i].bizInstructorIdentifyDtls.length; j++){
+                            if(CONT[i].bizInstructorIdentifyDtls[j].vdoLctYn === 1)
+                                cnt+=1;
+                            if((j+1)==CONT[i].bizInstructorIdentifyDtls.length){
+                                if(cnt>0){ 
+                                    $('.bl_tab2_item .__target')[i].firstElementChild.style.display = 'inline';
+                                    $('.bl_tab2_item .__target')[i].lastElementChild.style.display = 'none';
+                                    $(`.bl_tab2_item .__target .__cnt:eq(${i})`).text(cnt);
+                                }else{
+                                    $('.bl_tab2_item .__target')[i].firstElementChild.style.display = 'none';
+                                    $('.bl_tab2_item .__target')[i].lastElementChild.style.display = 'inline';
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            /* ]]> */
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

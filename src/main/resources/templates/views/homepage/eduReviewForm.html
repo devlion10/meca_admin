@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="homepage-5">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>교육후기방 관리</h2>
+        </div>
+        
+        <div class="tableLeftResponsive">
+            <table class="tableLeft">
+                <colgroup>
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                </colgroup>
+                <tbody>
+                    <tr>
+                        <th scope="row"><span class="el_required">*</span>구분</th>
+                        <td>
+                            <select id="category" class="common_select" not_null="true" alert_name="교육 후기 구분" onchange="change_view(this)">
+                                <th:block th:each="commonCode : ${commonCode}" th:if="${commonCode.code} == 'TEAM_CTGR'">
+                                    <option th:if="${content != null}" th:each="categories : ${commonCode.subCode}"
+                                            th:value="${categories.code}" th:text="${categories.codeName}" th:selected="${categories.code}==${content[0].category}"></option>
+                                    <option th:unless="${content != null}" th:each="categories : ${commonCode.subCode}"
+                                            th:value="${categories.code}" th:text="${categories.codeName}"></option>
+                                </th:block>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr class="ctgr2_type">
+                        <th scope="row"><span class="el_required">*</span>유형</th>
+                        <td>
+                            <select id="type" class="common_select" not_null="true" alert_name="교육 후기 유형">
+                                <th:block th:each="commonCode : ${commonCode}" th:if="${commonCode.code} == 'EDU_REVIEW_TYPE'">
+                                    <option th:if="${content != null}" th:each="types : ${commonCode.subCode}"
+                                            th:value="${types.code}" th:text="${types.codeName}" th:selected="${types.code}==${content[0].type}"></option>
+                                    <option th:unless="${content != null}" th:each="types : ${commonCode.subCode}"
+                                            th:value="${types.code}" th:text="${types.codeName}"></option>
+                                </th:block>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><span class="el_required">*</span>제목</th>
+                        <td>
+                            <input id="title" th:if="${content} != null" type="text" class="hp_w600" th:value="${content[0].title}" not_null="true" alert_name="교육 후기 제목">
+                            <input id="title" th:if="${content} == null" type="text" class="hp_w600" not_null="true" alert_name="교육 후기 제목">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><span class="el_required">*</span>내용</th>
+                        <td>
+                            <textarea id="contents" th:if="${content} != null" name="contents" class="ckeditor" th:text="${content[0].contents}"></textarea>
+                            <textarea id="contents" th:if="${content} == null" name="contents" class="ckeditor"></textarea>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="bl_gridBtns">
+            <div class="bl_gridBtns_lft">
+                <div th:if="${content} != null">
+                    <div th:if="${content[0].registUserId == #authentication.principal.userId}" class="btn btnDefault btnDelete" onclick="delView()">삭제</div>
+                </div>
+            </div>
+            <div class="bl_gridBtns_rgt">
+                <a class="btn btnDefault btnList" href="/homepage/review">목록</a>
+                <button type="button" class="btn btnDefault btnModify" th:if="${content} != null" onclick="editView()">수정</button>
+                <div th:if="${content} == null" class="btn btnDefault btnRegister" onclick="createView()">등록</div>
+            </div>
+        </div>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            /* <![CDATA[ */
+            function change_view(val) {
+                if ($(val).val() == "2") {
+                    $(".ctgr2_type").show()
+                } else {
+                    $(".ctgr2_type").hide()
+                }
+            }
+
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+
+                if ($("#category option:selected").val() == "2") {
+                    $(".ctgr2_type").show()
+                } else {
+                    $(".ctgr2_type").hide()
+                }
+            }
+
+            function getForm(){
+                let params = {};
+                params.sequenceNo=0;
+                if([[ ${content} ]]!=null){
+                    params.sequenceNo = [[ ${content} ]][0].sequenceNo
+                }
+
+                params.category=$("#category option:selected").val()
+                if (params.category == "2") {
+                    params.type=$("#type option:selected").val();
+                }
+                params.title=$("#title").val();
+                if (CKEDITOR.instances.contents.getData() && CKEDITOR.instances.contents.getData() != '') {
+                    params.contents = CKEDITOR.instances.contents.getData();
+                } else {
+                    alert('교육 내용을(를) 입력해 주세요.');
+                    return false;
+                }
+                return params;
+            }
+
+            function createView() {
+                if (nullCheck()) {
+                    if (getForm()) {
+                        let params = getForm();
+                        $.ajax({
+                            type: "post", //http method
+                            url: "/api/homepage/review/create", //값을 가져올 경로
+                            headers: {'Content-Type': 'application/json'},
+                            data: JSON.stringify(params),
+                            dataType: "json",
+                            async:false,
+                            success: function(data) {
+                                alert("교육 후기를 등록하였습니다.");
+                                window.location.href = '/homepage/review';
+                            },
+                            error: function(e) {
+                                alert("교육 후기 등록에 실패했습니다.");
+                            }
+                        })
+                    }
+                }
+            }
+
+            function editView() {
+                if (nullCheck()) {
+                    if (getForm()) {
+                        let params = getForm();
+                        $.ajax({
+                            type: "put", //http method
+                            url: "/api/homepage/review/update", //값을 가져올 경로
+                            headers: {'Content-Type': 'application/json'},
+                            data: JSON.stringify(params),
+                            dataType: "json",
+                            async:false,
+                            success: function(data) {
+                                alert("교육 후기를 수정하였습니다.");
+                                window.location.reload();
+                            },
+                            error: function(e) {
+                                alert("교육 후기 수정에 실패했습니다.");
+                            }
+                        })
+                    }
+                }
+            }
+
+            function delView() {
+                let CONT = [[ ${content} ]];
+                if(confirm('정말로 삭제하시겠습니까?')){
+                    let params = {};
+                    params.sequenceNo = CONT[0].sequenceNo;
+                    $.ajax({
+                        type: "delete", //http method
+                        url: `/api/homepage/review/delete/${params.sequenceNo}`, //값을 가져올 경로
+                        headers: {'Content-Type': 'application/json'},
+                        data: JSON.stringify(params),
+                        dataType: "json",
+                        async:false,
+                        success: function(data) {
+                            alert("교육 후기를 삭제하였습니다.");
+                            window.location.href = '/homepage/review';
+                        },
+                        error: function(e) {
+                            alert("교육 후기 삭제에 실패했습니다.");
+                        }
+                    })
+                }
+            }
+            /* ]]> */
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

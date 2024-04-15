@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="business-5-3">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>강사료 정산</h2>
+        </div>
+
+        <div class="bl_tab2 js_tab">
+            <ul class="bl_tab2_menu js_tab_menu">
+                <li>
+                    <a href="#none">정산마감일</a>
+                </li>
+                <li>
+                    <a href="#none">정산요청 목록</a>
+                </li>
+                <li>
+                    <a href="#none">정산금액 조회</a>
+                </li>
+                <li>
+                    <a href="#none">이동거리 기준단가</a>
+                </li>
+            </ul>
+
+            <div class="bl_tab2_body js_tab_contents">
+                <!-- 탭1 : 정산마감일 -->
+                <div class="bl_tab2_item js_tab_item" th:if="tab == calculateDeadline">
+                    <!-- 리스트 -->
+                    <div th:replace="views/business/calculation/calculateDeadline :: calculateDeadline"></div>
+                    <!-- 등록/수정 -->
+                    <div th:replace="views/business/calculation/calculateDeadlineForm :: calculateDeadlineForm"></div>
+                </div>
+
+                <!-- 탭2 : 정산요청 목록 -->
+                <div class="bl_tab2_item js_tab_item" th:if="tab == calculateTarget">
+                    <!-- 리스트 -->
+                    <div th:replace="views/business/calculation/calculateTarget :: calculateTarget"></div>
+                </div>
+
+                <!-- 탭3 : 정산금액 조회 -->
+                <div class="bl_tab2_item js_tab_item" th:if="tab == calculate">
+                    <div th:replace="views/business/calculation/calculate :: calculate"></div>
+                </div>
+
+                <!-- 탭4 : 이동거리 기준단가 -->
+                <div class="bl_tab2_item js_tab_item" th:if="tab == distanceAmount">
+                    <!-- 리스트 -->
+                    <div th:replace="views/business/calculation/distanceAmount :: distanceAmount"></div>
+                    <!-- 등록/수정 -->
+                    <div th:replace="views/business/calculation/calculateDeadlineForm :: calculateDeadlineForm"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+</div>
+</body>
+</html>

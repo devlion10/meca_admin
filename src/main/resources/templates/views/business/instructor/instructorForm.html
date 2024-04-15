@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="business-4-1">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>모집공고 관리</h2>
+        </div>
+
+        <div class="tableLeftResponsive">
+            <table class="tableLeft">
+                <colgroup>
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                </colgroup>
+                <tbody>
+                    <tr>
+                        <th scope="row"><span class="el_required"></span>제목</th>
+                        <td>
+                            <input id="bizInstrNm" type="text" class="hp_w600" not_null="true" alert_name="제목" th:if="${content == null}">
+                            <input id="bizInstrNm" type="text" class="hp_w600" not_null="true" alert_name="제목"th:unless="${content == null}" th:value="${content[0].bizInstrNm}">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><span class="el_required"></span>내용</th>
+                        <td>
+                            <textarea id="bizInstrCn" cols="30" rows="10" class="hp_w600" not_null="true" alert_name="내용" th:if="${content == null}"></textarea>
+                            <textarea id="bizInstrCn" cols="30" rows="10" class="hp_w600" not_null="true" alert_name="내용" th:unless="${content == null}" th:text="${content[0].bizInstrCn}"></textarea>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><span class="el_required"></span>최대신청기관</th>
+                        <td>
+                            <input id="bizInstrMaxInst" type="text" class="hp_w400" not_null="true" alert_name="최대신청기관" th:if="${content == null}">
+                            <input id="bizInstrMaxInst" type="text" class="hp_w400" not_null="true" alert_name="최대신청기관" th:unless="${content == null}" th:value="${content[0].bizInstrMaxInst}">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><span class="el_required"></span>상태</th>
+                        <td>
+                            <div class="radio_box">
+                                <input id="businessState1" type="radio" name="flexRadioDefault" th:if="${content == null}">
+                                <input id="businessState1" type="radio" name="flexRadioDefault" th:unless="${content == null}" th:checked="${content[0].bizInstrStts == 1}">
+                                <label for="businessState1">
+                                    <span></span>
+                                    모집
+                                </label>
+                            </div>
+                            <div class="radio_box">
+                                <input id="businessState2" type="radio" name="flexRadioDefault" th:if="${content == null}">
+                                <input id="businessState2" type="radio" name="flexRadioDefault" th:unless="${content == null}" th:checked="${content[0].bizInstrStts == 0}">
+                                <label for="businessState2">
+                                    <span></span>
+                                    마감
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">파일첨부</th>
+                        <td>
+                            <p class="guide_text">업로드 가능한 파일 확장자: gif, jpg, png, hwp, pdf, xlx, xlsx, ppt, pptx, doc, docx, zip / 파일 용량 10MB 미만</p>
+                            <div class="bl_uploadGrid">
+                                <div class="bl_upload hp_w400">
+                                    <input id="fileName" type="text" class="bl_upload_path js_path" readonly th:if="${content == null}">
+                                    <input id="fileName" th:unless="${content == null}" type="text" class="bl_upload_path js_path" readonly th:value="${content[0].bizInstrFile}">
+                                    <label for="formFile" class="btn btnDefault bg-secondary text-white bl_upload_btn">파일선택</label>
+                                    <input id="formFile" type="file" name="file" class="bl_upload_file js_file">
+                                </div>
+                                <a class="btn btnDefault bg_blue download_ajax" th:if="${content != null && content[0].bizInstrFile != null}" th:href="@{/api/business/instructor/list/download(attachFilePath=${content[0].bizInstrFile})}">다운로드</a>
+                            </div>
+                            <input id="bizInstrFileDscr" type="text" class="hp_w600 mt-2" placeholder="설명글을 입력해 주세요." th:if="${content == null}">
+                            <input id="bizInstrFileDscr" type="text" class="hp_w600 mt-2" placeholder="설명글을 입력해 주세요." th:unless="${content == null}" th:value="${content[0].bizInstrFileDscr}">
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- BOARD : CONTROLLER -->
+        <div class="bl_boardCtrls">
+            <div class="bl_boardCtrls_lft">
+                <th:block th:if="${content != null}">
+                    <p class="bl_boardCtrls_total" th:if="${content[0].bizInstructorPbancs != null}">
+                        총: <strong th:text="${#lists.size(content[0].bizInstructorPbancs)}">0</strong>건
+                    </p>
+                    <p class="bl_boardCtrls_total" th:unless="${content[0].bizInstructorPbancs != null}">
+                        총: <strong>0</strong>건
+                    </p>
+                </th:block>
+                <th:block th:unless="${content != null}">
+                    <p class="bl_boardCtrls_total">총: <strong>0</strong>건</p>
+                </th:block>
+            </div>
+        </div>
+
+        <div class="tableResponsive overflowMulti">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">사업번호</th>
+                        <th scope="col">사업명</th>
+                        <th scope="col">년도</th>
+                        <th scope="col">차수</th>
+                        <th scope="col">사업접수기간</th>
+                        <th scope="col">모집학교(기관)</th>
+                        <th scope="col">모집기간</th>
+                        <th scope="col">상태</th>
+                        <th scope="col">관리</th>
+                    </tr>
+                </thead>
+                <th:block th:if="${content != null}">
+                    <tbody id="pbanc_table" th:if="${content[0].bizInstructorPbancs != null}">
+                        <tr class="pbanc_list" th:each="item, stat:${content[0].bizInstructorPbancs}">
+                            <td th:text="${stat.index+1}">1</td>
+                            <td>
+                                <a th:href="@{/business/pbanc/list/{type}/{id}(type=${item.bizPbancMaster.bizPbancType} ,id=${item.bizPbancMaster.bizPbancNo})}" th:text="${item.bizPbancMaster.bizPbancNm}">사업명</a>
+                            </td>
+                            <td th:text="${item.bizPbancMaster.bizPbancYr}">2022</td>
+                            <td th:text="${item.bizPbancMaster.bizPbancRnd}">2</td>
+                            <td><span th:text="${item.bizPbancMaster.bizPbancRcptBgng}">2022.07.25</span> - <span th:text="${item.bizPbancMaster.bizPbancRcptEnd}">2022.07.28</span></td>
+                            <td th:text="${item.aprvOrgCnt}">0</td>
+                            <td>
+                                <div class="bl_dateRange">
+                                    <input type="text" class="el_datePicker sdate bizInstrRcptBgng" not_null="true" alert_name="강사모집 시작일" th:value="${item.bizInstrRcptBgng}">
+                                    <span class="blank">~</span>
+                                    <input type="text" class="el_datePicker edate bizInstrRcptEnd" not_null="true" alert_name="강사모집 종료일" th:value="${item.bizInstrRcptEnd}">
+                                </div>
+                            </td>
+                            <td>
+                                <select class="common_select bizInstrPbancStts">
+                                    <option value="1" th:selected="${item.bizInstrPbancStts == 1}">모집</option>
+                                    <option value="0" th:selected="${item.bizInstrPbancStts == 0}">마감</option>
+                                </select>
+                            </td>
+                            <td>
+                                <input type="hidden" class="bizPbancNo" th:value="${item.bizPbancMaster.bizPbancNo}" >
+                                <input type="hidden" class="sequenceNo" th:value="${item.sequenceNo}" >
+                                <div onclick="removePbanc(this)" th:href="@{/api/business/instructor/list/pbanc/delete/{bizInstrNo}/{bizPbancNo}(bizInstrNo=${item.bizInstrNo},bizPbancNo=${item.bizPbancNo})}"
+                                     class="btn btnDefault btnDelete icon_none">삭제</div>
+                            </td>
+                        </tr>
+                    </tbody>
+                    <tbody id="pbanc_table" th:unless="${content[0].bizInstructorPbancs != null}"></tbody>
+                </th:block>
+                <th:block th:unless="${content != null}">
+                    <tbody id="pbanc_table"></tbody>
+                </th:block>
+            </table>
+        </div>
+
+        <!-- GRID : BUTTON -->
+        <div class="bl_gridBtns">
+            <div class="bl_gridBtns_lft">
+                <a class="btn btnDefault" onclick="openPop('', '/popup/find/pbanc', 'addBusiness')">사업추가</a>
+            </div>
+        </div>
+
+        <!-- GRID : BUTTON -->
+        <div class="bl_gridBtns">
+            <div class="bl_gridBtns_rgt">
+                <a class="btn btnDefault btnList" href="/business/instructor/list">목록</a>
+                <div th:if="${content == null}" class="btn btnDefault" th:onclick="create()">등록</div>
+                <div th:unless="${content == null}" class="btn btnDefault" th:onclick="update()">수정</div>
+            </div>
+        </div>
+
+        <div class="iframe_wrap">
+            <iframe id="addBusiness" src="about:blank" width="1000"></iframe>
+        </div>
+    </div>
+
+    <div sec:authorize="!isAuthenticated()"></div>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            $("#formFile").bind("change", function (e){
+                if( this.files[0].name){
+                    $("#fileName").val(this.files[0].name);
+                }
+            })
+
+            let bizPbancList =[];
+            function initBizPbancList(){
+                bizPbancList =[];
+                $(".bizPbancNo").each((index,item)=>{
+                    bizPbancList.push(item.value)
+                })
+            }
+            initBizPbancList();
+            function removePbanc (btn){
+                if(confirm('정말로 삭제하시겠습니까?')){
+                    let url = $(btn).attr("href")
+                    let params = getFormData();
+                    if(url){
+                        $.ajax({
+                            type:"delete", //http method
+                            url: url,
+                            headers: {'Content-Type': 'application/json'},
+                            data: JSON.stringify(params),
+                            dataType: "json",
+                            success: function(data) {
+                                if(data.resultCode=="3608"){
+                                    alert(data.resultMessage);
+                                }else{
+                                    alert("강사모집공고에 연결된 사업공고가 삭제되었습니다.");
+                                    let tr = $(btn).parent().parent();
+                                    $(tr).remove();
+                                    initBizPbancList();
+                                }
+                            }, error: function(e) {
+                                if(e && e.responseJSON && e.responseJSON.resultMessage){
+                                    alert(e.responseJSON.resultMessage);
+                                }else{
+                                    alert("강사모집공고에 연결된 사업공고를 삭제하는 과정에서 오류가 발생하였습니다.");
+                                }
+                            }
+                        })
+                    }else{
+                        let tr = $(btn).parent().parent();
+                        $(tr).remove();
+                        initBizPbancList();
+                    }
+                }
+            }
+            function create(){
+                if (nullCheck()) {
+                    let params = getFormData();
+                    params.bizInstrPbancs = getPbancData(params.bizInstrNo);
+                    $.ajax({
+                        type: "post", //http method
+                        url: "/api/business/instructor/list/create", //값을 가져올 경로
+                        headers: {'Content-Type': 'application/json'},
+                        data: JSON.stringify(params),
+                        dataType: "json",
+                        success: function(data) {
+                            if($("#formFile")[0].files.length>0){
+                                let form = new FormData();
+                                form.append("attachFile", $("#formFile")[0].files[0]);
+                                $.ajax({
+                                    type:"put", //http method
+                                    url:`/api/business/instructor/list/upload/${data.bizInstrNo}`,
+                                    processData : false,
+                                    contentType : false,
+                                    data: form,
+                                    async:false,
+                                    success: function(res) {
+                                        if(data.bizPbacnCode=="3602"){
+                                            alert('중복 선택한 사업공고를 제외하고 모집공고가 등록되었습니다.');
+                                            window.location.replace('/business/instructor/list');
+                                        }else{
+                                            alert("모집공고가 등록되었습니다.");
+                                            window.location.replace('/business/instructor/list');
+                                        }
+                                    }, error: function(e) {
+                                        if(e && e.responseJSON && e.responseJSON.resultMessage){
+                                            alert(e.responseJSON.resultMessage);
+                                        }else{
+                                            alert('등록하는 과정에서 오류가 발생했습니다.');
+                                        }
+                                    }
+                                })
+                            }else{
+                                if(data.bizPbacnCode=="3602"){
+                                    alert('중복 선택한 사업공고를 제외하고 모집공고가 등록되었습니다.');
+                                    window.location.replace('/business/instructor/list');
+                                }else{
+                                    alert("모집공고가 등록되었습니다.");
+                                    window.location.replace('/business/instructor/list');
+                                }
+                            }
+                        },
+                        error: function(e) {
+                            if(e && e.responseJSON && e.responseJSON.resultMessage){
+                                alert(e.responseJSON.resultMessage);
+                            }else{
+                                alert('등록하는 과정에서 오류가 발생했습니다.');
+                            }
+                        }
+                    })
+                }
+            }
+
+            function update(){
+                if(nullCheck()){
+                    let params = getFormData();
+                    params.bizInstrPbancs = getPbancData(params.bizInstrNo);
+                    $.ajax({
+                        type: "put", //http method
+                        url: "/api/business/instructor/list/update", //값을 가져올 경로
+                        headers: {'Content-Type': 'application/json'},
+                        data: JSON.stringify(params),
+                        dataType: "json",
+                        success: function(data) {
+                            if($("#formFile")[0].files.length>0){
+                                let form = new FormData();
+                                form.append("attachFile", $("#formFile")[0].files[0]);
+                                $.ajax({
+                                    type:"put", //http method
+                                    url:`/api/business/instructor/list/upload/${data.bizInstrNo}`,
+                                    processData : false,
+                                    contentType : false,
+                                    data: form,
+                                    async:false,
+                                    success: function(res) {
+                                        if(data.bizPbacnCode=="3602"){
+                                            alert('중복 선택한 사업공고를 제외하고 모집공고가 수정되었습니다.');
+                                            window.location.reload();
+                                        }else{
+                                            alert("모집공고가 수정되었습니다.");
+                                            window.location.reload();
+                                        }
+                                    }, error: function(e) {
+                                        if(e && e.responseJSON && e.responseJSON.resultMessage){
+                                            alert(e.responseJSON.resultMessage);
+                                        }else{
+                                            alert('수정하는 과정에서 오류가 발생했습니다.');
+                                        }
+                                    }
+                                })
+                            }else{
+                                if(data.bizPbacnCode=="3602"){
+                                    alert('중복 선택한 사업공고를 제외하고 모집공고가 수정되었습니다.');
+                                    window.location.reload();
+                                }else{
+                                    alert("모집공고가 수정되었습니다.");
+                                    window.location.reload();
+                                }
+                            }
+                        },
+                        error: function() { }
+                    })
+                }
+            }
+            /* <![CDATA[ */
+            function  getFormData(){
+                let params = {};
+                let CONT =  [[ ${content} ]];
+                params.bizInstrNo = CONT != null? CONT[0].bizInstrNo : "1";
+
+                params.bizInstrNm = $("#bizInstrNm").val();
+                params.bizInstrCn = $("#bizInstrCn").val();
+                params.bizInstrCtgr = "일반";
+                params.bizInstrMaxInst = $("#bizInstrMaxInst").val();
+                params.bizInstrFileDscr = $("#bizInstrFileDscr").val();
+                params.bizInstrStts = $('input:radio[name=flexRadioDefault]:checked').attr("id")=="businessState1"?1:0;
+                return params;
+            }
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+            }
+            /* ]]> */
+
+            function getPbancData(bizInstrNo){
+                if($(".pbanc_list") && $(".pbanc_list").length>0){
+                    let params =new Array($(".pbanc_list").length);
+                    $(".pbanc_list").each(function (index,item){
+                        params[index]={};
+                        params[index].bizPbancNo = $(item).find(".bizPbancNo").val();
+                        params[index].bizInstrRcptBgng = $(item).find(".bizInstrRcptBgng").val();
+                        params[index].bizInstrRcptEnd = $(item).find(".bizInstrRcptEnd").val();
+                        params[index].bizInstrPbancStts = $(item).find(".bizInstrPbancStts").val() *1;
+                        params[index].bizInstrNo = bizInstrNo;
+                        if($(item).find(".sequenceNo").length>0){
+                            params[index].sequenceNo = parseInt($(item).find(".sequenceNo").val());
+                        }
+                    })
+                    return params;
+                }else{
+                    return null;
+                }
+            }
+
+            function setPopData(data){
+                if(data && data != null && data.bizPbancNo){
+                    if(bizPbancList.includes(data.bizPbancNo)){
+                        alert('이미 선택된 사업공고입니다.');
+                    }else{
+                        let index = $(".pbanc_list").length+1;
+                        $("#pbanc_table").append(`
+                    <tr class="pbanc_list">
+                        <td>${index}</td>
+                        <td>
+                            <a href="/business/pbanc/${data.bizPbancType}/${data.bizPbancNo}">${data.bizPbancNm}</a>
+                        </td>
+                        <td>${data.bizPbancYr}</td>
+                        <td>${data.bizPbancRnd}</td>
+                        <td><span>${data.bizPbancRcptBgng}</span> - <span>${data.bizPbancRcptEnd}</span></td>
+                        <td>${data.bizPbancMaxInst}</td>
+                        <td>
+                            <div class="bl_dateRange">
+                                <input type="text"  not_null="true" alert_name="강사모집 시작일" class="el_datePicker sdate bizInstrRcptBgng">
+                                <span class="blank">~</span>
+                                <input type="text" not_null="true" alert_name="강사모집 종료일" class="el_datePicker edate bizInstrRcptEnd">
+                            </div>
+                        </td>
+                        <td>
+                            <select class="common_select bizInstrPbancStts">
+                                <option value="1">모집</option>
+                                <option value="0">마감</option>
+                            </select>
+                        </td>
+                        <td>
+                            <input type="hidden" class="bizPbancNo" value="${data.bizPbancNo}" >
+                            <div onclick="removePbanc(this)" class="btn btnDefault btnDelete icon_none">삭제</div>
+                        </td>
+                    </tr>
+                `);
+
+                        initBizPbancList();
+
+                        $('#pbanc_table').find(".el_datePicker").each(function(idx,el){
+                            CommonUI.datePicker(el);
+                        })
+
+                        let tableList = document.querySelectorAll('#pbanc_table .pbanc_list');
+                        let target = tableList[tableList.length-1];
+
+                        if(data.bizPbancStts == 0){
+                            // 마감
+                            target.querySelectorAll('td')[7].querySelectorAll('option')[1].setAttribute('selected',true);
+                        } else {
+                            // 모집
+                            target.querySelectorAll('td')[7].querySelectorAll('option')[0].setAttribute('selected',true);
+                        }
+                    }
+                }
+            }
+            window.addEventListener('message', handleDocHeightMsg, false); // 메시지 수신 이벤트 등록
+
+            function handleDocHeightMsg(eventObj) { // 메시지 수신 처리를 위한 함수
+                setPopData(eventObj.data);
+            }
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

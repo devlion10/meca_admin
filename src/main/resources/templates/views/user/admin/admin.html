@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="user-3">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>관리자 관리</h2>
+        </div>
+
+        <div class="tableLeftResponsive">
+            <table class="tableLeft">
+                <colgroup>
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                </colgroup>
+                <tbody>
+                    <tr>
+                        <th scope="row">권한등급</th>
+                        <td colspan="3">
+                            <th:block th:if="${roleGroups != null}" th:each="role: ${roleGroups}">
+                                <div class="chk_box">
+                                    <input th:id="${role.roleGroupCode}" name="roleGroups" type="checkbox" th:value="${role.roleGroupCode}">
+                                    <label th:for="${role.roleGroupCode}">
+                                        <span></span>
+                                        <div th:text="${role.roleGroupName}"></div>
+                                    </label>
+                                </div>
+                            </th:block>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">로그인잠금</th>
+                        <td>
+                            <div class="radio_box">
+                                <input id="login_lock_all" type="radio" name="isLock" value="null" checked="">
+                                <label for="login_lock_all">
+                                    <span></span>
+                                    전체
+                                </label>
+                            </div>
+                            <div class="radio_box">
+                                <input id="login_lock_y" type="radio" name="isLock" value="true">
+                                <label for="login_lock_y">
+                                    <span></span>
+                                    Y
+                                </label>
+                            </div>
+                            <div class="radio_box">
+                                <input id="login_lock_n" type="radio" name="isLock" value="false">
+                                <label for="login_lock_n">
+                                    <span></span>
+                                    N
+                                </label>
+                            </div>
+                        </td>
+                        <th scope="row">상태</th>
+                        <td>
+                            <div class="radio_box">
+                                <input id="state_all" type="radio" name="state" value="null" checked="">
+                                <label for="state_all">
+                                    <span></span>
+                                    전체
+                                </label>
+                            </div>
+                            <div class="radio_box">
+                                <input id="state_use" type="radio" name="state" value="1">
+                                <label for="state_use">
+                                    <span></span>
+                                    사용
+                                </label>
+                            </div>
+                            <div class="radio_box">
+                                <input id="state_n_use" type="radio" name="state" value="0">
+                                <label for="state_n_use">
+                                    <span></span>
+                                    사용안함
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">검색</th>
+                        <td colspan="3">
+                            <div class="d-flex gap-2">
+                                <select id="containTextType" class="common_select">
+                                    <option value="0">전체</option>
+                                    <option value="1">이름</option>
+                                    <option value="2">아이디</option>
+                                    <option value="3">휴대전화번호</option>
+                                </select>
+                                <input id="containText" type="text" class="hp_w400">
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- GRID : BUTTON -->
+        <div class="bl_gridBtns">
+            <div class="bl_gridBtns_md">
+                <div class="btn btnDefault btnReset">리셋</div>
+                <a class="btn btnDefault btnSearch" onclick="searchAdmin()">검색</a>
+                <a class="btn btnDefault download_excel download_search" href="/api/user/admin-user/excel">excel 다운로드</a>
+                <a class="btn btnDefault btnRegister" href="/user/admin-user/">등록</a>
+            </div>
+        </div>
+
+        <!-- BOARD : CONTROLLER -->
+        <div class="bl_boardCtrls">
+            <div class="bl_boardCtrls_lft">
+                <p class="bl_boardCtrls_total">
+                     총: <strong th:text="${pageable.totalElements}"></strong>건
+                </p>
+            </div>
+            <div class="bl_boardCtrls_rgt">
+                <select class="common_select" data-list="countSortList"></select>
+            </div>
+        </div>
+
+        <div class="tableResponsive overflowMulti">
+            <table class="table">
+                <colgroup>
+                    <col style="width: 50px">
+                    <col style="width: 50px">
+                    <col>
+                    <col>
+                    <col>
+                    <col>
+                    <col>
+                    <col>
+                    <col>
+                    <col>
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th scope="col">
+                            <div class="chk_box">
+                                <input id="admin_all" type="checkbox" name="admin">
+                                <label for="admin_all">
+                                    <span class="me-0"></span>
+                                </label>
+                            </div>
+                        </th>
+                        <th scope="col">번호</th>
+                        <th scope="col">권한등급</th>
+                        <th scope="col">아이디</th>
+                        <th scope="col">이름</th>
+                        <th scope="col">휴대전화번호</th>
+                        <th scope="col">등록일</th>
+                        <th scope="col">로그인잠금</th>
+                        <th scope="col">상태</th>
+                        <th scope="col">관리</th>
+                    </tr>
+                </thead>
+                <tbody th:if="${content != null && content.size > 0}">
+                    <tr th:each="item,stat:${content}">
+                        <td>
+                            <div class="chk_box">
+                                <input th:id="${'admin' + stat.index}" name="admin" type="checkbox">
+                                <label th:for="${'admin' + stat.index}">
+                                    <span class="me-0"></span>
+                                </label>
+                            </div>
+                        </td>
+                        <td th:text="${pageable.totalElements - ((pageable.page * pageable.size) + stat.index)}"></td>
+                        <td>
+                            <span th:if="${roleGroups != null}">
+                                <th:block th:each="role:${roleGroups}">
+                                    <span th:if="${role.roleGroupCode == item.roleGroup}" th:text="${role.roleGroupName}">신규 관리자</span>
+                                </th:block>
+                            </span>
+                            <span th:unless="${roleGroups != null}">(미확인 권한)</span>
+                        </td>
+                        <td th:text="${item.userId}">test1234</td>
+                        <td th:text="${item.userName}">홍길동</td>
+                        <td th:text="${item.phone}">010-1111-1111</td>
+                        <td><div th:if="${item.createDateTime}" th:text="${item.createDateTime.split(' ')[0]}">2022.01.01 (임시)</div></td>
+                        <td>
+                            <span th:if="${item.isLock==true}" class="color_blue">Y</span>
+                            <span th:unless="${item.isLock==true}" class="color_red">N</span>
+                        </td>
+                        <td>
+                            <span th:if="${item.state=='0'}" class="color_red">사용안함</span>
+                            <span th:unless="${item.state=='0'}" class="color_blue">사용</span>
+                        </td>
+                        <td>
+                            <span th:if="${#authentication.principal.roleGroup=='SUPER'}">
+                                <a th:href="@{/user/admin-user/{id}(id=${item.userSerialNo})}" class="btn btnDefault btnModify icon_none">수정</a>
+                            </span>
+                            <span th:unless="${#authentication.principal.roleGroup=='SUPER'}">
+                                <a th:if="${#authentication.principal.userId==item.userId}" th:href="@{/user/admin-user/{id}(id=${item.userSerialNo})}" class="btn btnDefault btnModify icon_none">수정</a>
+                                <a th:unless="${#authentication.principal.userId==item.userId}" th:href="@{/user/admin-user/{id}?view(id=${item.userSerialNo})}" class="btn btnDefault btnModify icon_none">보기</a>
+                            </span>
+                            <a th:if="${#authentication.principal.roleGroup=='SUPER' && #authentication.principal.userId!=item.userId}" th:value="${stat.index}" onclick="deleteInfo(this)" class="btn btnDefault btnDelete icon_none">삭제</a>
+                        </td>
+                    </tr>
+                </tbody>
+                <tbody th:unless="${content != null && content.size > 0}">
+                <tr class="empty_data"><td colspan="10">조회된 내용이 없습니다.</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- GRID : BUTTON -->
+        <div class="bl_gridBtns">
+            <div class="bl_gridBtns_lft">
+                <a class="btn btnDefault" onclick="checkSMS()">SMS 발송</a>
+            </div>
+        </div>
+        <div class="bl_paginate"></div>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            function searchAdmin(){
+                let searchQuery = {}
+                let name = $("#containText").val();
+                let type = $("#containTextType").val();
+                let state = $("input:radio[name=state]:checked").val();
+                let lock = $("input:radio[name=isLock]:checked").val();
+
+                let role =$("input[name=roleGroups]:checked").length>0 ? new Array(  $("input[name=roleGroups]:checked").length ) :"0";
+                $("input[name=roleGroups]:checked").each(function(index, item) {
+                    if($(this).val()!="0" &&role!="0"){
+                        role[index] = $(item).val();
+                    }else{
+                        role = "0";
+                    }
+                })
+                if(role!="0"){
+                    searchQuery.roleGroups=role.toString();
+                }
+                if(name){
+                    searchQuery.containText = name 
+                    searchQuery.containTextType = type
+                }
+                if(lock !="null"){
+                    searchQuery.isLock=lock;
+                }
+                if(state !="null"){
+                    searchQuery.state=state;
+                }
+                searchJson(searchQuery)
+            }
+
+            function deleteInfo(btn) {
+                let CONT = [[ ${content} ]]
+                let index = $(btn).attr("value");
+                if (confirm("정말 삭제하시겠습니까?")) {
+                    $.ajax({
+                        type: "delete",
+                        url: "/api/user/admin-user/delete",
+                        headers: {'Content-Type': 'application/json'},
+                        data: JSON.stringify(CONT[index]),
+                        dataType: "json",
+                        success: function(data) {
+                            alert('관리자 삭제에 성공했습니다.');
+                            window.location.reload();
+                        },
+                        error:function (e){
+                            alert(e.responseJSON.resultMessage);
+                        }
+                    })
+                }
+            }
+
+            /* <![CDATA[ */
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+                pagination([[ ${pageable} ]])
+            }
+
+            function getCont(){
+                const cont = [[ ${content} ]]
+                return cont;
+            }
+            function checkSMS() {
+                let cont = getCont();
+                let params = new Array($('input:checkbox[name=admin]:not(#all_check):checked').length)
+                $('input:checkbox[name=admin]:not(#all_check):checked').each(function (index,item) {
+                    let num = $(item).attr("id").replace("admin", '');
+                    params[index] = {};
+                    if (cont[num].phone && cont[num].phone.length > 0) {
+                        params[index].userName = cont[num].userName;
+                        params[index].phone = cont[num].phone;
+                    }
+                });
+
+                if (params && params.length > 0) {
+                    CommonUI.sendSMS(params)
+                } else {
+                    alert("발송 대상을 선택해 주세요.")
+                }
+            }
+            /* ]]> */
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

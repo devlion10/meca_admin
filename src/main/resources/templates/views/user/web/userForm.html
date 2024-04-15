@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="user-1">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>회원 관리</h2>
+        </div>
+
+        <div class="bl_tab2 js_tab">
+            <ul class="bl_tab2_menu js_tab_menu">
+                <li>
+                    <a href="#none">개인정보</a>
+                </li>
+                <li id="lecture_history" th:if="${content != null}">
+                    <a href="#none">수강이력(언론인교육센터 <span id="edu2020_count"></span>)</a>
+                </li>
+            </ul>
+
+            <h3 class="subTitle d-flex align-items-center justify-content-between" th:if="${content[0].nokDI!=null}">
+                보호자 정보
+            </h3>
+            <div class="tableLeftResponsive" th:if="${content[0].nokDI!=null}">
+                <table class="tableLeft">
+                    <colgroup>
+                        <col style="width: 200px">
+                        <col style="width: auto">
+                    </colgroup>
+                    <tbody>
+                    <tr>
+                        <th scope="row">이름</th>
+                        <td>
+                            <span th:text="${content[0].parentName}">보호자 이름</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">생년월일</th>
+                        <td>
+                            <span th:text="${content[0].parentBirthDay}">보호자 생년월일</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">휴대폰번호</th>
+                        <td>
+                            <span th:text="${content[0].nokPhone}">보호자 휴대폰번호</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">성별</th>
+                        <td>
+                            <span th:text="${content[0].parentGender =='1'?'남성':'여성'}">보호자 성별</span>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="bl_tab2_body js_tab_contents">
+                <div class="bl_tab2_item js_tab_item">
+                    <h3 class="subTitle">개인정보</h3>
+                    <div class="tableLeftResponsive">
+                        <table class="tableLeft">
+                            <colgroup>
+                                <col style="width: 200px">
+                                <col style="width: auto">
+                            </colgroup>
+                            <tbody>
+                            <tr>
+                                <th scope="row">회원유형</th>
+                                <td>
+                                    <span th:if="${content[0].roleGroup == 'SUPER'}">관리자</span>
+                                    <input id="roleGroup" th:if="${content[0].roleGroup == 'SUPER'}" type="hidden" value="SUPER">
+                                    <span th:unless="${content[0].roleGroup == 'SUPER'}">
+                                <select id="roleGroup" class="common_select">
+                                    <option value="JOURNALIST" th:selected="${content[0].roleGroup == 'JOURNALIST'}">언론인</option>
+                                    <option value="TEACHER" th:selected="${content[0].roleGroup == 'TEACHER'}">교사</option>
+                                    <option value="STUDENT" th:selected="${content[0].roleGroup == 'STUDENT'}">학생</option>
+                                    <option value="PARENTS" th:selected="${content[0].roleGroup == 'PARENTS'}">학부모</option>
+                                    <option value="GENERAL" th:selected="${content[0].roleGroup == 'GENERAL'}">일반인</option>
+                                </select>
+                                <div class="guide_text">※ 회원유형이 변경되면 사이트 이용 권한에 변화가 생깁니다. 변경 시 유의해 주세요. </div>
+                            </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><span class="el_required">*</span>이름</th>
+                                <td>
+                                    <input type="text" th:value="${content[0].userName}" class="hp_w400" disabled>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><span class="el_required">*</span>생년월일</th>
+                                <td>
+                                    <input id="birthday" type="text" class="el_datePicker hp_w200" th:value="${content[0].birthDay}" disabled>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><span class="el_required">*</span>성별</th>
+                                <td>
+                                    <div class="radio_box">
+                                        <input id="male" type="radio" name="gender" th:checked="${content[0].gender == '1'}" disabled>
+                                        <label for="male">
+                                            <span></span>
+                                            남성
+                                        </label>
+                                    </div>
+                                    <div class="radio_box">
+                                        <input id="female" type="radio" name="gender" th:checked="${content[0].gender == '2'}" disabled>
+                                        <label for="female">
+                                            <span></span>
+                                            여성
+                                        </label>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><span class="el_required">*</span>아이디</th>
+                                <td>
+                                    <input id="userId" type="text" class="hp_w400" th:value="${content[0].userId}" disabled>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><span class="el_required">*</span>비밀번호</th>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <input type="password" id="password" name="password" class="hp_w400" >
+                                    </div>
+                                    <div class="guide_text">※ 8자리 이상 영문, 숫자, 특수문자 중 3가지 이상으로 조합</div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><span class="el_required">*</span>비밀번호 확인</th>
+                                <td>
+                                    <input type="password" id="password2" name="password2" class="hp_w400" >
+                                    <div class="guide_text">※ 8자리 이상 영문, 숫자, 특수문자 중 3가지 이상으로 조합</div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><span class="el_required">*</span>휴대폰 번호</th>
+                                <td>
+                                    <input id="phone" type="text" class="hp_w400" th:value="${content[0].phone}" placeholder="01000000000">
+                                    <div class="guide_text">※ 휴대폰번호는 하이픈(-)을 제외한 숫자만 입력</div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><span class="el_required">*</span>SMS 수신동의</th>
+                                <td>
+                                    <div class="radio_box">
+                                        <input id="sms_agree" type="radio" name="sms" th:checked="${content[0].isSmsAgree == true}" disabled>
+                                        <label for="sms_agree">
+                                            <span></span>
+                                            수신
+                                        </label>
+                                    </div>
+                                    <div class="radio_box">
+                                        <input id="sms_disagree" type="radio" name="sms" th:checked="${content[0].isSmsAgree == false}" disabled>
+                                        <label for="sms_disagree">
+                                            <span></span>
+                                            수신거부
+                                        </label>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><span class="el_required">*</span>이메일</th>
+                                <td>
+                                    <div class="d-flex align-items-center hp_w400 gap-2">
+                                        <input type="text" id="email" th:if="${content==null || (content!=null && #strings.isEmpty(content[0].email))}">
+                                        <input type="text" id="email" th:if="${content!=null && !#strings.isEmpty(content[0].email)}" th:value="${#strings.arraySplit(content[0].email,'@').length > 1 ? #strings.arraySplit(content[0].email,'@')[0] : ''}">
+                                        <span>@</span>
+                                        <input type="text" id="mailInput" th:if="${content==null || (content!=null && #strings.isEmpty(content[0].email))}">
+                                        <input type="text" id="mailInput" th:if="${content!=null && !#strings.isEmpty(content[0].email)}" th:value="${#strings.arraySplit(content[0].email,'@').length > 1 ? #strings.arraySplit(content[0].email,'@')[1] : ''}">
+                                        <select name="" id="mailSelect" class="common_select" data-list="emailList" onchange="mailChange(this)"></select>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><span class="el_required">*</span>이메일 수신동의</th>
+                                <td>
+                                    <div class="radio_box">
+                                        <input id="email_agree" type="radio" name="email" th:checked="${content[0].isEmailAgree == true}" disabled>
+                                        <label for="email_agree">
+                                            <span></span>
+                                            수신
+                                        </label>
+                                    </div>
+                                    <div class="radio_box">
+                                        <input id="email_disagree" type="radio" name="email" th:checked="${content[0].isEmailAgree == false}" disabled>
+                                        <label for="email_disagree">
+                                            <span></span>
+                                            수신거부
+                                        </label>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row">집 주소</th>
+                                <td>
+                                    <div class="d-flex flex-column gap-2">
+                                        <div class="d-flex-2">
+                                            <input id="userZipCode" type="text" class="hp_w400" th:value="${content[0].userZipCode}" disabled>
+                                            <div class="btn btnDefault viewControlBtn" onclick="addrSearch(this)">우편번호</div>
+                                        </div>
+
+                                        <input id="userAddress1" type="text" class="hp_w600" th:value="${content[0].userAddress1}" disabled>
+
+                                        <input id="userAddress2" type="text" class="hp_w600" th:value="${content[0].userAddress2}" disabled>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <tr style="display:none;">
+                                <th scope="row">SNS 연동</th>
+                                <td>
+                                    <div class="tableLeftResponsive" style="border-top: none">
+                                        <table class="tableLeft hp_w400 mb-0" style="border: 1px solid #ddd">
+                                            <tbody>
+                                            <tr>
+                                                <th scope="row" class="text-center">네이버</th>
+                                                <td class="text-center">2022.02.01</td>
+                                                <td class="text-center">
+                                                    <a href="#popUnlock" data-control="modal" data-handler="popUnlock" class="btn btnDefault">해제하기</a>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <th scope="row" class="text-center">카카오</th>
+                                                <td class="text-center">2022.02.01</td>
+                                                <td class="text-center">
+                                                    <a href="#popUnlock" data-control="modal" data-handler="popUnlock" class="btn btnDefault">해제하기</a>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <th scope="row" class="text-center">구글</th>
+                                                <td class="text-center">미연동</td>
+                                                <td class="text-center"></td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row">회원상태</th>
+                                <td>
+                                    <select id="state" class="common_select">
+                                        <option value="0" th:selected="${content[0].state == '0'}">미사용</option>
+                                        <option value="1" th:selected="${content[0].state == '1'}">정상</option>
+                                        <option value="2" th:selected="${content[0].state == '2'}">휴면</option>
+                                        <option value="3" th:selected="${content[0].state == '3'}">정지</option>
+                                        <option value="4" th:selected="${content[0].state == '4'}">탈퇴</option>
+                                    </select>
+                                </td>
+                            </tr>
+                            <tr id="journalistAppro">
+                                <th scope="row">언론인 승인 상태</th>
+                                <td>
+                                    <select id="approFlag" class="common_select">
+                                        <option value="Y" th:selected="${content[0].approFlag == 'Y'}">승인</option>
+                                        <option value="W" th:selected="${content[0].approFlag == 'W'}">승인대기</option>
+                                        <option value="N" th:selected="${content[0].approFlag == 'N'}">미승인</option>
+                                    </select>
+                                </td>
+                            </tr>
+                            <tr id="journalistApproDate" th:if="${content[0].approFlag == 'Y'}">
+                                <th scope="row">언론인 승인 유효일자</th>
+                                <td>
+                                    <input name="approFlagDate" type="text" class="el_datePicker hp_w200" th:value="${content[0].approFlagDate}">
+                                    <p class="guide_text">※ 미입력 시 무기한으로 권한이 유지됩니다.</p>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <h3 id="departmentInfoTitle" class="subTitle">소속정보</h3>
+                    <div id="departmentInfo" class="tableLeftResponsive">
+                        <table class="tableLeft">
+                            <colgroup>
+                                <col style="width: 200px">
+                                <col style="width: auto">
+                            </colgroup>
+                            <tbody>
+                            <tr th:if="${content[0].roleGroup == 'TEACHER' }">
+                                <th scope="row">NEIS 개인 번호</th>
+                                <td>
+                                    <input id="personalNiceNo" type="text" class="hp_w400" th:value="${content[0].personalNiceNo}">
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><span class="el_required">*</span><span class="change_data">매체사</span></th>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <input th:if="${content[0].organizationInfo == null}" id="organizationCode" type="hidden" class="hp_w400 organizationInfo" disabled>
+                                        <input th:unless="${content[0].organizationInfo == null}" id="organizationCode" type="hidden" class="hp_w400 organizationInfo" th:value="${content[0].organizationInfo.organizationCode}" disabled>
+                                        <input th:if="${content[0].organizationInfo == null}" id="organizationName" type="text" class="hp_w400 organizationInfo" disabled>
+                                        <input th:unless="${content[0].organizationInfo == null}" id="organizationName" type="text" class="hp_w400 organizationInfo" th:value="${content[0].organizationInfo.organizationName}" disabled>
+                                        <div th:if="${content[0].businessAuthority=='SCHOOL'|| content[0].businessAuthority=='AGENCY' || content[0].roleGroup=='TEACHER' || content[0].roleGroup=='STUDENT'}" class="btn btnDefault viewControlBtn" onclick="openPop('', '/popup/find/organization', 'findOrganization')">찾아보기</div>
+                                        <div th:unless="${content[0].businessAuthority=='SCHOOL'|| content[0].businessAuthority=='AGENCY' || content[0].roleGroup=='TEACHER' || content[0].roleGroup=='STUDENT'}" class="btn btnDefault viewControlBtn" onclick="openPop('', '/popup/find/company', 'findCompany')">찾아보기</div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr class="journalist_info">
+                                <th scope="row">매체</th>
+                                <td>
+                                    <input th:if="${content[0].mediaCode == null}" id="mediaCode" type="text" class="hp_w400 organizationInfo">
+                                    <input th:unless="${content[0].mediaCode == null}" id="mediaCode" type="text" class="hp_w400 organizationInfo" style="display:none;">
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><span class="change_data">직장</span> 주소</th>
+                                <td>
+                                    <div class="d-flex flex-column gap-2">
+                                        <div class="d-flex-2">
+                                            <input th:if="${content[0].organizationInfo == null}" id="organizationZipCode" type="text" class="hp_w400 organizationInfo" disabled>
+                                            <input th:unless="${content[0].organizationInfo == null}" id="organizationZipCode" type="text" class="hp_w400 organizationInfo" th:value="${content[0].organizationInfo.organizationZipCode}" disabled>
+                                            <div class="btn btnDefault viewControlBtn" onclick="addrSearch(this)">우편번호</div>
+                                        </div>
+
+                                        <input th:if="${content[0].organizationInfo == null}" id="organizationAddress1" type="text" class="hp_w600 organizationInfo" disabled>
+                                        <input th:unless="${content[0].organizationInfo == null}" id="organizationAddress1" type="text" class="hp_w600 organizationInfo" th:value="${content[0].organizationInfo.organizationAddress1}" disabled>
+
+                                        <input th:if="${content[0].organizationInfo == null}" id="organizationAddress2" type="text" class="hp_w600 organizationInfoorganizationInfo" disabled>
+                                        <input th:unless="${content[0].organizationInfo == null}" id="organizationAddress2" type="text" class="hp_w600 organizationInfo" th:value="${content[0].organizationInfo.organizationAddress2}" disabled>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><span class="change_data">직장</span> 전화번호</th>
+                                <td>
+                                    <div class="d-flex align-items-center hp_w400 gap-2">
+                                        <select name="" id="telSelect" class="common_select organizationInfo" data-list="telList" disabled></select>
+                                        <span>-</span>
+                                        <input type="text" id="tel1" class="organizationInfo" disabled>
+                                        <span>-</span>
+                                        <input type="text" id="tel2" class="organizationInfo" disabled>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><span class="change_data">직장</span> 팩스번호</th>
+                                <td>
+                                    <div class="d-flex align-items-center hp_w400 gap-2">
+                                        <select name="" id="faxSelect" class="common_select organizationInfo" data-list="telList" disabled></select>
+                                        <span>-</span>
+                                        <input type="text" class="organizationInfo" id="fax1" disabled>
+                                        <span>-</span>
+                                        <input type="text" class="organizationInfo" id="fax2" disabled>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr class="journalist_info">
+                                <th scope="row"><span class="el_required">*</span>부서</th>
+                                <td>
+                                    <input id="department" type="text" class="hp_w400" th:value="${content[0].department}">
+                                </td>
+                            </tr>
+                            <tr class="journalist_info">
+                                <th scope="row"><span class="el_required">*</span>직급</th>
+                                <td>
+                                    <input id="rank" type="text" class="hp_w400" th:value="${content[0].rank}">
+                                </td>
+                            </tr>
+                            <tr class="journalist_info">
+                                <th scope="row"><span class="el_required">*</span>직책</th>
+                                <td>
+                                    <input id="position" type="text" class="hp_w400" th:value="${content[0].position}">
+                                </td>
+                            </tr>
+                            <tr class="journalist_info">
+                                <th scope="row"><span class="el_required">*</span>재직증명서</th>
+                                <td>
+                                    <div class="bl_uploadGrid">
+                                        <div class="bl_upload js_upload hp_lg_w462">
+                                            <input type="text" class="bl_upload_path js_path" readonly th:if="${content == null}">
+                                            <input type="text" class="bl_upload_path js_path" readonly th:if="${content != null} and ${content[0].attachFilePath == null}">
+                                            <input type="text" class="bl_upload_path js_path" readonly th:if="${content != null} and ${content[0].attachFilePath != null}" th:value="${content[0].attachFilePath}">
+
+                                            <label class="btn btnDefault bg-secondary text-white bl_upload_btn viewControlBtn">파일찾기</label>
+                                            <input id="attachFile" type="file" name="file" class="bl_upload_file js_file viewControlBtn">
+
+                                        </div>
+                                    </div>
+
+                                    <p class="bl_uploadNote">※ 파일형식 pdf, jpg, png, gif / 5MB 미만
+                                    </p>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <h3 class="subTitle d-flex align-items-center justify-content-between" th:if="${content[0].nokDI==null}">
+                        권한정보
+                    </h3>
+                    <div class="tableLeftResponsive" th:if="${content[0].nokDI==null}">
+                        <table class="tableLeft">
+                            <colgroup>
+                                <col style="width: 200px">
+                                <col style="width: auto">
+                            </colgroup>
+                            <tbody>
+                            <tr>
+                                <th scope="row"><span class="el_required">*</span>회원 권한</th>
+                                <td>
+                                    <span th:if="${content[0].businessAuthority == 'SCHOOL'}">사업참여자(학교담당자)</span>
+                                    <span th:if="${content[0].businessAuthority == 'AGENCY'}">사업참여자(기관담당자)</span>
+                                    <span th:if="${content[0].businessAuthority == 'INSTR'}">미디어강사</span>
+                                    <span th:if="${content[0].businessAuthority != null}"><a class="btn btnDefault" href="#popUnlock2" data-control="modal" data-handler="popUnlock2">해제하기</a></span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><span class="el_required">*</span>튜터 권한</th>
+                                <td>
+                                    <select id="tutorYn" class="common_select">
+                                        <option value="Y" th:selected="${content[0].tutorYn == 'Y'}">활성화</option>
+                                        <option value="N" th:selected="${content[0].tutorYn == 'N'}">비활성화</option>
+                                    </select>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="bl_gridBtns">
+                        <div class="bl_gridBtns_rgt">
+                            <a href="/user/web-user" class="btn btnDefault btnList">목록</a>
+                            <a th:if="${content[0].state != '4'}" id="update_btn" th:onclick="update()" class="btn btnDefault btnModify">수정</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="bl_tab2_item js_tab_item">
+                    <th:block th:include="views/forme/edu2020_history_list"></th:block>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- POPUP : 연동 해제 -->
+        <article class="pop_wrapper ui-modal" id="popUnlock">
+            <div class="pop_wrap pop_secondary hp_mw500">
+                <div class="pop_cont">
+                    이 연동을 해제하시겠습니까?
+                    <div class="bl_gridBtns">
+                        <div class="bl_gridBtns_md">
+                            <a class="btn btnDefault btnCancel pop-close" href="">취소</a>
+                            <a class="btn btnDefault pop-close" href="#popUnlockConfirm" data-control="modal" data-handler="popUnlockConfirm">해제</a>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="button" class="pop_close pop-close">닫기</button>
+            </div>
+        </article>
+
+        <!-- POPUP : 연동 해제 -->
+        <article class="pop_wrapper ui-modal" id="popUnlockConfirm">
+            <div class="pop_wrap pop_secondary hp_mw500">
+                <div class="pop_cont">
+                    연동이 해제되었습니다.
+                    <div class="bl_gridBtns">
+                        <div class="bl_gridBtns_md">
+                            <a class="btn btnDefault pop-close" href="">확인</a>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="button" class="pop_close pop-close">닫기</button>
+            </div>
+        </article>
+
+        <!-- POPUP : 권한 해제 -->
+        <article class="pop_wrapper ui-modal" id="popUnlock2">
+            <div class="pop_wrap pop_secondary hp_mw500">
+                <div class="pop_cont">
+                    권한을 해제하시겠습니까?
+                    <div class="bl_gridBtns">
+                        <div class="bl_gridBtns_md">
+                            <a class="btn btnDefault btnCancel pop-close" href="">취소</a>
+                            <a class="btn btnDefault pop-close" onclick="removeConfirm()">해제</a>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="button" class="pop_close pop-close">닫기</button>
+            </div>
+        </article>
+
+        <!-- POPUP : 권한 해제 완료 -->
+        <article class="pop_wrapper ui-modal" id="popUnlockConfirm2">
+            <div class="pop_wrap pop_secondary hp_mw500">
+                <div class="pop_cont">
+                    권한이 해제되었습니다.
+                    <div class="bl_gridBtns">
+                        <div class="bl_gridBtns_md">
+                            <a class="btn btnDefault pop-close" href="">확인</a>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="button" class="pop_close pop-close">닫기</button>
+            </div>
+        </article>
+
+        <!-- POPUP : 학교/기관명 찾아보기 -->
+        <div class="iframe_wrap">
+            <iframe id="findOrganization" src="about:blank" width="1000" height="717"></iframe>
+        </div>
+        <!-- POPUP : 매체사 찾아보기 -->
+        <div class="iframe_wrap">
+            <iframe id="findCompany" src="about:blank" width="1000" height="717"></iframe>
+        </div>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            //권한 해제하는 함수
+            function removeConfirm(){
+                let data = getCont();
+                data[0].businessAuthority = null;
+                $.ajax({
+                    type: "put",
+                    url: "/api/user/web-user/clear",
+                    headers: {'Content-Type': 'application/json'},
+                    data: JSON.stringify(data[0]),
+                    dataType: "json",
+                    success: function(data) {
+                        alert('권한해제에 성공했습니다.');
+                        window.location.reload();
+                    },
+                    error:function (e){
+                        alert(e.responseJSON.resultMessage);
+                    }
+                })
+            }
+            let changeFlag = 0;
+            $(".organizationInfo").bind("change",function (){
+                changeFlag=1;
+            })
+            window.addEventListener('message', handleDocHeightMsg, false); // 메시지 수신 이벤트 등록
+
+            function handleDocHeightMsg(eventObj) { // 메시지 수신 처리를 위한 함수
+                setPopData(eventObj.data);
+            }
+
+            //소속정보 - 학교/매체사 구분
+            let CONT = [[ ${content} ]];
+            if (CONT[0].roleGroup == 'TEACHER' || CONT[0].roleGroup == 'STUDENT') { //일반(교원), 일반(학생) - 학교 정보
+                $('.change_data').text('학교');
+                $('.journalist_info').hide();
+            } else if (CONT[0].roleGroup == 'JOURNALIST') { //언론인 - 매체사 정보
+                $('.change_data').text('매체사');
+                $('.journalist_info').css('display', 'table-row');
+            } else { //일반(학부모), 일반(일반인) - 소속정보 숨김 처리
+                $('#departmentInfoTitle').hide();
+                $('#departmentInfo').hide();
+            }
+
+            // 언론인 승인 상태 노출/숨김
+            if (CONT[0].roleGroup == 'JOURNALIST') {
+                $('#journalistAppro').css('display','table-row');
+            } else {
+                $('#journalistAppro').hide();
+                $('#journalistApproDate').hide();
+            }
+
+            function update() {
+                let params = getFormData();
+                if (params != null) {
+                    if ($('#state').val() != 4) {
+                        $.ajax({
+                            type: "put",
+                            url: "/api/user/web-user/update",
+                            headers: {'Content-Type': 'application/json'},
+                            data: JSON.stringify(params),
+                            dataType: "json",
+                            success: function (data) {
+                                if($("#attachFile")[0].files.length==1){
+                                    let form = new FormData();
+                                    form.append( "attachFile", $("#attachFile")[0].files[0] );
+                                    $.ajax({
+                                        type: "put", //http method
+                                        url: `/api/user/web-user/upload/${params.userId}`, //값을 가져올 경로
+                                        processData : false,
+                                        contentType : false,
+                                        async:false,
+                                        data: form
+                                    })
+                                }
+                                // 비밀번호 변경
+                                if ($('#password').val()) {
+                                    if ($('#password').val() === $('#password2').val()) {
+                                        params.ci = '';
+                                        params.password = $('#password').val();
+                                        $.ajax({ //jquery ajax
+                                            type: "PUT", //http method
+                                            url: "/api/user/web-user/change-password", //값을 가져올 경로
+                                            headers: {'Content-Type': 'application/json'},
+                                            dataType: "json", //html, xml, text, script, json, jsonp 등 다양하게 쓸 수 있음
+                                            data: JSON.stringify(params),
+                                            success: function (res) {
+                                                alert('회원정보와 비밀번호 변경이 모두 완료되었습니다.')
+                                                $('#password').val('');
+                                                $('#password2').val('');
+                                                window.location.reload();
+                                            },
+                                            error: function (e) {
+                                                alert("회원정보 변경에는 성공했으나, 비밀번호 변경 중 오류가 발생했습니다.")
+                                            }
+                                        });
+                                    } else {
+                                        alert("회원정보 변경에는 성공했으나, 비밀번호와 비밀번호 확인이 일치하지 않습니다.")
+                                    }
+                                } else if (!$('#password').val()) {
+                                    alert('회원정보가 성공적으로 수정되었습니다.');
+                                    window.location.reload();
+                                }
+                            },
+                            error: function (e) {
+                                alert(e.responseJSON.resultMessage);
+                            }
+                        })
+                    } else {
+                        if(confirm('탈퇴 처리 시 복구가 불가합니다. 탈퇴 처리 하시겠습니까?')) {
+                            $.ajax({
+                                type: "put",
+                                url: "/api/user/web-user/update",
+                                headers: {'Content-Type': 'application/json'},
+                                data: JSON.stringify(params),
+                                dataType: "json",
+                                success: function (data) {
+                                    alert('탈퇴 처리가 완료되었습니다.');
+                                    window.location.replace('/user/web-user');
+                                },
+                                error: function (e) {
+                                    alert(e.responseJSON.resultMessage);
+                                }
+                            })
+                        } else alert('탈퇴 처리가 취소되었습니다.')
+                    }
+                }
+            }
+            /* <![CDATA[ */
+            function getCont(){
+                let CONT = [[ ${content} ]];
+                return CONT;
+            }
+            function getFormData(){
+                let CONT = getCont();
+                let params ={};
+                params = CONT[0];
+                params.email = $("#email").val() + "@" + $("#mailInput").val();
+                params.state = $("#state").val();
+                params.userZipCode = $("#userZipCode").val();
+                params.userAddress1 = $("#userAddress1").val();
+                params.userAddress2 = $("#userAddress2").val();
+                params.organizationInfo={}
+                params.organizationCode = $("#organizationCode").val();
+                params.organizationInfo.organizationCode = $("#organizationCode").val();
+                params.organizationInfo.organizationName = $("#organizationName").val();
+                params.organizationInfo.organizationSubName = $("#organizationSubName").val();
+                params.organizationInfo.organizationZipCode = $("#organizationZipCode").val();
+                params.organizationInfo.organizationAddress1 = $("#organizationAddress1").val();
+                params.organizationInfo.organizationAddress2 = $("#organizationAddress2").val();
+                params.organizationInfo.organizationTelNumber = $("#telSelect").val()+$("#tel1").val()+$("#tel2").val();
+                params.organizationInfo.organizationFaxNumber = $("#faxSelect").val()+$("#fax1").val()+$("#fax2").val();
+                params.organizationInfo.isUsable = $("#isUsable").val()
+                params.organizationInfo.bizLicenseNumber = $("#bizLicenseNumber").val()
+                params.organizationInfo.organizationType = $("#organizationType").val()
+                params.department = $("#department").val();
+                params.rank = $("#rank").val();
+                params.position = $("#position").val();
+                params.userId=CONT[0].userId;
+                params.isEmailAgree = CONT[0].isEmailAgree;
+                params.isSmsAgree = CONT[0].isSmsAgree;
+                params.gender = CONT[0].gender;
+                params.businessAuthority = CONT[0].businessAuthority;
+                params.roleGroup = $("#roleGroup").val();
+                params.mediaCode = $(".select_media_Code").val();
+                params.approFlag = $("#approFlag").val();
+                params.approFlagDate = $("#approFlag").val()=="Y"? $(".el_datePicker[name=approFlagDate]").val() : null;
+                params.tutorYn = $("#tutorYn").val();
+                params.personalNiceNo = $("#personalNiceNo").val();
+                if($('#password').val()){
+                    if($('#password').val() === $('#password2').val()){
+                        if(!/^(?=.*[a-zA-Z])(?=.*[~!@#$%^*\(\)\{\}\[\]\<\>\?])(?=.*[0-9]).{8,25}$/.test($('#password').val())){
+                            alert('유효하지 않은 비밀번호입니다.')
+                            params = null;
+                        } else {
+                            params.password=null;
+                        }
+                    }else if($('#password').val() || $('#password2').val()){
+                        alert('비밀번호가 일치하지 않습니다.')
+                        params = null;
+                    }
+                }
+
+                if(params.phone != $('#phone').val()){
+                    if(!/^01([0|1|6|7|8|9]?)-?([0-9]{3,4})-?([0-9]{4})$/.test($('#phone').val()) || $('#phone').val().length != 11){
+                        alert('잘못된 휴대폰 번호입니다. 휴대폰 번호 형식에 맞게 입력해주세요.')
+                        params = null;
+                    } else {
+                        params.phone=$("#phone").val();
+                    }
+                }
+                return params;
+            }
+            function mailChange(mailVal){
+                const MAILINPUT = document.getElementById('mailInput');
+                if(globalEmailList.includes(mailVal.value)){
+                    document.getElementById('mailInput').setAttribute('readonly','readonly');
+                    MAILINPUT.setAttribute('value',mailVal.value);
+                } else {
+                    document.getElementById('mailInput').removeAttribute('readonly');
+                    MAILINPUT.setAttribute('value','');
+                }
+            }
+
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+                let CONT = [[ ${content} ]];
+
+                let nextDate = new Date();
+                nextDate.setDate(nextDate.getDate()+1)
+                $('.el_datePicker[name=approFlagDate]').datepicker("option", "minDate",nextDate );
+                if(globalEmailList.includes(CONT[0].email.split('@')[1])){
+                    setSelected(CONT[0].email.split('@')[1],'mailSelect');
+                    document.getElementById('mailInput').setAttribute('readonly','readonly');
+                } else {
+                    setSelected('직접입력','mailSelect');
+                    document.getElementById('mailInput').removeAttribute('readonly');
+                }
+
+                if( CONT[0].organizationInfo ){
+                    if(CONT[0].organizationInfo.organizationTelNumber){
+                        let convertTelNum = CONT[0].organizationInfo.organizationTelNumber.replace(/(^02.{0}|^01.{1}|^050.{1}|^[0-9]{3})([0-9]*)([0-9]{4})/, "$1-$2-$3");
+                        if(convertTelNum && convertTelNum.indexOf('-')>0){
+                            setSelected(convertTelNum.split('-')[0],'telSelect');
+                            document.getElementById('tel1').setAttribute('value', convertTelNum.split('-')[1]);
+                            document.getElementById('tel2').setAttribute('value', convertTelNum.split('-')[2]);
+                        }
+                    }
+                    if(CONT[0].organizationInfo.organizationFaxNumber){
+                        let convertFaxNum = CONT[0].organizationInfo.organizationFaxNumber.replace(/(^02.{0}|^01.{1}|^050.{1}|^[0-9]{3})([0-9]*)([0-9]{4})/, "$1-$2-$3");
+                        if(convertFaxNum && convertFaxNum.indexOf('-')>0){
+                            setSelected(convertFaxNum.split('-')[0],'faxSelect');
+                            document.getElementById('fax1').setAttribute('value', convertFaxNum.split('-')[1]);
+                            document.getElementById('fax2').setAttribute('value', convertFaxNum.split('-')[2]);
+                        }
+                    }
+                }
+
+                if (CONT[0].birthDay && CONT[0].birthDay.length > 0) {
+                    let convertBirthDay = CONT[0].birthDay.replace(/([0-9]{4})([0-9]{2})([0-9]{2})/, "$1-$2-$3");
+                    document.getElementById('birthday').setAttribute('value', convertBirthDay)
+                }
+            }
+
+            function addrSearch(btn) {
+                var width = 500; //팝업의 너비
+                var height = 600; //팝업의 높이
+                let div =$(btn).parent().parent()
+                let input = $(div).find('input');
+
+                new daum.Postcode({
+                    width: width, //생성자에 크기 값을 명시적으로 지정해야 합니다.
+                    height: height,
+                    oncomplete: function(data) {
+                        var zonecode = data.zonecode; // 우편번호 변수
+                        var addr = ''; // 주소 변수
+                        var addr2 = '';
+
+                        // 사용자가 선택한 주소 타입에 따라 해당 주소 값을 가져온다.
+                        if (data.userSelectedType === 'R') { // 사용자가 도로명 주소를 선택했을 경우
+                            addr = data.roadAddress;
+                            if (data.buildingName != '') {
+                                addr2 = data.buildingName;
+                            }
+                        } else { // 사용자가 지번 주소를 선택했을 경우
+                            addr = data.jibunAddress;
+                        }
+
+                        $(input[0]).val(zonecode)
+                        $(input[1]).val(addr)
+                        if (addr2 != '') {
+                            $(input[1]).val(addr+ ' (' + addr2 + ')')
+                        }
+                        $(input[2]).val('');
+                        $(input[2]).removeAttr('disabled');
+                    }
+                }).open({
+                    left: (window.screen.width / 2) - (width / 2),
+                    top: (window.screen.height / 2) - (height / 2)
+                });
+            }
+            /* ]]> */
+            // organizationInfo 기준
+            function setPopData(data){
+                if(data && data!=null&& data.organizationCode){
+                    changeFlag = 0;
+                    $("#organizationCode").val(data.organizationCode).change();
+                    $("#organizationName").val(data.organizationName);
+                    $("#organizationSubName").val(data.organizationSubName);
+                    $("#organizationAddress1").val(data.organizationAddress1);
+                    $("#organizationAddress2").val(data.organizationAddress2);
+                    $("#organizationZipCode").val(data.organizationZipCode);
+
+                    if( data.organizationTelNumber){
+                        let convertTelNum = data.organizationTelNumber.replace(/(^02.{0}|^01.{1}|^050.{1}|^[0-9]{3})([0-9]*)([0-9]{4})/, "$1-$2-$3");
+                        if(convertTelNum && convertTelNum.indexOf('-')){
+                            setSelected(convertTelNum.split('-')[0],'telSelect');
+                            if( convertTelNum.split('-')[1] ) document.getElementById('tel1').setAttribute('value', convertTelNum.split('-')[1])
+                            if( convertTelNum.split('-')[2] ) document.getElementById('tel2').setAttribute('value', convertTelNum.split('-')[2])
+                        }else{
+                            $("#telSelect").val('');
+                            document.getElementById('tel1').setAttribute('value', '')
+                            document.getElementById('tel2').setAttribute('value', '')
+                        }
+                    }else{
+                        $("#telSelect").val('');
+                        document.getElementById('tel1').setAttribute('value', '')
+                        document.getElementById('tel2').setAttribute('value', '')
+                    }
+
+                    if(data.organizationFaxNumber){
+                        let convertFaxNum = data.organizationFaxNumber.replace(/(^02.{0}|^01.{1}|^050.{1}|^[0-9]{3})([0-9]*)([0-9]{4})/, "$1-$2-$3");
+                        if(convertFaxNum && convertFaxNum.indexOf('-')){
+                            setSelected(convertFaxNum.split('-')[0],'faxSelect');
+                            if( convertFaxNum.split('-')[1] )document.getElementById('fax1').setAttribute('value', convertFaxNum.split('-')[1])
+                            if( convertFaxNum.split('-')[2]) document.getElementById('fax2').setAttribute('value', convertFaxNum.split('-')[2])
+                        }else{
+                            $("#faxSelect").val('');
+                            document.getElementById('fax1').setAttribute('value', '')
+                            document.getElementById('fax2').setAttribute('value', '')
+                        }
+                    }else{
+                        $("#faxSelect").val('');
+                        document.getElementById('fax1').setAttribute('value', '')
+                        document.getElementById('fax2').setAttribute('value', '')
+                    }
+                }
+            }
+
+
+            let mediaDbList = [];
+
+            async function setMediaList(options){
+                if( options.target ){
+                    $(options.target).hide();
+                }
+                if( !options.list ){
+
+                    let loading = $(`<div class="spinner-border text-primary spinner-border-sm" role="status"><span class="sr-only">정보를 불러오는 중 입니다.</span></div>`);
+                    $(options.target).hide().after(loading);
+                    let ajaxData = await $.ajax({
+                        type: "get",
+                        url: "/api/user/media/page?size=1000000",
+                        headers: {'Content-Type': 'application/json'},
+                        dataType: "json",
+                        error: function(e) { }
+                    });
+                    if( ajaxData && ajaxData.content && ajaxData.content.length ){
+                        options.list = ajaxData.content;
+                        window.mediaDbList = ajaxData.content;
+                    }
+                    loading.remove();
+                }
+                let prefixId = "mediaList"+new Date().getTime();
+                let html = $(`<select class="common_select select_media_Code" id="${prefixId}"><option value="">선택없음</option></select>`);
+                let generalItem = function(findList, initValue){
+                    html.empty();
+                    html.append(`<option value="">선택없음</option>`);
+                    findList.forEach(function(item){
+                        html.append(`<option value="${item.mediaCode}" ${initValue && initValue == item.mediaCode? "selected" : ""}>${item.mediaName}</option>`);
+                    });
+                }
+                if( options.initOrgCode ){
+                    let findList = _.where(options.list, {organizationCode: options.initOrgCode });
+                    generalItem( findList, options.initMediaCode);
+                }
+                $(options.organizationCodeTarget).change(function(e){
+                    let findList = _.where(options.list, {organizationCode:options.organizationCodeTarget.value});
+                    generalItem(findList);
+                });
+                html.change(function(e){ options.target.value = e.target.value; });
+                $(options.target).hide().after(html);
+            }
+
+            setMediaList({
+                initOrgCode : [[ ${content[0].organizationCode} ]],
+                initMediaCode : [[ ${content[0].mediaCode} ]],
+                target : document.getElementById("mediaCode"),
+                organizationCodeTarget : document.getElementById("organizationCode")
+            });
+
+            let formeUserId;
+            try{
+                formeUserId = CONT[0].userId;
+                if( formeUserId ){
+                    initialEdu2020(formeUserId);
+                }
+            }catch(e){
+                console.error('ERROR',e);
+            }
+
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="homepage-14">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>교육장 사용신청 관리</h2>
+        </div>
+
+        <div class="tableLeftResponsive">
+            <table class="tableLeft">
+                <colgroup>
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                </colgroup>
+                <tbody>
+                    <tr>
+                        <th scope="row">제목</th>
+                        <td>
+                            <span th:if="${content[0].title != null}" th:text="${content[0].title}"></span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">작성자</th>
+                        <td>
+                            <span th:if="${content[0].aplyUserNm != null} or ${content[0].registUserId != null}" th:text="${content[0].aplyUserNm}+'('+${content[0].registUserId}+')'"></span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">휴대폰번호</th>
+                        <td>
+                            <span th:if="${content[0].aplyPhone != null}" th:value="${content[0].aplyPhone}"></span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">이메일</th>
+                        <td>
+                            <span th:if="${content[0].aplyEmlAddr != null}" th:value="${content[0].aplyEmlAddr}"></span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">내용</th>
+                        <td>
+                            <span th:if="${content[0].contents != null}" th:text="${content[0].contents}"></span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">신청서</th>
+                        <td>
+                            <div class="btn_type5 btn_file" th:if="${not #strings.isEmpty(content[0].atchFilePath)}" th:text="${content[0].atchFilePath}" th:href="@{/api/homepage/edu/place/download?attachFilePath={link}(link=${content[0].atchFilePath})}">신청서.hwp</div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="bl_gridBtns">
+            <div class="bl_gridBtns_lft">
+                <div class="btn btnDefault btnDelete" onclick="del()">삭제</div>
+            </div>
+            <div class="bl_gridBtns_rgt">
+                <a href="/homepage/edu-center" class="btn btnDefault btnList">목록</a>
+            </div>
+        </div>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            /* <![CDATA[ */
+            function del() {
+                if(confirm(`정말로 삭제하시겠습니까?`)){
+                    let params = getFormData();
+                    $.ajax({ //jquery ajax
+                        type:"delete", //http method
+                        url:`/api/homepage/edu/place/delete/${params.sequenceNo}`, //값을 가져올 경로
+                        headers: {'Content-Type': 'application/json'},
+                        data: JSON.stringify(params),
+                        dataType:"json", //html, xml, text, script, json, jsonp 등 다양하게 쓸 수 있음
+                        success: function(data){   //요청 성공시 실행될 메서드
+                            alert('삭제되었습니다.');
+                            location.href = '/homepage/edu-center';
+                        },
+                        error: function(e){		 //요청 실패시 에러 확인을 위함
+                            if(e && e.responseJSON && e.responseJSON.resultMessage){
+                                alert(e.responseJSON.resultMessage);
+                            }else{
+                                alert('삭제 중 오류가 발생했습니다.')
+                            }
+                        }
+                    })
+                }
+            }
+
+            function getFormData() {
+                const CONT = [[ ${content} ]];
+                let params = {};
+                params.sequenceNo = CONT[0].sequenceNo;
+                params.title = CONT[0].title;
+                params.contents = CONT[0].contents;
+                params.aplyUserNm = CONT[0].aplyUserNm;
+                params.aplyPhone = CONT[0].aplyPhone;
+                params.aplyEmlAddr = CONT[0].aplyEmlAddr;
+                params.atchFilePath = CONT[0].aplyEmlAddr;
+                return params;
+            }
+
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+            }
+            /* ]]> */
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

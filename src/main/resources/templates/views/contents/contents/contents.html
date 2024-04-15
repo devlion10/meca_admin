@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="contents-1">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>콘텐츠 관리</h2>
+        </div>
+    
+        <div class="tableLeftResponsive">
+            <table class="tableLeft">
+                <colgroup>
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                </colgroup>
+                <tbody>
+                    <tr>
+                        <th scope="row">구분</th>
+                        <td>
+                            <select class="common_select" id="categoryCode">
+                                <option value="" th:selected="${true}">전체</option>
+                                <th:block th:each="commonCode : ${commonCode}" th:if="${commonCode.code} == 'CTS_CTGR'">
+                                    <option th:each="categoryCode : ${commonCode.subCode}" th:value="${categoryCode.code}" th:text="${categoryCode.codeName}"></option>
+                                </th:block>
+                            </select>
+                        </td>
+                        <th scope="row">상태</th>
+                        <td>
+                            <div class="radio_box">
+                                <input id="all" type="radio" name="isUsable" checked>
+                                <label for="all">
+                                    <span></span>
+                                    전체
+                                </label>
+                            </div>
+                            <div class="radio_box">
+                                <input id="use" type="radio" name="isUsable" value="true">
+                                <label for="use">
+                                    <span></span>
+                                    사용
+                                </label>
+                            </div>
+                            <div class="radio_box">
+                                <input id="not_use" type="radio" name="isUsable" value="false">
+                                <label for="not_use">
+                                    <span></span>
+                                    사용안함
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">콘텐츠명</th>
+                        <td colspan="3">
+                            <input type="text" id="contentsName">
+                        </td>
+                    </tr>
+                </tbody>
+
+            </table>
+        </div>
+
+        <!-- GRID : BUTTON -->
+        <div class="bl_gridBtns">
+            <div class="bl_gridBtns_md">
+                <div class="btn btnDefault btnReset">리셋</div>
+                <a class="btn btnDefault btnSearch" th:onclick="goSearch()">검색</a>
+                <a class="btn btnDefault download_excel download_search" href="/api/contents/list/excel">excel 다운로드</a>
+                <a class="btn btnDefault btnRegister" href="/contents/list/regist">등록</a>
+            </div>
+        </div>
+
+        <!-- BOARD : CONTROLLER -->
+        <div class="bl_boardCtrls">
+            <div class="bl_boardCtrls_lft">
+                <p class="bl_boardCtrls_total">총: <strong th:text="${pageable.totalElements}"></strong>건</p>
+            </div>
+            <div class="bl_boardCtrls_rgt">
+                <select class="common_select" data-list="countSortList"></select>
+            </div>
+        </div>
+
+        <div class="tableResponsive overflowMulti">
+            <table class="table">
+                <colgroup>
+                    <col style="width: 50px" />
+                    <col style="width: 200px" />
+                    <col style="width: auto" />
+                    <col style="width: 80px" />
+                    <col style="width: 200px" />
+                    <col style="width: 100px" />
+                    <col style="width: 200px" />
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th scope="col">번호</th>
+                        <th scope="col">구분</th>
+                        <th scope="col">콘텐츠명</th>
+                        <th scope="col">상태</th>
+                        <th scope="col">등록기관</th>
+                        <th scope="col">등록일</th>
+                        <th scope="col">관리</th>
+                    </tr>
+                </thead>
+                <tbody th:if="${content != null && content.size > 0}">
+                    <tr th:if="${!#lists.isEmpty(content)}" th:each="item, stat: ${content}">
+                        <td th:text="${pageable.totalElements - ((pageable.page * pageable.size) + stat.index)}"></td>
+                        <td th:switch="${item.categoryCode}">
+                            <th:block th:each="commonCode : ${commonCode}" th:if="${commonCode.code} == 'CTS_CTGR'">
+                                <span th:each="categoryCode : ${commonCode.subCode}"
+                                      th:if="${categoryCode.code == item.categoryCode}"
+                                      th:value="${categoryCode.code}" th:text="${categoryCode.codeName}"></span>
+                            </th:block>
+                        </td>
+                        <td th:text="${item.contentsName}"></td>
+                        <td>
+                            <span th:if="${item.isUsable}" class="color_blue">사용</span>
+                            <span th:unless="${item.isUsable}" class="color_red">사용안함</span>
+                        </td>
+                        <td>등록기관</td>
+                        <td th:text="${#strings.substring(item.createDateTime, 0, 10)}"></td>
+                        <td>
+                            <a th:href="@{/contents/list/view/{contentsCode}(contentsCode=${item.contentsCode})}" class="btn btnDefault">기본정보</a>
+                            <a th:href="@{/contents/list/folder-management/{contentsCode}(contentsCode=${item.contentsCode})}" class="btn btnDefault">파일</a>
+                            <a th:href="@{/contents/list/chapter/view/{contentsCode}(contentsCode=${item.contentsCode})}" class="btn btnDefault">차시</a>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(content)}" class="empty_data">
+                        <td colspan="7">조회된 데이터가 없습니다.</td>
+                    </tr>
+                </tbody>
+                <tbody th:unless="${content != null && content.size > 0}">
+                    <tr class="empty_data"><td colspan="9">조회된 내용이 없습니다.</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div th:if="${!#lists.isEmpty(content)}" class="bl_paginate"></div>
+    </div>
+    <div sec:authorize="!isAuthenticated()"></div>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            /* <![CDATA[ */
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+                pagination([[ ${pageable} ]]);
+            }
+
+            function goSearch() {
+                const params = {};
+                params.categoryCode = document.querySelector('#categoryCode').value;
+                params.isUsable = $('input[name=isUsable]:checked')[0].id == 'use' ? true : $('input[name=isUsable]:checked')[0].id == 'not_use' ? false : null;
+                params.contentsName = document.querySelector('#contentsName').value;
+
+                const queryParams = Object.entries(params).filter(data => data[1] != null && data[1] !== '').map(data => data.join('=')).join('&')
+                location.href="/contents/list?" + queryParams;
+            }
+            /* ]]> */
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

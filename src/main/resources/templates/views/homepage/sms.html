@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/default_layout}">
+<body>
+<div layout:fragment="content" data-menu="homepage-18">
+    <div sec:authorize="isAuthenticated()">
+        <div class="title">
+            <h2>SMS발송 관리</h2>
+        </div>
+
+        <div class="tableLeftResponsive">
+            <table class="tableLeft">
+                <colgroup>
+                    <col style="width: 200px">
+                    <col style="width: auto">
+                </colgroup>
+                <tbody>
+                    <tr>
+                        <th scope="row">기간</th>
+                        <td>
+                            <div class="bl_dateRange">
+                                <input type="text" class="el_datePicker sdate">
+                                <span class="blank">~</span>
+                                <input type="text" class="el_datePicker edate">
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">검색</th>
+                        <td>
+                            <select class="common_select">
+                                <option value="">전체</option>
+                                <option value="">내용</option>
+                                <option value="">발송자</option>
+                            </select>
+                            <input type="text" class="hp_w600">
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="bl_gridBtns">
+            <div class="bl_gridBtns_md">
+                <div class="btn btnDefault btnReset">리셋</div>
+                <div class="btn btnDefault btnSearch">검색</div>
+                <a class="btn btnDefault btnRegister" onclick="sendSMSController()">등록</a>
+            </div>
+        </div>
+
+        <!-- BOARD : CONTROLLER -->
+        <div class="bl_boardCtrls">
+            <div class="bl_boardCtrls_lft">
+                <p class="bl_boardCtrls_total">
+                     총: <strong th:text="${pageable.totalElements}"></strong>건
+                </p>
+                <select class="common_select" data-list="countSortList"></select>
+            </div>
+        </div>
+
+        <div class="tableResponsive overflowMulti">
+            <table class="table">
+                <colgroup>
+                    <col style="width: 50px">
+                    <col>
+                    <col>
+                    <col>
+                    <col>
+                    <col>
+                    <col>
+                    <col>
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th scope="col">번호</th>
+                        <th scope="col">발송자</th>
+                        <th scope="col">발송번호</th>
+                        <th scope="col">내용</th>
+                        <th scope="col">발송일시</th>
+                        <th scope="col">등록일시</th>
+                        <th scope="col">발송건수</th>
+                        <th scope="col">실패건수</th>
+                        <th scope="col">대상자</th>
+                    </tr>
+                </thead>
+                <tbody th:if="${content != null && content.size > 0}">
+                    <tr th:each="item, stat: ${content}">
+                        <td>
+                            <span th:text="${pageable.totalElements - ((pageable.page * pageable.size) + stat.index)}">1</span>
+                        </td>
+                        <td th:text="${item.registUserId}">관리자(admin)</td>
+                        <td th:text="${item.sender}">관리자(admin)</td>
+                        <td th:text="${item.content}">메시지 발송관리 테스트</td>
+                        <td th:text="${item.sendDateTime}">2022.10.10 12:00</td>
+                        <td th:text="${item.createDateTime}">2022.10.10 12:00</td>
+                        <td th:text="${item.successCount}">10</td>
+                        <td th:text="${item.failureCount}">2</td>
+                        <td>
+                            <a th:onclick="popupMake([[${stat.index}]])" href="#popSMSList" data-control="modal" data-handler="popSMSList" class="btn btnDefault">보기</a>
+                        </td>
+                    </tr>
+                </tbody>
+                <tbody th:unless="${content != null && content.size > 0}">
+                <tr class="empty_data"><td colspan="8">조회된 내용이 없습니다.</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="bl_paginate"></div>
+    </div>
+
+    <!-- sms 발송 대상자 -->
+    <article class="pop_wrapper ui-modal" id="popSMSList">
+        <div class="pop_wrap pop_secondary">
+            <div class="pop_cont">
+                <div class="tableResponsive overflowMulti">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th scope="col">순번</th>
+                                <th scope="col">번호</th>
+                                <th scope="col">상태</th>
+                            </tr>
+                        </thead>
+                        <tbody id="smsList"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <button type="button" class="pop_close pop-close">닫기</button>
+        </div>
+    </article>
+    <div sec:authorize="!isAuthenticated()"></div>
+
+    <th:block layout:fragment="script">
+        <script th:inline="javascript">
+            /* <![CDATA[ */
+            function onLoadSubmit() {
+                console.log('commonCode: ', [[ ${commonCode} ]] )
+                pagination([[ ${pageable} ]], false)
+            }
+
+            function popupMake(num) {
+                let CONT = [[ ${content} ]];
+                let data = CONT[num].smsSendDetailList;
+
+                const randerPoint = document.getElementById('smsList');
+                randerPoint.innerText = '';
+
+                if(data.length > 0){
+                    data.forEach((item, index) => {
+                        const TR = document.createElement('tr');
+                        const TD1 = document.createElement('td');
+                        TD1.innerText = index + 1;
+                        const TD2 = document.createElement('td');
+                        TD2.innerText = item.receiver;
+                        const TD3 = document.createElement('td');
+                        TD3.innerText = item.isSuccess == true ? "발송성공" : "발송실패";
+                        TR.appendChild(TD1)
+                        TR.appendChild(TD2)
+                        TR.appendChild(TD3)
+                        randerPoint.appendChild(TR);
+                    })
+                } else {
+                    const TR = document.createElement('tr');
+                    const TD = document.createElement('td');
+                    TD.innerText = '데이터가 없습니다.'
+                    TD.setAttribute('colspan','3');
+                    TR.appendChild(TD);
+                    randerPoint.appendChild(TD);
+                }
+            }
+            /* ]]> */
+        </script>
+    </th:block>
+</div>
+</body>
+</html>

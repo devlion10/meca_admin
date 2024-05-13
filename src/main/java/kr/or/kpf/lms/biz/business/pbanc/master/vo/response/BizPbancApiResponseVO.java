@@ -88,4 +88,7 @@ public class BizPbancApiResponseVO extends CSResponseVOSupport {
     @Schema(description="상위 노출 여부")
     private String isTop;
 
+    @Schema(description="사업공고 노출범위")
+    private String ckBox;
+
 }

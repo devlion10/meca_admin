@@ -1384,6 +1384,7 @@ public class CommonBusinessRepositoryImpl extends CSRepositorySupport implements
                             bizPbancMaster.bizPbancPeprYn,
                             bizPbancMaster.bizPbancPicTel,
                             bizPbancMaster.isTop,
+                            bizPbancMaster.ckBox,
                             bizPbancMaster.createDateTime,
                             bizPbancMaster.registUserId,
                             bizPbancMaster.updateDateTime,
@@ -1674,51 +1675,51 @@ public class CommonBusinessRepositoryImpl extends CSRepositorySupport implements
                     .fetch();
 
         } else if(requestObject instanceof BizAplyViewRequestVO) { /** 사업 공고 신청 - 언론인 */
-        if(((BizAplyViewRequestVO) requestObject).getBizAplyType().equals("free")){
-            List<BizAply> dtos = jpaQueryFactory.selectFrom(bizAply)
-                    .leftJoin(lmsUser).on(lmsUser.userId.eq(bizAply.bizAplyUserID))
-                    .leftJoin(organizationInfo).on(organizationInfo.organizationCode.eq(lmsUser.organizationCode))
-                    .leftJoin(bizPbancMaster).on(bizPbancMaster.bizPbancNo.eq(bizAply.bizPbancNo))
-                    .where(getQuery(requestObject))
-                    .orderBy(bizAply.createDateTime.desc())
-                    .offset(requestObject.getPageable().getOffset())
-                    .limit(requestObject.getPageable().getPageSize())
-                    .fetch();
-            if(dtos != null && dtos.size()==1){
-                for(BizAply dto : dtos){
-                    List<BizAplyDtl> dtls = jpaQueryFactory.selectFrom(bizAplyDtl)
-                            .where(bizAplyDtl.sequenceNo.eq(dto.getSequenceNo()))
-                            .leftJoin(bizPbancTmpl5).on(bizPbancTmpl5.bizPbancTmpl5No.eq(bizAplyDtl.bizPbancTmpl5No))
-                            .orderBy(bizPbancTmpl5.bizPbancTmpl5Ordr.asc()).fetch();
-                    if(dtls != null && dtls.size()>0){
-                        for(BizAplyDtl dtl:dtls){
-                            dtl.setBizPbancTmpl5(jpaQueryFactory.selectFrom(bizPbancTmpl5).where(bizPbancTmpl5.bizPbancTmpl5No.eq(dtl.getBizPbancTmpl5No())).fetchOne());
+            if(((BizAplyViewRequestVO) requestObject).getBizAplyType().equals("free")){
+                List<BizAply> dtos = jpaQueryFactory.selectFrom(bizAply)
+                        .leftJoin(lmsUser).on(lmsUser.userId.eq(bizAply.bizAplyUserID))
+                        .leftJoin(organizationInfo).on(organizationInfo.organizationCode.eq(lmsUser.organizationCode))
+                        .leftJoin(bizPbancMaster).on(bizPbancMaster.bizPbancNo.eq(bizAply.bizPbancNo))
+                        .where(getQuery(requestObject))
+                        .orderBy(bizAply.createDateTime.desc())
+                        .offset(requestObject.getPageable().getOffset())
+                        .limit(requestObject.getPageable().getPageSize())
+                        .fetch();
+                if(dtos != null && dtos.size()==1){
+                    for(BizAply dto : dtos){
+                        List<BizAplyDtl> dtls = jpaQueryFactory.selectFrom(bizAplyDtl)
+                                .where(bizAplyDtl.sequenceNo.eq(dto.getSequenceNo()))
+                                .leftJoin(bizPbancTmpl5).on(bizPbancTmpl5.bizPbancTmpl5No.eq(bizAplyDtl.bizPbancTmpl5No))
+                                .orderBy(bizPbancTmpl5.bizPbancTmpl5Ordr.asc()).fetch();
+                        if(dtls != null && dtls.size()>0){
+                            for(BizAplyDtl dtl:dtls){
+                                dtl.setBizPbancTmpl5(jpaQueryFactory.selectFrom(bizPbancTmpl5).where(bizPbancTmpl5.bizPbancTmpl5No.eq(dtl.getBizPbancTmpl5No())).fetchOne());
+                            }
+                            dto.setBizAplyDtls(dtls);
                         }
-                        dto.setBizAplyDtls(dtls);
-                    }
 
-                    List<BizPbancTmpl5> bizPbancTmpl5s = jpaQueryFactory.selectFrom(bizPbancTmpl5)
-                            .where(bizPbancTmpl5.bizPbancNo.eq(dto.getBizPbancNo()))
-                            .orderBy(bizPbancTmpl5.bizPbancTmpl5Ordr.asc()).fetch();
-                    if(bizPbancTmpl5s != null && bizPbancTmpl5s.size()>0){
-                        BizPbancMaster master = dto.getBizPbancMaster();
-                        master.setBizPbancTmpl5s(bizPbancTmpl5s);
-                        dto.setBizPbancMaster(master);
+                        List<BizPbancTmpl5> bizPbancTmpl5s = jpaQueryFactory.selectFrom(bizPbancTmpl5)
+                                .where(bizPbancTmpl5.bizPbancNo.eq(dto.getBizPbancNo()))
+                                .orderBy(bizPbancTmpl5.bizPbancTmpl5Ordr.asc()).fetch();
+                        if(bizPbancTmpl5s != null && bizPbancTmpl5s.size()>0){
+                            BizPbancMaster master = dto.getBizPbancMaster();
+                            master.setBizPbancTmpl5s(bizPbancTmpl5s);
+                            dto.setBizPbancMaster(master);
+                        }
                     }
                 }
+                return  dtos;
+            }else{
+                return jpaQueryFactory.selectFrom(bizAply)
+                        .leftJoin(lmsUser).on(lmsUser.userId.eq(bizAply.bizAplyUserID))
+                        .leftJoin(organizationInfo).on(organizationInfo.organizationCode.eq(lmsUser.organizationCode))
+                        .leftJoin(bizPbancMaster).on(bizPbancMaster.bizPbancNo.eq(bizAply.bizPbancNo))
+                        .where(getQuery(requestObject))
+                        .orderBy(bizAply.createDateTime.desc())
+                        .offset(requestObject.getPageable().getOffset())
+                        .limit(requestObject.getPageable().getPageSize())
+                        .fetch();
             }
-            return  dtos;
-        }else{
-            return jpaQueryFactory.selectFrom(bizAply)
-                    .leftJoin(lmsUser).on(lmsUser.userId.eq(bizAply.bizAplyUserID))
-                    .leftJoin(organizationInfo).on(organizationInfo.organizationCode.eq(lmsUser.organizationCode))
-                    .leftJoin(bizPbancMaster).on(bizPbancMaster.bizPbancNo.eq(bizAply.bizPbancNo))
-                    .where(getQuery(requestObject))
-                    .orderBy(bizAply.createDateTime.desc())
-                    .offset(requestObject.getPageable().getOffset())
-                    .limit(requestObject.getPageable().getPageSize())
-                    .fetch();
-        }
 
         } else if(requestObject instanceof BizInstructorViewRequestVO) { /** 강사 모집 */
             List<BizInstructor> entities = jpaQueryFactory.selectFrom(bizInstructor)
@@ -1967,19 +1968,19 @@ public class CommonBusinessRepositoryImpl extends CSRepositorySupport implements
                     .fetch();
 
         }else if(requestObject instanceof  FormeBizlecinfoDetailApiRequestVO) { /** 포미 강의확인서 API */
-        List<FormeBizlecinfo> dtos = jpaQueryFactory.selectFrom(formeBizlecinfo)
+            List<FormeBizlecinfo> dtos = jpaQueryFactory.selectFrom(formeBizlecinfo)
                     .where(getQuery(requestObject))
                     .orderBy(formeBizlecinfo.blciId.desc())
                     .offset(requestObject.getPageable().getOffset())
                     .limit(requestObject.getPageable().getPageSize())
                     .fetch();
-        for(FormeBizlecinfo dto : dtos){
-            dto.setFormeFomBizapplyTtables(
-                    jpaQueryFactory.selectFrom(formeFomBizapplyTtable)
-                            .where(formeFomBizapplyTtable.bainId.eq(dto.getBainId()))
-                            .orderBy(formeFomBizapplyTtable.battInning.asc())
-                            .fetch());
-        }
+            for(FormeBizlecinfo dto : dtos){
+                dto.setFormeFomBizapplyTtables(
+                        jpaQueryFactory.selectFrom(formeFomBizapplyTtable)
+                                .where(formeFomBizapplyTtable.bainId.eq(dto.getBainId()))
+                                .orderBy(formeFomBizapplyTtable.battInning.asc())
+                                .fetch());
+            }
             return  dtos;
 
         }else if(requestObject instanceof MyInstructorStateViewRequestVO) { /** 강사 참여 현황 - 강의 현황 - 진행 중 */
@@ -2433,6 +2434,7 @@ public class CommonBusinessRepositoryImpl extends CSRepositorySupport implements
             return new Predicate[] { condition(((BizPbancViewRequestVO) requestObject).getBizPbancNo(), bizPbancMaster.bizPbancNo::eq),
                     condition(((BizPbancViewRequestVO) requestObject).getBizPbancType(), bizPbancMaster.bizPbancType::eq),
                     condition(((BizPbancViewRequestVO) requestObject).getBizPbancYr(), bizPbancMaster.bizPbancYr::eq),
+                    condition(((BizPbancViewRequestVO) requestObject).getBizPbancRnd(), bizPbancMaster.bizPbancRnd::eq),
                     condition(((BizPbancViewRequestVO) requestObject).getBizPbancRnd(), bizPbancMaster.bizPbancRnd::eq),
                     condition(((BizPbancViewRequestVO) requestObject).getNotBizPbancStts(), bizPbancMaster.bizPbancStts::ne),
                     searchContainText(requestObject, ((BizPbancViewRequestVO) requestObject).getContainTextType(), ((BizPbancViewRequestVO) requestObject).getContainText()) };
@@ -2889,7 +2891,7 @@ public class CommonBusinessRepositoryImpl extends CSRepositorySupport implements
                     booleanBuilder.or(bizSurveyQitem.bizSurveyQitemContent.contains(containsText));
                 }
             } else if(requestObject instanceof BizInstructorIdentifyViewRequestVO
-            || requestObject instanceof BizInstructorIdentifyDtlExcelRequestVO) { /** 강의확인서 */
+                    || requestObject instanceof BizInstructorIdentifyDtlExcelRequestVO) { /** 강의확인서 */
                 if(containTextType.equals("0")) { /** 강사명 */
                     booleanBuilder.or(lmsUser.userName.contains(containsText));
                     booleanBuilder.or(bizInstructorIdentify.registUserId.contains(containsText));

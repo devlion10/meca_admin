@@ -102,6 +102,9 @@ public class BizPbancApiRequestVO {
     @Schema(description="상위 노출 여부")
     private String isTop;
 
+    @Schema(description="사업공고 노출범위")
+    private List<String> ckBox;
+
     private BizPbancTmpl0ApiRequestVO bizPbancTmpl0ApiRequestVO;
     private BizPbancTmpl1ApiRequestVO bizPbancTmpl1ApiRequestVO;
     private BizPbancTmpl2ApiRequestVO bizPbancTmpl2ApiRequestVO;

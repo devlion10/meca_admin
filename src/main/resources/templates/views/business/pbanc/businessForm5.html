@@ -110,6 +110,106 @@
             </div>
           </td>
         </tr>
+        <tr name="subCkbox" >
+          <th scope="row" ><span class="el_required"></span>공모 신청 대상<br>
+            - 공모신청 가능 권한 설정<br>
+            (미설정시 기존신청 대상 유지)
+          </th>
+          <td colspan="3">
+            <div class="chk_box">
+              <input id="all_check" type="checkbox" name="businessType" th:if="${content == null}">
+              <input id="all_check" type="checkbox" name="businessType" th:unless="${content == null}"
+                     th:checked="${
+                                           content[0].bizPbancTmpl5 != null &&
+                                           #arrays.contains(content[0].ckBox,'0') &&
+                                           #arrays.contains(content[0].ckBox,'1') &&
+                                           #arrays.contains(content[0].ckBox,'2') &&
+                                           #arrays.contains(content[0].ckBox,'3') &&
+                                           #arrays.contains(content[0].ckBox,'4') &&
+                                           #arrays.contains(content[0].ckBox,'5')
+                                       }"
+              >
+              <label for="all_check">
+                <span></span>
+                전체
+              </label>
+            </div>
+            <br />
+
+            <div class="chk_box item_chk">
+              <input id="businessType1" type="checkbox" name="businessType" th:if="${content == null}">
+              <input id="businessType1" type="checkbox" name="businessType" th:unless="${content == null}" th:checked="${content[0].ckBox != null && #arrays.contains(content[0].ckBox,'0')}">
+              <label for="businessType1">
+                <span></span>
+                언론인
+              </label>
+            </div>
+            <div class="chk_box item_chk">
+              <input id="businessType2" type="checkbox" name="businessType" th:if="${content == null}">
+              <input id="businessType2" type="checkbox" name="businessType" th:unless="${content == null}" th:checked="${content[0].ckBox != null && #arrays.contains(content[0].ckBox,'1')}">
+              <label for="businessType2">
+                <span></span>
+                언론인(미승인)
+              </label>
+            </div>
+            <div class="chk_box item_chk">
+              <input id="businessType3" type="checkbox" name="businessType" th:if="${content == null}">
+              <input id="businessType3" type="checkbox" name="businessType" th:unless="${content == null}" th:checked="${content[0].ckBox != null && #arrays.contains(content[0].ckBox,'2')}">
+              <label for="businessType3">
+                <span></span>
+                교원(일반)
+              </label>
+            </div>
+            <div class="chk_box item_chk">
+              <input id="businessType4" type="checkbox" name="businessType" th:if="${content == null}">
+              <input id="businessType4" type="checkbox" name="businessType" th:unless="${content == null}" th:checked="${content[0].ckBox != null && #arrays.contains(content[0].ckBox,'3')}">
+              <label for="businessType4">
+                <span></span>
+                일반(학생)
+              </label>
+            </div>
+            <div class="chk_box item_chk">
+              <input id="businessType5" type="checkbox" name="businessType" th:if="${content == null}">
+              <input id="businessType5" type="checkbox" name="businessType" th:unless="${content == null}" th:checked="${content[0].ckBox != null && #arrays.contains(content[0].ckBox,'4')}">
+              <label for="businessType5">
+                <span></span>
+                일반(학부모)
+              </label>
+            </div>
+            <div class="chk_box item_chk">
+              <input id="businessType6" type="checkbox" name="businessType" th:if="${content == null}">
+              <input id="businessType6" type="checkbox" name="businessType" th:unless="${content == null}" th:checked="${content[0].ckBox != null && #arrays.contains(content[0].ckBox,'5')}">
+              <label for="businessType6">
+                <span></span>
+                일반(일반인)
+              </label>
+            </div>
+            <br />
+            <div class="chk_box item_chk">
+              <input id="businessType7" type="checkbox" name="businessType" th:if="${content == null}">
+              <input id="businessType7" type="checkbox" name="businessType" th:unless="${content == null}" th:checked="${content[0].ckBox != null && #arrays.contains(content[0].ckBox,'6')}">
+              <label for="businessType7">
+                <span></span>
+                기관담당자
+              </label>
+            </div>
+            <div class="chk_box item_chk">
+              <input id="businessType8" type="checkbox" name="businessType" th:if="${content == null}">
+              <input id="businessType8" type="checkbox" name="businessType" th:unless="${content == null}" th:checked="${content[0].ckBox != null && #arrays.contains(content[0].ckBox,'7')}">
+              <label for="businessType8">
+                <span></span>
+                학교담당자
+              </label>
+            </div>
+            <div class="chk_box item_chk">
+              <input id="businessType9" type="checkbox" name="businessType" th:if="${content == null}">
+              <input id="businessType9" type="checkbox" name="businessType" th:unless="${content == null}" th:checked="${content[0].ckBox != null && #arrays.contains(content[0].ckBox,'8')}">
+              <label for="businessType9">
+                <span></span>
+                미디어강사
+              </label>
+            </div>
+        </tr>
         <tr>
           <th scope="row"><span class="el_required">*</span>접수기간</th>
           <td colspan="3">
@@ -405,10 +505,12 @@
         }
       }
       function toggle_subCtgr(value) {
-        if(value==1){
+        if(value!=0){
           $('tr[name=subCtgr]').hide();
+          // $('tr[name=subCkbox]').show();
         } else {
           $('tr[name=subCtgr]').show();
+          // $('tr[name=subCkbox]').hide();
         }
       }
 
@@ -477,6 +579,49 @@
         let params ={};
         params.bizPbancNo=0;
         params.bizPbancTmpl5ApiRequestVO = [];
+        params.ckBox = [];
+        let ckbln = true;
+        let all_check = $('#all_check:checked');
+        if(all_check.length==0){
+          ckbln = $('#businessType1:checked').length==1?true:false ;
+          if(ckbln){
+            params.ckBox.push(0)
+          }
+          ckbln = $('#businessType2:checked').length==1?true:false ;
+          if(ckbln){
+            params.ckBox.push(1);
+          }
+          ckbln = $('#businessType3:checked').length==1?true:false ;
+          if(ckbln){
+            params.ckBox.push(2);
+          }
+          ckbln = $('#businessType4:checked').length==1?true:false ;
+          if(ckbln){
+            params.ckBox.push(3);
+          }
+          ckbln = $('#businessType5:checked').length==1?true:false ;
+          if(ckbln){
+            params.ckBox.push(4);
+          }
+          ckbln = $('#businessType6:checked').length==1?true:false ;
+          if(ckbln){
+            params.ckBox.push(5);
+          }
+          ckbln = $('#businessType7:checked').length==1?true:false ;
+          if(ckbln){
+            params.ckBox.push(6)
+          }
+          ckbln = $('#businessType8:checked').length==1?true:false ;
+          if(ckbln){
+            params.ckBox.push(7)
+          }
+          ckbln = $('#businessType9:checked').length==1?true:false ;
+          if(ckbln){
+            params.ckBox.push(8)
+          }
+        }else{
+          params.ckBox =[0,1,2,3,4,5,6,7,8];
+        }
 
         $("#bizPbancTmpl5 tr[name=bizPbancTmpl5]").each((index,tr)=>{
           let temp = {};
@@ -549,7 +694,6 @@
       })
 
       function create(){
-
         let params = getFormData();
         /** 콘텐츠 등록*/
         $.ajax({ //jquery ajax
@@ -866,6 +1010,7 @@
       function onLoadSubmit() {
         console.log('commonCode: ', [[ ${commonCode} ]] )
         const CONT = [[ ${content}]];
+        checkBox();
 
         if(CONT != null){
           // 호출된 값에서 각각 날짜를 뽑아와야 함
@@ -879,8 +1024,10 @@
           }
           if(CONT[0].bizPbancCtgrSub==0){
             $('tr[name=subCtgr]').hide();
+            $('tr[name=subCkbox]').show();
           } else {
             $('tr[name=subCtgr]').show();
+            $('tr[name=subCkbox]').hide();
           }
           //제출한 사업신청서가 있으면 신청서 양식 삭제불가 
           if(CONT[0].bizOrganizationAplyCount>0 || CONT[0].bizOrganizationAprvCount>0){

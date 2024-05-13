@@ -38,11 +38,28 @@ public class BizPbancService extends CSServiceSupport {
     private final BizOrganizationAplyRepository bizOrganizationAplyRepository;
     private final BizPbancTmplService bizPbancTmplService;
 
+    String temp;
+
     /**
      사업 공고 정보 생성
      */
     public BizPbancApiResponseVO createBizPbanc(BizPbancApiRequestVO requestObject) {
+        temp = null;
+        if(requestObject.getCkBox() != null) {
+            for (String item : requestObject.getCkBox()) {
+                if(temp == null  || temp.isEmpty()){
+                    temp = item;
+                }else{
+                    temp = temp + ","+ item;
+                }
+            }
+        }
         BizPbancMaster entity = BizPbancMaster.builder().build();
+        if(temp == null){
+            entity.setCkBox("99"); // 미선택시 기본 디폴트 값 (기본형 )
+        }else{
+            entity.setCkBox(temp);
+        }
         BeanUtils.copyProperties(requestObject, entity);
         entity.setBizPbancNo(commonBusinessRepository.generateCode(PREFIX_PBANC));
         entity.setBizPbancRnd(commonBusinessRepository.generatePbancAutoIncrease(entity.getBizPbancType(), entity.getBizPbancYr()));
@@ -98,7 +115,21 @@ public class BizPbancService extends CSServiceSupport {
                         .build()))
                 .map(bizPbancMaster -> {
                     copyNonNullObject(requestObject, bizPbancMaster);
-
+                    temp = null;
+                    if(requestObject.getCkBox() != null) {
+                        for (String item : requestObject.getCkBox()) {
+                            if(temp == null  || temp.isEmpty()){
+                                temp = item;
+                            }else{
+                                temp = temp + ","+ item;
+                            }
+                        }
+                    }
+                    if(temp == null){
+                        bizPbancMaster.setCkBox("99"); // 미선택시 기본 디폴트 값 (기본형 )
+                    }else{
+                        bizPbancMaster.setCkBox(temp);
+                    }
                     BizPbancApiResponseVO result = BizPbancApiResponseVO.builder().build();
                     BeanUtils.copyProperties(bizPbancMasterRepository.saveAndFlush(bizPbancMaster), result);
 

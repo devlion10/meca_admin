@@ -16,107 +16,107 @@
                     <col style="width: auto">
                 </colgroup>
                 <tbody>
-                    <tr>
-                        <th scope="row"><span class="el_required">*</span>구분</th>
-                        <td colspan="3">
-                            <div class="radio_box">
-                                <input id="businessCategory1" type="radio" name="flexRadioDefault1" th:if="${content != null}" th:checked="${content[0].bizPbancCtgr == 0}" onclick="toggle_subCtgr(0)">
-                                <input id="businessCategory1" type="radio" name="flexRadioDefault1" th:unless="${content != null}" checked onclick="toggle_subCtgr(0)">
-                                <label for="businessCategory1">
-                                    <span></span>
-                                    미디어교육
-                                </label>
-                            </div>
-                            <div class="radio_box">
-                                <input id="businessCategory2" type="radio" name="flexRadioDefault1" th:if="${content != null}" th:checked="${content[0].bizPbancCtgr == 1}" onclick="toggle_subCtgr(1)">
-                                <input id="businessCategory2" type="radio" name="flexRadioDefault1" th:unless="${content != null}" onclick="toggle_subCtgr(1)">
-                                <label for="businessCategory2">
-                                    <span></span>
-                                    언론인연수
-                                </label>
-                            </div>
-                            <div class="radio_box">
-                                <input id="businessCategory3" type="radio" name="flexRadioDefault1" th:if="${content != null}" th:checked="${content[0].bizPbancCtgr == 2}" onclick="toggle_subCtgr(2)">
-                                <input id="businessCategory3" type="radio" name="flexRadioDefault1" th:unless="${content != null}" onclick="toggle_subCtgr(2)">
-                                <label for="businessCategory3">
-                                    <span></span>
-                                    미디어지원
-                                </label>
-                            </div>
-                        </td>
-                    </tr>
-                    <!-- 세부 구분 -->
-                    <tr name="subCtgr">
-                        <th scope="row"><span class="el_required">*</span>세부 구분</th>
-                        <td colspan="3">
-                            <div class="radio_box">
-                                <input id="bizPbancCtgrSub1" type="radio" name="radioSub1" th:if="${content != null}" th:checked="${content[0].bizPbancCtgrSub == 1}">
-                                <input id="bizPbancCtgrSub1" type="radio" name="radioSub1" th:unless="${content != null}">
-                                <label for="bizPbancCtgrSub1">
-                                    <span></span>
-                                    사회미디어
-                                </label>
-                            </div>
-                            <div class="radio_box">
-                                <input id="bizPbancCtgrSub2" type="radio" name="radioSub1" th:if="${content != null}" th:checked="${content[0].bizPbancCtgrSub == 2}">
-                                <input id="bizPbancCtgrSub2" type="radio" name="radioSub1" th:unless="${content != null}">
-                                <label for="bizPbancCtgrSub2">
-                                    <span></span>
-                                    학교미디어
-                                </label>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th scope="row"><span class="el_required">*</span>사업명</th>
-                        <td colspan="3">
-                            <input type="text" id="businessName" class="hp_w600" th:value="${content == null ? '기본형' : content[0].bizPbancNm}" not_null="true" alert_name="사업명" >
-                        </td>
-                    </tr>
-                    <tr>
-                        <th scope="row"><span class="el_required">*</span>최대시간</th>
-                        <td colspan="3">
-                            <input id="bizPbancMaxTm" type="text" class="hp_w400" th:value="${content == null ? 0 : content[0].bizPbancMaxTm}" not_null="true" alert_name="최대시간" reg_type="int">
-                        </td>
-                    </tr>
-                    <tr>
-                        <th scope="row"><span class="el_required">*</span>사업년도</th>
-                        <td>
-                            <input type="text" id="businessYear" class="hp_w400" th:value="${content == null ? #calendars.format(#calendars.createNow(), 'yyyy') : content[0].bizPbancYr}" not_null="true" alert_name="사업년도" >
-                        </td>
-                        <th scope="row"><span class="el_required">*</span>사업참여기관</th>
-                        <td>
-                            <input type="text" id="businessMax" class="hp_w400" th:value="${content == null ? 0 : content[0].bizPbancMaxInst}" not_null="true" alert_name="사업참여기관" reg_type="int">
-                        </td>
-                    </tr>
-                    <tr>
-                        <th scope="row"><span class="el_required">*</span>선정방식</th>
-                        <td colspan="3">
-                            <div class="radio_box">
-                                <input id="businessSelect1" type="radio" name="flexRadioDefault2" th:if="${content != null}" th:checked="${content[0].bizPbancSlctnMeth == 0}">
-                                <input id="businessSelect1" type="radio" name="flexRadioDefault2" th:unless="${content != null}">
-                                <label for="businessSelect1">
-                                    <span></span>
-                                    승인
-                                </label>
-                            </div>
-                            <div class="radio_box">
-                                <input id="businessSelect2" type="radio" name="flexRadioDefault2" th:if="${content != null}" th:checked="${content[0].bizPbancSlctnMeth == 1}">
-                                <input id="businessSelect2" type="radio" name="flexRadioDefault2" th:unless="${content != null}">
-                                <label for="businessSelect2">
-                                    <span></span>
-                                    선착순
-                                </label>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th scope="row"><span class="el_required">*</span>대상</th>
-                        <td colspan="3">
-                            <div class="chk_box">
-                                <input id="all_check" type="checkbox" name="businessType" th:if="${content == null}">
-                                <input id="all_check" type="checkbox" name="businessType" th:unless="${content == null}"
-                                       th:checked="${
+                <tr>
+                    <th scope="row"><span class="el_required">*</span>구분</th>
+                    <td colspan="3">
+                        <div class="radio_box">
+                            <input id="businessCategory1" type="radio" name="flexRadioDefault1" th:if="${content != null}" th:checked="${content[0].bizPbancCtgr == 0}" onclick="toggle_subCtgr(0)">
+                            <input id="businessCategory1" type="radio" name="flexRadioDefault1" th:unless="${content != null}" checked onclick="toggle_subCtgr(0)">
+                            <label for="businessCategory1">
+                                <span></span>
+                                미디어교육
+                            </label>
+                        </div>
+                        <div class="radio_box">
+                            <input id="businessCategory2" type="radio" name="flexRadioDefault1" th:if="${content != null}" th:checked="${content[0].bizPbancCtgr == 1}" onclick="toggle_subCtgr(1)">
+                            <input id="businessCategory2" type="radio" name="flexRadioDefault1" th:unless="${content != null}" onclick="toggle_subCtgr(1)">
+                            <label for="businessCategory2">
+                                <span></span>
+                                언론인연수
+                            </label>
+                        </div>
+                        <div class="radio_box">
+                            <input id="businessCategory3" type="radio" name="flexRadioDefault1" th:if="${content != null}" th:checked="${content[0].bizPbancCtgr == 2}" onclick="toggle_subCtgr(2)">
+                            <input id="businessCategory3" type="radio" name="flexRadioDefault1" th:unless="${content != null}" onclick="toggle_subCtgr(2)">
+                            <label for="businessCategory3">
+                                <span></span>
+                                미디어지원
+                            </label>
+                        </div>
+                    </td>
+                </tr>
+                <!-- 세부 구분 -->
+                <tr name="subCtgr">
+                    <th scope="row"><span class="el_required">*</span>세부 구분</th>
+                    <td colspan="3">
+                        <div class="radio_box">
+                            <input id="bizPbancCtgrSub1" type="radio" name="radioSub1" th:if="${content != null}" th:checked="${content[0].bizPbancCtgrSub == 1}">
+                            <input id="bizPbancCtgrSub1" type="radio" name="radioSub1" th:unless="${content != null}">
+                            <label for="bizPbancCtgrSub1">
+                                <span></span>
+                                사회미디어
+                            </label>
+                        </div>
+                        <div class="radio_box">
+                            <input id="bizPbancCtgrSub2" type="radio" name="radioSub1" th:if="${content != null}" th:checked="${content[0].bizPbancCtgrSub == 2}">
+                            <input id="bizPbancCtgrSub2" type="radio" name="radioSub1" th:unless="${content != null}">
+                            <label for="bizPbancCtgrSub2">
+                                <span></span>
+                                학교미디어
+                            </label>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><span class="el_required">*</span>사업명</th>
+                    <td colspan="3">
+                        <input type="text" id="businessName" class="hp_w600" th:value="${content == null ? '기본형' : content[0].bizPbancNm}" not_null="true" alert_name="사업명" >
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><span class="el_required">*</span>최대시간</th>
+                    <td colspan="3">
+                        <input id="bizPbancMaxTm" type="text" class="hp_w400" th:value="${content == null ? 0 : content[0].bizPbancMaxTm}" not_null="true" alert_name="최대시간" reg_type="int">
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><span class="el_required">*</span>사업년도</th>
+                    <td>
+                        <input type="text" id="businessYear" class="hp_w400" th:value="${content == null ? #calendars.format(#calendars.createNow(), 'yyyy') : content[0].bizPbancYr}" not_null="true" alert_name="사업년도" >
+                    </td>
+                    <th scope="row"><span class="el_required">*</span>사업참여기관</th>
+                    <td>
+                        <input type="text" id="businessMax" class="hp_w400" th:value="${content == null ? 0 : content[0].bizPbancMaxInst}" not_null="true" alert_name="사업참여기관" reg_type="int">
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><span class="el_required">*</span>선정방식</th>
+                    <td colspan="3">
+                        <div class="radio_box">
+                            <input id="businessSelect1" type="radio" name="flexRadioDefault2" th:if="${content != null}" th:checked="${content[0].bizPbancSlctnMeth == 0}">
+                            <input id="businessSelect1" type="radio" name="flexRadioDefault2" th:unless="${content != null}">
+                            <label for="businessSelect1">
+                                <span></span>
+                                승인
+                            </label>
+                        </div>
+                        <div class="radio_box">
+                            <input id="businessSelect2" type="radio" name="flexRadioDefault2" th:if="${content != null}" th:checked="${content[0].bizPbancSlctnMeth == 1}">
+                            <input id="businessSelect2" type="radio" name="flexRadioDefault2" th:unless="${content != null}">
+                            <label for="businessSelect2">
+                                <span></span>
+                                선착순
+                            </label>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><span class="el_required">*</span>대상</th>
+                    <td colspan="3">
+                        <div class="chk_box">
+                            <input id="all_check" type="checkbox" name="businessType" th:if="${content == null}">
+                            <input id="all_check" type="checkbox" name="businessType" th:unless="${content == null}"
+                                   th:checked="${
                                            content[0].bizPbancTmpl0 != null &&
                                            #arrays.contains(content[0].bizPbancTmpl0.bizPbancTmpl0Trgts,0) &&
                                            #arrays.contains(content[0].bizPbancTmpl0.bizPbancTmpl0Trgts,1) &&
@@ -127,268 +127,276 @@
                                            #arrays.contains(content[0].bizPbancTmpl0.bizPbancTmpl0Trgts,6) &&
                                            #arrays.contains(content[0].bizPbancTmpl0.bizPbancTmpl0Trgts,7)
                                        }"
-                                >
-                                <label for="all_check">
-                                    <span></span>
-                                    전체
-                                </label>
-                            </div>
-                            <br />
+                            >
+                            <label for="all_check">
+                                <span></span>
+                                전체
+                            </label>
+                        </div>
+                        <br />
 
-                            <div class="chk_box item_chk">
-                                <input id="businessType2" type="checkbox" name="businessType" th:if="${content == null}">
-                                <input id="businessType2" type="checkbox" name="businessType" th:unless="${content == null}" th:checked="${content[0].bizPbancTmpl0 != null && #arrays.contains(content[0].bizPbancTmpl0.bizPbancTmpl0Trgts,0)}">
-                                <label for="businessType2">
-                                    <span></span>
-                                    언론인
-                                </label>
-                            </div>
-                            <div class="chk_box item_chk">
-                                <input id="businessType3" type="checkbox" name="businessType" th:if="${content == null}">
-                                <input id="businessType3" type="checkbox" name="businessType" th:unless="${content == null}" th:checked="${content[0].bizPbancTmpl0 != null && #arrays.contains(content[0].bizPbancTmpl0.bizPbancTmpl0Trgts,1)}">
-                                <label for="businessType3">
-                                    <span></span>
-                                    교원(일반)
-                                </label>
-                            </div>
-                            <div class="chk_box item_chk">
-                                <input id="businessType4" type="checkbox" name="businessType" th:if="${content == null}">
-                                <input id="businessType4" type="checkbox" name="businessType" th:unless="${content == null}" th:checked="${content[0].bizPbancTmpl0 != null && #arrays.contains(content[0].bizPbancTmpl0.bizPbancTmpl0Trgts,2)}">
-                                <label for="businessType4">
-                                    <span></span>
-                                    일반(학생)
-                                </label>
-                            </div>
-                            <div class="chk_box item_chk">
-                                <input id="businessType5" type="checkbox" name="businessType" th:if="${content == null}">
-                                <input id="businessType5" type="checkbox" name="businessType" th:unless="${content == null}" th:checked="${content[0].bizPbancTmpl0 != null && #arrays.contains(content[0].bizPbancTmpl0.bizPbancTmpl0Trgts,3)}">
-                                <label for="businessType5">
-                                    <span></span>
-                                    일반(학부모)
-                                </label>
-                            </div>
-                            <div class="chk_box item_chk">
-                                <input id="businessType6" type="checkbox" name="businessType" th:if="${content == null}">
-                                <input id="businessType6" type="checkbox" name="businessType" th:unless="${content == null}" th:checked="${content[0].bizPbancTmpl0 != null && #arrays.contains(content[0].bizPbancTmpl0.bizPbancTmpl0Trgts,4)}">
-                                <label for="businessType6">
-                                    <span></span>
-                                    일반(일반인)
-                                </label>
-                            </div>
-                            <br />
+                        <div class="chk_box item_chk">
+                            <input id="businessType2" type="checkbox" name="businessType" th:if="${content == null}">
+                            <input id="businessType2" type="checkbox" name="businessType" th:unless="${content == null}" th:checked="${content[0].bizPbancTmpl0 != null && #arrays.contains(content[0].bizPbancTmpl0.bizPbancTmpl0Trgts,0)}">
+                            <label for="businessType2">
+                                <span></span>
+                                언론인
+                            </label>
+                        </div>
+                        <div class="chk_box item_chk">
+                            <input id="businessType10" type="checkbox" name="businessType" th:if="${content == null}">
+                            <input id="businessType10" type="checkbox" name="businessType" th:unless="${content == null}" th:checked="${content[0].bizPbancTmpl0 != null && #arrays.contains(content[0].bizPbancTmpl0.bizPbancTmpl0Trgts,4)}">
+                            <label for="businessType10">
+                                <span></span>
+                                언론인(미승인)
+                            </label>
+                        </div>
+                        <div class="chk_box item_chk">
+                            <input id="businessType3" type="checkbox" name="businessType" th:if="${content == null}">
+                            <input id="businessType3" type="checkbox" name="businessType" th:unless="${content == null}" th:checked="${content[0].bizPbancTmpl0 != null && #arrays.contains(content[0].bizPbancTmpl0.bizPbancTmpl0Trgts,1)}">
+                            <label for="businessType3">
+                                <span></span>
+                                교원(일반)
+                            </label>
+                        </div>
+                        <div class="chk_box item_chk">
+                            <input id="businessType4" type="checkbox" name="businessType" th:if="${content == null}">
+                            <input id="businessType4" type="checkbox" name="businessType" th:unless="${content == null}" th:checked="${content[0].bizPbancTmpl0 != null && #arrays.contains(content[0].bizPbancTmpl0.bizPbancTmpl0Trgts,2)}">
+                            <label for="businessType4">
+                                <span></span>
+                                일반(학생)
+                            </label>
+                        </div>
+                        <div class="chk_box item_chk">
+                            <input id="businessType5" type="checkbox" name="businessType" th:if="${content == null}">
+                            <input id="businessType5" type="checkbox" name="businessType" th:unless="${content == null}" th:checked="${content[0].bizPbancTmpl0 != null && #arrays.contains(content[0].bizPbancTmpl0.bizPbancTmpl0Trgts,3)}">
+                            <label for="businessType5">
+                                <span></span>
+                                일반(학부모)
+                            </label>
+                        </div>
+                        <div class="chk_box item_chk">
+                            <input id="businessType6" type="checkbox" name="businessType" th:if="${content == null}">
+                            <input id="businessType6" type="checkbox" name="businessType" th:unless="${content == null}" th:checked="${content[0].bizPbancTmpl0 != null && #arrays.contains(content[0].bizPbancTmpl0.bizPbancTmpl0Trgts,4)}">
+                            <label for="businessType6">
+                                <span></span>
+                                일반(일반인)
+                            </label>
+                        </div>
+                        <br />
 
-                            <div class="chk_box item_chk">
-                                <input id="businessType7" type="checkbox" name="businessType" th:if="${content == null}">
-                                <input id="businessType7" type="checkbox" name="businessType" th:unless="${content == null}" th:checked="${content[0].bizPbancTmpl0 != null && #arrays.contains(content[0].bizPbancTmpl0.bizPbancTmpl0Trgts,5)}">
-                                <label for="businessType7">
+                        <div class="chk_box item_chk">
+                            <input id="businessType7" type="checkbox" name="businessType" th:if="${content == null}">
+                            <input id="businessType7" type="checkbox" name="businessType" th:unless="${content == null}" th:checked="${content[0].bizPbancTmpl0 != null && #arrays.contains(content[0].bizPbancTmpl0.bizPbancTmpl0Trgts,5)}">
+                            <label for="businessType7">
+                                <span></span>
+                                기관담당자
+                            </label>
+                        </div>
+                        <div class="chk_box item_chk">
+                            <input id="businessType8" type="checkbox" name="businessType" th:if="${content == null}">
+                            <input id="businessType8" type="checkbox" name="businessType" th:unless="${content == null}" th:checked="${content[0].bizPbancTmpl0 != null && #arrays.contains(content[0].bizPbancTmpl0.bizPbancTmpl0Trgts,6)}">
+                            <label for="businessType8">
+                                <span></span>
+                                학교담당자
+                            </label>
+                        </div>
+                        <div class="chk_box item_chk">
+                            <input id="businessType9" type="checkbox" name="businessType" th:if="${content == null}">
+                            <input id="businessType9" type="checkbox" name="businessType" th:unless="${content == null}" th:checked="${content[0].bizPbancTmpl0 != null && #arrays.contains(content[0].bizPbancTmpl0.bizPbancTmpl0Trgts,7)}">
+                            <label for="businessType9">
+                                <span></span>
+                                미디어강사
+                            </label>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><span class="el_required">*</span>접수기간</th>
+                    <td colspan="3">
+                        <div class="bl_dateRange">
+                            <input type="text" id="date1" class="el_datePicker sdate" not_null="true" alert_name="접수기간 시작일" reg_type="date">
+                            <span class="blank">~</span>
+                            <input type="text" id="date2" class="el_datePicker edate" not_null="true" alert_name="접수기간 종료일" reg_type="date">
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><span class="el_required">*</span>사업기간</th>
+                    <td colspan="3">
+                        <div class="bl_dateRange">
+                            <input type="text" id="date3" class="el_datePicker sdate" not_null="true" alert_name="사업기간 시작일" reg_type="date">
+                            <span class="blank">~</span>
+                            <input type="text" id="date4" class="el_datePicker edate" not_null="true" alert_name="사업기간 종료일" reg_type="date">
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><span class="el_required">*</span>결과발표일</th>
+                    <td colspan="3">
+                        <div class="d-flex-2">
+                            <div class="radio_box">
+                                <input id="Undetermined" type="radio" name="Announcement" th:if="${content != null}" th:checked="${content[0].bizPbancRsltYmd == '1900-01-01'}">
+                                <input id="Undetermined" type="radio" name="Announcement" th:unless="${content != null}">
+                                <label for="Undetermined">
                                     <span></span>
-                                    기관담당자
+                                    미정
                                 </label>
                             </div>
-                            <div class="chk_box item_chk">
-                                <input id="businessType8" type="checkbox" name="businessType" th:if="${content == null}">
-                                <input id="businessType8" type="checkbox" name="businessType" th:unless="${content == null}" th:checked="${content[0].bizPbancTmpl0 != null && #arrays.contains(content[0].bizPbancTmpl0.bizPbancTmpl0Trgts,6)}">
-                                <label for="businessType8">
+                            <div class="radio_box">
+                                <input id="date" type="radio" name="Announcement" th:if="${content != null}" th:checked="${content[0].bizPbancRsltYmd != '1900-01-01'}">
+                                <input id="date" type="radio" name="Announcement" th:unless="${content != null}">
+                                <label for="date">
                                     <span></span>
-                                    학교담당자
+                                    일자
                                 </label>
                             </div>
-                            <div class="chk_box item_chk">
-                                <input id="businessType9" type="checkbox" name="businessType" th:if="${content == null}">
-                                <input id="businessType9" type="checkbox" name="businessType" th:unless="${content == null}" th:checked="${content[0].bizPbancTmpl0 != null && #arrays.contains(content[0].bizPbancTmpl0.bizPbancTmpl0Trgts,7)}">
-                                <label for="businessType9">
-                                    <span></span>
-                                    미디어강사
-                                </label>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th scope="row"><span class="el_required">*</span>접수기간</th>
-                        <td colspan="3">
-                            <div class="bl_dateRange">
-                                <input type="text" id="date1" class="el_datePicker sdate" not_null="true" alert_name="접수기간 시작일" reg_type="date">
-                                <span class="blank">~</span>
-                                <input type="text" id="date2" class="el_datePicker edate" not_null="true" alert_name="접수기간 종료일" reg_type="date">
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th scope="row"><span class="el_required">*</span>사업기간</th>
-                        <td colspan="3">
-                            <div class="bl_dateRange">
-                                <input type="text" id="date3" class="el_datePicker sdate" not_null="true" alert_name="사업기간 시작일" reg_type="date">
-                                <span class="blank">~</span>
-                                <input type="text" id="date4" class="el_datePicker edate" not_null="true" alert_name="사업기간 종료일" reg_type="date">
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th scope="row"><span class="el_required">*</span>결과발표일</th>
-                        <td colspan="3">
-                            <div class="d-flex-2">
-                                <div class="radio_box">
-                                    <input id="Undetermined" type="radio" name="Announcement" th:if="${content != null}" th:checked="${content[0].bizPbancRsltYmd == '1900-01-01'}">
-                                    <input id="Undetermined" type="radio" name="Announcement" th:unless="${content != null}">
-                                    <label for="Undetermined">
-                                        <span></span>
-                                        미정
-                                    </label>
-                                </div>
-                                <div class="radio_box">
-                                    <input id="date" type="radio" name="Announcement" th:if="${content != null}" th:checked="${content[0].bizPbancRsltYmd != '1900-01-01'}">
-                                    <input id="date" type="radio" name="Announcement" th:unless="${content != null}">
-                                    <label for="date">
-                                        <span></span>
-                                        일자
-                                    </label>
-                                </div>
-                                <input id="AnnouncementDate" type="text" class="el_datePicker flex-grow-0" th:unless="${content != null}" disabled>
-                                <input id="AnnouncementDate" type="text" class="el_datePicker flex-grow-0" th:if="${content != null}" th:disabled="${content[0].bizPbancRsltYmd == '1900-01-01'}">
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th scope="row"><span class="el_required">*</span>사업내용</th>
-                        <td colspan="3">
+                            <input id="AnnouncementDate" type="text" class="el_datePicker flex-grow-0" th:unless="${content != null}" disabled>
+                            <input id="AnnouncementDate" type="text" class="el_datePicker flex-grow-0" th:if="${content != null}" th:disabled="${content[0].bizPbancRsltYmd == '1900-01-01'}">
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><span class="el_required">*</span>사업내용</th>
+                    <td colspan="3">
                             <textarea name="contents" class="ckeditor" style="width:100%; height:200px"
-                                th:text="${content == null ? '' : content[0].bizPbancCn}"
+                                      th:text="${content == null ? '' : content[0].bizPbancCn}"
                             ></textarea>
-                        </td>
-                    </tr>
-                    <div th:unless="${content == null}">
-                        <th:block th:if="${content[0].bizPbancTmpl0 != null && content[0].bizPbancTmpl0.bizPbancTmpl0Items != null}">
-                            <tr th:each="item : ${content[0].bizPbancTmpl0.bizPbancTmpl0Items}" id="target" class="target">
-                                <th scope="row">
-                                    <input type="text" th:value="${item.bizPbancTmpl0ItemNm}">
-                                </th>
-                                <td colspan="3">
-                                    <div class="d-flex align-items-center gap-2">
-                                        <input type="text" th:value="${item.bizPbancTmpl0ItemCn}">
-                                        <div class="btn btnDefault btnDelete btn_del" onclick="delField(this)">삭제</div>
-                                    </div>
-                                </td>
-                            </tr>
-                        </th:block>
-                        <th:block th:unless="${content[0].bizPbancTmpl0 != null && content[0].bizPbancTmpl0.bizPbancTmpl0Items != null}">
-                            <tr id="target" class="target">
-                                <th scope="row">
-                                    <input type="text">
-                                </th>
-                                <td colspan="3">
-                                    <div class="d-flex align-items-center gap-2">
-                                        <input type="text">
-                                        <div class="btn btnDefault btnDelete btn_del" onclick="delField(this)">삭제</div>
-                                    </div>
-                                </td>
-                            </tr>
-                        </th:block>
-                    </div>
-                    <tr th:if="${content == null}" id="target" class="target">
-                        <th scope="row">
-                            <input type="text">
-                        </th>
-                        <td colspan="3">
-                            <div class="d-flex align-items-center gap-2">
-                                <input type="text">
-                                <div class="btn btnDefault btnDelete btn_del" onclick="removeList(this, 'target')">삭제</div>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th scope="row" colspan="4" class="text-center">
-                            <div class="btn btnDefault btn_add" onclick="addList(this, 'target')">입력필드 추가</div>
-                        </th>
-                    </tr>
-                    <tr>
-                        <th scope="row"><span class="el_required">*</span>담당자연락처</th>
-                        <td colspan="3">
-                            <input id="addr" type="text" class="hp_w400" th:value="${content == null ? '' : content[0].bizPbancPicTel}" not_null="true" alert_name="담당자 연락처" >
-                        </td>
-                    </tr>
-                    <tr> <!-- 파일첨부 API 5 -->
-                        <th scope="row">파일첨부</th>
-                        <td colspan="3">
-                            <div class="bl_uploadList__scroll hp_w600">
-                                <ul class="bl_uploadList" th:if="${(content != null) && (content[0].fileMasters != null)}">
-                                    <li th:each="item, index: ${content[0].fileMasters}">
-                                        <a th:href="@{/api/common/upload/download(attachFilePath=${item.filePath})}" class="download_ajax" th:text="${item.originalFileName}"></a>
-                                        <div class="bl_uploadList_rgt">
-                                            <span class="file_size" th:text="${item.fileSize}"></span>
-                                            <a class="file_delete" th:href="@{/api/common/upload/delete/{sn}(sn=${item.fileSn})}" th:value="${index.index}">
-                                                <i class="fas fa-times color_red"></i>
-                                            </a>
-                                        </div>
-                                    </li>
-                                </ul>
-                                <ul class="bl_uploadList" th:unless="${(content != null) && (content[0].fileMasters != null)}">
-
-                                </ul>
-                            </div>
-                            <div class="d-flex justify-content-between align-items-center mt-2 hp_w600">
-                                <div class="d-flex gap-2 align-items-center">
-                                    <div class="bl_uploadGrid">
-                                        <div class="bl_upload js_upload me-0">
-                                            <label for="formFile" class="btn btnDefault bg-secondary text-white bl_upload_btn">파일찾기</label>
-                                            <input id="formFile" type="file" name="file" class="bl_upload_file js_file" accept=".gif, .jpg, .png, .pdf, .hwp, .hwpx, .doc, .docx, .ppt, .pptx, .xls, .xlsx, .zip">
-                                        </div>
-                                    </div>
-                                    <p class="bl_uploadNote">※ 파일형식 gif, jpg, png, pdf, hwp, doc, docx, ppt, pptx, xls, xlsx, zip / 5MB 미만</p>
+                    </td>
+                </tr>
+                <div th:unless="${content == null}">
+                    <th:block th:if="${content[0].bizPbancTmpl0 != null && content[0].bizPbancTmpl0.bizPbancTmpl0Items != null}">
+                        <tr th:each="item : ${content[0].bizPbancTmpl0.bizPbancTmpl0Items}" id="target" class="target">
+                            <th scope="row">
+                                <input type="text" th:value="${item.bizPbancTmpl0ItemNm}">
+                            </th>
+                            <td colspan="3">
+                                <div class="d-flex align-items-center gap-2">
+                                    <input type="text" th:value="${item.bizPbancTmpl0ItemCn}">
+                                    <div class="btn btnDefault btnDelete btn_del" onclick="delField(this)">삭제</div>
                                 </div>
-                                <p id="fileSize" class="bl_uploadNote">총용량: <span id="fileMB">0</span>MB</p>
+                            </td>
+                        </tr>
+                    </th:block>
+                    <th:block th:unless="${content[0].bizPbancTmpl0 != null && content[0].bizPbancTmpl0.bizPbancTmpl0Items != null}">
+                        <tr id="target" class="target">
+                            <th scope="row">
+                                <input type="text">
+                            </th>
+                            <td colspan="3">
+                                <div class="d-flex align-items-center gap-2">
+                                    <input type="text">
+                                    <div class="btn btnDefault btnDelete btn_del" onclick="delField(this)">삭제</div>
+                                </div>
+                            </td>
+                        </tr>
+                    </th:block>
+                </div>
+                <tr th:if="${content == null}" id="target" class="target">
+                    <th scope="row">
+                        <input type="text">
+                    </th>
+                    <td colspan="3">
+                        <div class="d-flex align-items-center gap-2">
+                            <input type="text">
+                            <div class="btn btnDefault btnDelete btn_del" onclick="removeList(this, 'target')">삭제</div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row" colspan="4" class="text-center">
+                        <div class="btn btnDefault btn_add" onclick="addList(this, 'target')">입력필드 추가</div>
+                    </th>
+                </tr>
+                <tr>
+                    <th scope="row"><span class="el_required">*</span>담당자연락처</th>
+                    <td colspan="3">
+                        <input id="addr" type="text" class="hp_w400" th:value="${content == null ? '' : content[0].bizPbancPicTel}" not_null="true" alert_name="담당자 연락처" >
+                    </td>
+                </tr>
+                <tr> <!-- 파일첨부 API 5 -->
+                    <th scope="row">파일첨부</th>
+                    <td colspan="3">
+                        <div class="bl_uploadList__scroll hp_w600">
+                            <ul class="bl_uploadList" th:if="${(content != null) && (content[0].fileMasters != null)}">
+                                <li th:each="item, index: ${content[0].fileMasters}">
+                                    <a th:href="@{/api/common/upload/download(attachFilePath=${item.filePath})}" class="download_ajax" th:text="${item.originalFileName}"></a>
+                                    <div class="bl_uploadList_rgt">
+                                        <span class="file_size" th:text="${item.fileSize}"></span>
+                                        <a class="file_delete" th:href="@{/api/common/upload/delete/{sn}(sn=${item.fileSn})}" th:value="${index.index}">
+                                            <i class="fas fa-times color_red"></i>
+                                        </a>
+                                    </div>
+                                </li>
+                            </ul>
+                            <ul class="bl_uploadList" th:unless="${(content != null) && (content[0].fileMasters != null)}">
+
+                            </ul>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mt-2 hp_w600">
+                            <div class="d-flex gap-2 align-items-center">
+                                <div class="bl_uploadGrid">
+                                    <div class="bl_upload js_upload me-0">
+                                        <label for="formFile" class="btn btnDefault bg-secondary text-white bl_upload_btn">파일찾기</label>
+                                        <input id="formFile" type="file" name="file" class="bl_upload_file js_file" accept=".gif, .jpg, .png, .pdf, .hwp, .hwpx, .doc, .docx, .ppt, .pptx, .xls, .xlsx, .zip">
+                                    </div>
+                                </div>
+                                <p class="bl_uploadNote">※ 파일형식 gif, jpg, png, pdf, hwp, doc, docx, ppt, pptx, xls, xlsx, zip / 5MB 미만</p>
                             </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th scope="row"><span class="el_required">*</span>상태</th>
-                        <td colspan="3">
-                            <div class="radio_box">
-                                <input id="businessState9" value="9" type="radio" name="flexRadioDefault3" th:if="${content != null}" th:checked="${content[0].bizPbancStts == 9}">
-                                <input id="businessState9" value="9" type="radio" name="flexRadioDefault3" th:unless="${content != null}" checked>
-                                <label for="businessState9">
-                                    <span></span>
-                                    임시저장
-                                </label>
-                            </div>
-                            <div class="radio_box">
-                                <input id="businessState1" value="0" type="radio" name="flexRadioDefault3" th:if="${content != null}" th:checked="${content[0].bizPbancStts == 0}">
-                                <input id="businessState1" value="0" type="radio" name="flexRadioDefault3" th:unless="${content != null}">
-                                <label for="businessState1">
-                                    <span></span>
-                                    모집중
-                                </label>
-                            </div>
-                            <div class="radio_box">
-                                <input id="businessState2" value="1" type="radio" name="flexRadioDefault3" th:if="${content != null}" th:checked="${content[0].bizPbancStts == 1}">
-                                <input id="businessState2" value="1" type="radio" name="flexRadioDefault3" th:unless="${content != null}">
-                                <label for="businessState2">
-                                    <span></span>
-                                    모집마감
-                                </label>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th scope="row"><span class="el_required">*</span>상단 고정 여부</th>
-                        <td colspan="3">
-                            <div class="radio_box">
-                                <input id="top_Y" value="Y" type="radio" name="radioTopYn" th:if="${content != null}" th:checked="${content[0].isTop == 'Y'}">
-                                <input id="top_Y" value="Y" type="radio" name="radioTopYn" th:unless="${content != null}">
-                                <label for="top_Y">
-                                    <span></span>
-                                    Y
-                                </label>
-                            </div>
-                            <div class="radio_box">
-                                <input id="top_N" value="N" type="radio" name="radioTopYn" th:if="${content != null}" th:checked="${content[0].isTop == 'N'}">
-                                <input id="top_N" value="N" type="radio" name="radioTopYn" th:unless="${content != null}" checked>
-                                <label for="top_N">
-                                    <span></span>
-                                    N
-                                </label>
-                            </div>
-                        </td>
-                    </tr>
+                            <p id="fileSize" class="bl_uploadNote">총용량: <span id="fileMB">0</span>MB</p>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><span class="el_required">*</span>상태</th>
+                    <td colspan="3">
+                        <div class="radio_box">
+                            <input id="businessState9" value="9" type="radio" name="flexRadioDefault3" th:if="${content != null}" th:checked="${content[0].bizPbancStts == 9}">
+                            <input id="businessState9" value="9" type="radio" name="flexRadioDefault3" th:unless="${content != null}" checked>
+                            <label for="businessState9">
+                                <span></span>
+                                임시저장
+                            </label>
+                        </div>
+                        <div class="radio_box">
+                            <input id="businessState1" value="0" type="radio" name="flexRadioDefault3" th:if="${content != null}" th:checked="${content[0].bizPbancStts == 0}">
+                            <input id="businessState1" value="0" type="radio" name="flexRadioDefault3" th:unless="${content != null}">
+                            <label for="businessState1">
+                                <span></span>
+                                모집중
+                            </label>
+                        </div>
+                        <div class="radio_box">
+                            <input id="businessState2" value="1" type="radio" name="flexRadioDefault3" th:if="${content != null}" th:checked="${content[0].bizPbancStts == 1}">
+                            <input id="businessState2" value="1" type="radio" name="flexRadioDefault3" th:unless="${content != null}">
+                            <label for="businessState2">
+                                <span></span>
+                                모집마감
+                            </label>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><span class="el_required">*</span>상단 고정 여부</th>
+                    <td colspan="3">
+                        <div class="radio_box">
+                            <input id="top_Y" value="Y" type="radio" name="radioTopYn" th:if="${content != null}" th:checked="${content[0].isTop == 'Y'}">
+                            <input id="top_Y" value="Y" type="radio" name="radioTopYn" th:unless="${content != null}">
+                            <label for="top_Y">
+                                <span></span>
+                                Y
+                            </label>
+                        </div>
+                        <div class="radio_box">
+                            <input id="top_N" value="N" type="radio" name="radioTopYn" th:if="${content != null}" th:checked="${content[0].isTop == 'N'}">
+                            <input id="top_N" value="N" type="radio" name="radioTopYn" th:unless="${content != null}" checked>
+                            <label for="top_N">
+                                <span></span>
+                                N
+                            </label>
+                        </div>
+                    </td>
+                </tr>
                 </tbody>
             </table>
         </div>
@@ -405,6 +413,8 @@
 
     <th:block layout:fragment="script">
         <script th:inline="javascript">
+            var cons = [[ ${content}]];
+            console.log(cons);
             function toggle_subCtgr(value) {
                 if(value==1){
                     $('tr[name=subCtgr]').hide();
@@ -503,7 +513,7 @@
                         params.bizPbancTmpl0ApiRequestVO.bizPbancTmpl0Trgts.push(4)
                     }
                     temp = $('#businessType7:checked').length==1?true:false ;
-                    if(temp){
+                    if(temp){+
                         params.bizPbancTmpl0ApiRequestVO.bizPbancTmpl0Trgts.push(5)
                     }
                     temp = $('#businessType8:checked').length==1?true:false ;
@@ -514,8 +524,12 @@
                     if(temp){
                         params.bizPbancTmpl0ApiRequestVO.bizPbancTmpl0Trgts.push(7)
                     }
+                    temp = $('#businessType10:checked').length==1?true:false ;
+                    if(temp){
+                        params.bizPbancTmpl0ApiRequestVO.bizPbancTmpl0Trgts.push(8)
+                    }
                 }else{
-                    params.bizPbancTmpl0ApiRequestVO.bizPbancTmpl0Trgts =[0,1,2,3,4,5,6,7];
+                    params.bizPbancTmpl0ApiRequestVO.bizPbancTmpl0Trgts =[0,1,2,3,4,5,6,7,10];
                 }
                 params.bizPbancNo=100;
 
@@ -599,6 +613,7 @@
             function create(){
 
                 let params = getFormData();
+                console.log(JSON.stringify(params));
                 /** 콘텐츠 등록*/
                 $.ajax({ //jquery ajax
                     type: "post", //http method

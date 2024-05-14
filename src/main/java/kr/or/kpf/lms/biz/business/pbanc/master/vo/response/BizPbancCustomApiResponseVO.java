@@ -125,6 +125,10 @@ public class BizPbancCustomApiResponseVO extends CSResponseVOSupport {
     @Schema(description="상위 노출 여부")
     private String isTop;
 
+    @Schema(description="사업공고 노출범위")
+    @Column(name="BIZ_PBANC_GROUP_ROLE")
+    private String ckBox;
+
     @Convert(converter= DateToStringConverter.class)
     private String createDateTime;
 

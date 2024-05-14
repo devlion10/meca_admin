@@ -236,8 +236,8 @@
                         <th scope="col">기관(학교)명</th>
                         <th scope="col">소속/직책</th>
                         <th scope="col">가입일</th>
-                        <th scope="col">간편로그인 연동</th>
                         <th scope="col">상태</th>
+                        <th scope="col">미승인사유</th>
                         <th scope="col">관리</th>
                     </tr>
                 </thead>
@@ -282,11 +282,11 @@
                         </td>
                         <td><span th:text="${item.department}"></span>/<span th:text="${item.position}"></span></td>
                         <td th:text="${#strings.substring(item.createDateTime, 0, 10)}">2022.09.01</td>
-                        <td>
+                        <!--간편인증연동 미승인사유로 대체<td>
                             <a th:if="${item.easyLogin == 'NAVER'}" href="" role="button" class="me-1"><img th:src="@{/assets/images/icons/naver_icon.png}" style="width: 25px; height: auto"></a>
                             <a th:if="${item.easyLogin == 'KAKAO'}" href="" role="button" class="me-1"><img th:src="@{/assets/images/icons/kakao_icon.png}" style="width: 25px; height: auto"></a>
                             <a th:if="${item.easyLogin == 'GOOGLE'}" href="" role="button"><img th:src="@{/assets/images/icons/google_icon.png}" style="width: 25px; height: auto"></a>
-                        </td>
+                        </td>-->
                         <td>
                             <div th:if="${item.state == '0'}" class="color_gray">미사용</div>
                             <div th:if="${item.state == '1'}" class="color_blue">정상</div>
@@ -297,6 +297,13 @@
                                 <span th:if="${item.approFlag == 'Y'}">승인</span>
                                 <span th:if="${item.approFlag == 'W'}">승인대기</span>
                                 <span th:if="${item.approFlag == 'N'}">미승인</span>
+                            </div>
+                        </td>
+                        <td>
+                            <div th:if="${item.roleGroup == 'JOURNALIST' && item.approFlag == 'N'}">
+                                <span th:if="${item.approYnRsnCd == '1'}">재직증명서 재발급(1년 이내) 필요</span>
+                                <span th:if="${item.approYnRsnCd == '2'}">언론인연수 참가자격 기준 미충족</span>
+                                <span th:if="${item.approYnRsnCd == '3'}">담당자 확인중</span>
                             </div>
                         </td>
                         <td>

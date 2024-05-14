@@ -265,9 +265,9 @@
                                 <th scope="row">미승인사유</th>
                                 <td>
                                     <select id="journalistApproRsnOpt" class="common_select" >
-                                        <option value="1">재직증명서 재발급(1년 이내) 필요</option>
-                                        <option value="2">언론인연수 참가 자격 기준 미충족</option>
-                                        <option value="3">담당자 확인 중</option>
+                                        <option value="1" th:selected="${content[0].approYnRsnCd == '1'}">재직증명서 재발급(1년 이내) 필요</option>
+                                        <option value="2" th:selected="${content[0].approYnRsnCd == '2'}">언론인연수 참가 자격 기준 미충족</option>
+                                        <option value="3" th:selected="${content[0].approYnRsnCd == '3'}">담당자 확인 중</option>
                                     </select>
                                 </td>
                             </tr>
@@ -275,9 +275,9 @@
                                 <th scope="row">미승인사유</th>
                                 <td>
                                     <select id="journalistApproRsnOpt" class="common_select" >
-                                        <option value="1">재직증명서 재발급(1년 이내) 필요</option>
-                                        <option value="2">언론인연수 참가 자격 기준 미충족</option>
-                                        <option value="3">담당자 확인 중</option>
+                                        <option value="1" th:selected="${content[0].approYnRsnCd == '1'}">재직증명서 재발급(1년 이내) 필요</option>
+                                        <option value="2" th:selected="${content[0].approYnRsnCd == '2'}">언론인연수 참가 자격 기준 미충족</option>
+                                        <option value="3" th:selected="${content[0].approYnRsnCd == '3'}">담당자 확인 중</option>
                                     </select>
                                 </td>
                             </tr>

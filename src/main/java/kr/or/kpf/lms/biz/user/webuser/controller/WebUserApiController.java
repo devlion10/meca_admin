@@ -80,6 +80,8 @@ public class WebUserApiController extends CSApiControllerSupport {
     @PutMapping(value = "/update", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<WebUserApiResponseVO> updateUserInfo(HttpServletRequest request, HttpServletResponse response,
                                                                @Validated(value = {UpdateWebUser.class}) @NotNull @RequestBody WebUserApiRequestVO webUserApiRequestVO) {
+
+        logger.info("updateUserInfo____");
         return ResponseEntity.status(HttpStatus.OK)
                 .body(Optional.ofNullable(webUserService.updateUserInfo(webUserApiRequestVO))
                         .orElseThrow(() -> new KPFException(KPF_RESULT.ERROR1003, "웹 회원 정보 수정 실패")));

@@ -109,4 +109,7 @@ public class WebUserApiRequestVO {
 
     @Schema(description="튜터 권한", example="")
     private String tutorYn;
+
+    @Schema(description="언론인 회원 미 승인 사유", example="")
+    private String approYnRsnCd;
 }

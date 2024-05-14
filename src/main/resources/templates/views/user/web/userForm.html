@@ -251,13 +251,33 @@
                                     </select>
                                 </td>
                             </tr>
-                            <tr id="journalistAppro">
+                            <tr id="journalistAppro" >
                                 <th scope="row">언론인 승인 상태</th>
                                 <td>
-                                    <select id="approFlag" class="common_select">
+                                    <select id="approFlag" class="common_select" onchange="chageApproFlagSelOpt(this)">
                                         <option value="Y" th:selected="${content[0].approFlag == 'Y'}">승인</option>
                                         <option value="W" th:selected="${content[0].approFlag == 'W'}">승인대기</option>
                                         <option value="N" th:selected="${content[0].approFlag == 'N'}">미승인</option>
+                                    </select>
+                                </td>
+                            </tr>
+                            <tr th:if="${content[0].approFlag == 'N'}" id="journalistApproRsn" >
+                                <th scope="row">미승인사유</th>
+                                <td>
+                                    <select id="journalistApproRsnOpt" class="common_select" >
+                                        <option value="1">재직증명서 재발급(1년 이내) 필요</option>
+                                        <option value="2">언론인연수 참가 자격 기준 미충족</option>
+                                        <option value="3">담당자 확인 중</option>
+                                    </select>
+                                </td>
+                            </tr>
+                            <tr th:unless="${content[0].approFlag == 'N'}" id="journalistApproRsn" style="display: none">
+                                <th scope="row">미승인사유</th>
+                                <td>
+                                    <select id="journalistApproRsnOpt" class="common_select" >
+                                        <option value="1">재직증명서 재발급(1년 이내) 필요</option>
+                                        <option value="2">언론인연수 참가 자격 기준 미충족</option>
+                                        <option value="3">담당자 확인 중</option>
                                     </select>
                                 </td>
                             </tr>
@@ -514,6 +534,33 @@
 
     <th:block layout:fragment="script">
         <script th:inline="javascript">
+
+            //승인, 미승인 옵션 변경시 이벤트 처리 함수
+            function chageApproFlagSelOpt(_this){
+                console.info("chageApproFlagSelOpt");
+                console.info(_this);
+                var selectValue = _this.options[_this.selectedIndex].value;
+                console.info(selectValue);
+
+                if(selectValue==='N'){
+                    var ele=document.body.querySelector("#journalistApproRsn");
+                    console.info(ele);
+                    ele.style.display='table-row';
+                }else{
+                    var ele=document.body.querySelector("#journalistApproRsn");
+                    console.info(ele);
+                    ele.style.display='none';
+
+                }
+
+
+
+
+
+
+            }
+
+
             //권한 해제하는 함수
             function removeConfirm(){
                 let data = getCont();
@@ -567,6 +614,7 @@
             function update() {
                 let params = getFormData();
                 if (params != null) {
+                    debugger;
                     if ($('#state').val() != 4) {
                         $.ajax({
                             type: "put",
@@ -678,6 +726,7 @@
                 params.roleGroup = $("#roleGroup").val();
                 params.mediaCode = $(".select_media_Code").val();
                 params.approFlag = $("#approFlag").val();
+                params.approYnRsnCd = $("#journalistApproRsnOpt").val();
                 params.approFlagDate = $("#approFlag").val()=="Y"? $(".el_datePicker[name=approFlagDate]").val() : null;
                 params.tutorYn = $("#tutorYn").val();
                 params.personalNiceNo = $("#personalNiceNo").val();

@@ -92,7 +92,9 @@
             <div class="bl_gridBtns_md">
                 <div class="btn btnDefault btnReset">리셋</div>
                 <div class="btn btnDefault btnSearch" onclick="goSearch()">검색</div>
-                <a class="btn btnDefault download_excel" th:href="${content!=null && #lists.size(content) !=0 ? '/api/education/application/lecture/complete/excel?educationPlanCode='+content[0].educationPlanCode:'잘못된 접근입니다.'}">excel 다운로드</a>
+                <a class="btn btnDefault download_excel" id="ckExcel1" style="display: none" th:href="${content!=null && #lists.size(content) !=0? '/api/education/application/lecture/complete/excel?educationPlanCode='+content[0].educationPlanCode:'잘못된 접근입니다.'}">bxcel 다운로드</a>
+                <a class="btn btnDefault download_excel" id="ckExcel2" style="display: none" th:href="${content!=null && #lists.size(content) !=0? '/api/education/application/lecture/complete/dual/excel?educationPlanCode='+content[0].educationPlanCode:'잘못된 접근입니다.'}">bxcel 다운로드</a>
+
             </div>
         </div>
 
@@ -135,6 +137,7 @@
                         <th scope="col">사용자(아이디)</th>
                         <th scope="col">소속명</th>
                         <th scope="col">부서/직급/직책</th>
+                        <th scope="col">생년월일</th>
                         <th scope="col">학습기간</th>
                         <th scope="col">수료일</th>
                         <th scope="col">총점</th>
@@ -169,6 +172,9 @@
                                 <span th:if="${not #strings.isEmpty(item.lmsUser.rank) && not #strings.isEmpty(item.lmsUser.position)}"> / </span>
                                 <span th:if="${item.lmsUser.position != null}" th:text="${item.lmsUser.position}"></span>
                             </div>
+                        </td>
+                        <td>
+                            <div th:if="${item.lmsUser.birthDay != null}" th:text="${item.lmsUser.birthDay}"></div>
                         </td>
                         <td>
                             <span th:if="${item.operationBeginDateTime != null}" th:text="${#strings.substring(item.operationBeginDateTime,0,10)}">2022.09.01</span> ~
@@ -250,6 +256,7 @@
 
     <th:block layout:fragment="script">
     <script th:inline="javascript">
+
         $("#list_all").bind('click',function (e){
             if($(this).is(":checked")){
                 $(`input:checkbox[name=list]`).prop("checked", true);
@@ -257,8 +264,20 @@
                 $(`input:checkbox[name=list]`).prop("checked", false);
             }
         })
-        /* <![CDATA[ */
         const content = [[ ${content} ]];
+        console.log(content[0])
+        console.log(content[0].educationPlan)
+        console.log(content[0].educationPlan.curriculumMaster)
+        console.log(content[0].educationPlan.curriculumMaster.educationType)
+        if(content[0].educationPlan.curriculumMaster.educationType == "2"){
+            $('#ckExcel1').show()
+            $('#ckExcel2').hide()
+        }else{
+            $('#ckExcel2').show()
+            $('#ckExcel1').hide()
+        }
+        /* <![CDATA[ */
+        console.log(content)
         function onLoadSubmit() {
             console.log('commonCode: ', [[ ${commonCode} ]] )
             pagination([[ ${pageable} ]], false)

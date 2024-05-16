@@ -403,9 +403,34 @@ public class EducationApplicaitonApiController extends CSApiControllerSupport {
     @GetMapping(value = "/lecture/complete/excel")
     public void getListExcelLectureComplete(HttpServletRequest request, HttpServletResponse response) throws IOException {
         String dateToStr = DateFormatUtils.format(new Date(), "yyyyMMdd_HHmmSS_");
+        System.out.println("request"+request);
 
         CSSearchMap csSearchMap = CSSearchMap.of(request);
         csSearchMap.put("educationType", Code.EDU_TYPE.CONVOCATION.enumCode);
+
+        List<EducationCompleteExcelVO> educationCompleteExcelVOList = educationApplicationService.getExcelComplete((EducationApplicationViewRequestVO) params(EducationApplicationViewRequestVO.class, csSearchMap, null));
+        OneSheetExcelFile<EducationCompleteExcelVO> excelFile = new OneSheetExcelFile<>(educationCompleteExcelVOList, EducationCompleteExcelVO.class);
+        response.setHeader("Content-Disposition", "attachment; filename=" + dateToStr+ URLEncoder.encode("집합교육수료목록", "UTF-8") + ".xlsx;");
+        response.setHeader("Content-Transfer-Encoding", "binary");
+        excelFile.write(response.getOutputStream());
+    }
+
+    /**
+     * 집합교육+화상교육 수료 엑셀 다운로드 API
+     *
+     * @param request
+     * @param response
+     * @return
+     */
+    @Tag(name = "Education Management", description = "교육 관리 API")
+    @Operation(operationId = "EducationApplication", summary = "집합교육 수료 엑셀", description = "집합교육 수료 목록 엑셀 파일을 다운로드한다.")
+    @GetMapping(value = "/lecture/complete/dual/excel")
+    public void getListExcelDualLectureComplete(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        String dateToStr = DateFormatUtils.format(new Date(), "yyyyMMdd_HHmmSS_");
+        System.out.println("request"+request);
+
+        CSSearchMap csSearchMap = CSSearchMap.of(request);
+        csSearchMap.put("educationType", Code.EDU_TYPE.LECTURE.enumCode);
 
         List<EducationCompleteExcelVO> educationCompleteExcelVOList = educationApplicationService.getExcelComplete((EducationApplicationViewRequestVO) params(EducationApplicationViewRequestVO.class, csSearchMap, null));
         OneSheetExcelFile<EducationCompleteExcelVO> excelFile = new OneSheetExcelFile<>(educationCompleteExcelVOList, EducationCompleteExcelVO.class);

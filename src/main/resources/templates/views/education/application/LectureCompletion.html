@@ -92,8 +92,8 @@
             <div class="bl_gridBtns_md">
                 <div class="btn btnDefault btnReset">리셋</div>
                 <div class="btn btnDefault btnSearch" onclick="goSearch()">검색</div>
-                <a class="btn btnDefault download_excel" id="ckExcel1" style="display: none" th:href="${content!=null && #lists.size(content) !=0? '/api/education/application/lecture/complete/excel?educationPlanCode='+content[0].educationPlanCode:'잘못된 접근입니다.'}">bxcel 다운로드</a>
-                <a class="btn btnDefault download_excel" id="ckExcel2" style="display: none" th:href="${content!=null && #lists.size(content) !=0? '/api/education/application/lecture/complete/dual/excel?educationPlanCode='+content[0].educationPlanCode:'잘못된 접근입니다.'}">bxcel 다운로드</a>
+                <a class="btn btnDefault download_excel" id="ckExcel1" style="display: none" th:href="${content!=null && #lists.size(content) !=0? '/api/education/application/lecture/complete/excel?educationPlanCode='+content[0].educationPlanCode:'잘못된 접근입니다.'}">excel 다운로드</a>
+                <a class="btn btnDefault download_excel" id="ckExcel2" style="display: none" th:href="${content!=null && #lists.size(content) !=0? '/api/education/application/lecture/complete/dual/excel?educationPlanCode='+content[0].educationPlanCode:'잘못된 접근입니다.'}">excel 다운로드</a>
 
             </div>
         </div>

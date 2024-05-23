@@ -214,6 +214,26 @@
                                     </td>
                                 </tr>
                                 <tr>
+                                    <th scope="row"><span class="el_required">*</span>복습제공 여부</th>
+                                    <td colspan="3">
+                                        <div class="radio_box">
+                                            <input id="review_y" type="radio" name="isReview" value="true" checked data-key="isReview" cts-required="복습제공 여부를 입력해주세요.">
+                                            <label for="review_y">
+                                                <span></span>
+                                                Y
+                                            </label>
+                                        </div>
+                                        <div class="radio_box">
+                                            <input id="review_n" type="radio" name="isReview" value="false" data-key="isReview" cts-required="복습제공 여부를 입력해주세요.">
+                                            <label for="review_n">
+                                                <span></span>
+                                                N
+                                            </label>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <tr>
                                     <th scope="row">
                                         <div class="d-flex">
                                             <span class="el_required">*</span>
@@ -835,6 +855,8 @@
                     params.curriculumCollaborationList.push({sortNo: index, value: data.id})
                 });
                 /** 사용 여부 */params.isUsable = document.querySelector("#isUsable").value;
+                //복습제공여부
+                params.isReview = $('input[name=isReview]:checked').length ? $('input[name=isReview]:checked')[0].value : '';
                 /** 설문 */
                 var evaluates = [];
                 var evaluateData = {};
@@ -902,6 +924,8 @@
                     params.curriculumCollaborationList.push({sortNo: index, value: data.id})
                 });
                 /** 사용 여부 */params.isUsable = document.querySelector("#isUsable").value;
+                //복습제공여부
+                params.isReview = $('input[name=isReview]:checked').length ? $('input[name=isReview]:checked')[0].value : '';
                 /** 설문 */
                 var evaluates = [];
                 var evaluateData = {};

@@ -46,7 +46,7 @@
                             </select>
                         </td>
                     </tr>
-                    <tr>
+                    <tr style="display: none">
                         <th scope="row"><span class="el_required">*</span>내용</th>
                         <td>
                             <textarea id="contents" name="contents" class="ckeditor" style="width:100%; height:200px" th:if="${content} == null"></textarea>
@@ -64,8 +64,11 @@
 
                                     <label class="btn btnDefault bg-secondary text-white bl_upload_btn">파일선택</label>
                                     <input id="thumbnailFile" type="file" name="file" class="bl_upload_file js_file">
+
                                 </div>
+                                <div class="btn btnDefault ms-3" onclick="popPreview()">미리보기</div>
                             </div>
+
                             <div class="bl_uploadGrid" style="margin-top: 10px;">
                                 <div class="bl_upload hp_lg_w462">
                                     <input id="popupLink" type="text" class="hp_w600" th:if="${content} == null" placeholder="이미지에 링크를 추가하려면 입력하세요.">
@@ -73,29 +76,30 @@
                                 </div>
                             </div>
                         </td>
+
                     </tr>
-                    <tr>
+                    <tr style="display:none">
                         <th scope="row">창 크기</th>
                         <td>
                             <div class="d-flex align-items-center">
                                 <div class="d-flex align-items-center gap-2">
                                     가로:
-                                    <input id="windowSizeV" type="text" class="hp_w120" th:if="${content == null || (content != null && #strings.isEmpty(content[0].windowSizeV))}">
-                                    <input id="windowSizeV" type="text" class="hp_w120" th:if="${content != null && !#strings.isEmpty(content[0].windowSizeV)}" th:value="${content[0].windowSizeV}">
+                                    <input id="windowSizeV" type="text" class="hp_w120" th:if="${content == null || (content != null && #strings.isEmpty(content[0].windowSizeV))}" value="600">
+                                    <input id="windowSizeV" type="text" class="hp_w120" th:if="${content != null && !#strings.isEmpty(content[0].windowSizeV)}" th:value="${content[0].windowSizeV}" value="600">
                                     pixels
                                 </div>
                                 <span class="blank">/</span>
                                 <div class="d-flex align-items-center gap-2">
                                     세로:
-                                    <input id="windowSizeH" type="text" class="hp_w120" th:if="${content == null || (content != null && #strings.isEmpty(content[0].windowSizeH))}">
-                                    <input id="windowSizeH" type="text" class="hp_w120" th:if="${content != null && !#strings.isEmpty(content[0].windowSizeH)}" th:value="${content[0].windowSizeH}">
+                                    <input id="windowSizeH" type="text" class="hp_w120" th:if="${content == null || (content != null && #strings.isEmpty(content[0].windowSizeH))}" value="600">
+                                    <input id="windowSizeH" type="text" class="hp_w120" th:if="${content != null && !#strings.isEmpty(content[0].windowSizeH)}" th:value="${content[0].windowSizeH}"  value="600">
                                     pixels
                                 </div>
                             </div>
                             <p class="guide_text mt-2"><span style="font-weight: 500">default  -</span>가로: 350px / 세로: 177px</p>
                         </td>
                     </tr>
-                    <tr>
+                    <tr style="display:none">
                         <th scope="row">창 위치</th>
                         <td>
                             <div class="d-flex align-items-center">
@@ -112,7 +116,7 @@
                                     <input id="windowLeft" type="text" class="hp_w120" th:if="${content != null && !#strings.isEmpty(content[0].windowLeft)}" th:value="${content[0].windowLeft}" >
                                     pixels
                                 </div>
-                                <div class="btn btnDefault ms-3" onclick="popPreview()">미리보기</div>
+                               <!-- <div class="btn btnDefault ms-3" onclick="popPreview()">미리보기</div>-->
                             </div>
                             <p class="guide_text mt-2"><span style="font-weight: 500">default  -</span>top: 0px / left: 0px</p>
                         </td>
@@ -183,10 +187,10 @@
 
             function save(type){
                 if(nullCheck()){
-                    if (CKEDITOR.instances.contents.getData() == '') {
+                   /* if (CKEDITOR.instances.contents.getData() == '') {
                         alert('팝업 내용을 입력해주세요.');
                         return;
-                    }
+                    }*/
 
                     let params = getFormData()
                     if (type == 'create') {

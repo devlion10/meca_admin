@@ -144,6 +144,8 @@ public class CurriculumApiController extends CSApiControllerSupport {
     @PostMapping(value = "/e-learning/create", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<CurriculumApiResponseVO> createElearningCurriculumInfo(HttpServletRequest request, HttpServletResponse response,
                                                                         @Validated(value = {CreateElearning.class}) @NotNull @RequestBody CurriculumApiRequestVO curriculumApiRequestVO) {
+
+        logger.info("___e-learning/create___");
         return ResponseEntity.status(HttpStatus.OK)
                 .body(Optional.ofNullable(curriculumService.createCurriculumInfo(curriculumApiRequestVO))
                         .orElseThrow(() -> new KPFException(KPF_RESULT.ERROR3001, "교육 과정 생성 실패")));

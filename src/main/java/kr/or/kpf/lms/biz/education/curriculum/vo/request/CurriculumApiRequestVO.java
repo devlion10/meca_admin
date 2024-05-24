@@ -191,8 +191,10 @@ public class CurriculumApiRequestVO {
 
     /** 복습제공 여부 */
     @Schema(description="복습제공 여부", required = true, example="3")
-    @NotNull(groups={CurriculumApiController.CreateGeneral.class, CurriculumApiController.UpdateGeneral.class,
-            CurriculumApiController.CreateElearning.class, CurriculumApiController.UpdateElearning.class}, message="복습제공 여부은 필수 입니다.")
+    @NotNull(groups={
+           /* CurriculumApiController.CreateGeneral.class, CurriculumApiController.UpdateGeneral.class,*/
+            CurriculumApiController.CreateElearning.class, CurriculumApiController.UpdateElearning.class
+    }, message="복습제공 여부은 필수 입니다.")
     private Boolean isReview;
 
     /** 시험 응시 가능 횟수 */

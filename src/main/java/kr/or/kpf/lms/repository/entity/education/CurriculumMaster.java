@@ -7,6 +7,7 @@ import kr.or.kpf.lms.config.security.vo.RoleGroup;
 import lombok.*;
 import org.hibernate.annotations.NotFound;
 import org.hibernate.annotations.NotFoundAction;
+import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -15,6 +16,7 @@ import org.thymeleaf.util.StringUtils;
 import javax.persistence.*;
 import java.io.Serializable;
 import java.math.BigInteger;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -82,6 +84,11 @@ public class CurriculumMaster extends CSEntitySupport implements Serializable {
     @Column(name="USE_YN")
     @Convert(converter = BooleanConverter.class)
     private Boolean isUsable;
+
+    /** 복습제공 여부 */
+    @Column(name="REVIEW_YN")
+    @Convert(converter = BooleanConverter.class)
+    private Boolean isReview;
 
     /** 관리자 승인 여부(N: 미승인, Y: 승인) */
     @Column(name="ADMIN_APL", nullable = false)
@@ -195,6 +202,8 @@ public class CurriculumMaster extends CSEntitySupport implements Serializable {
     /** 설문 코드 */
     @Column(name="QSTNR_CD")
     private String questionnaireCode;
+
+
 
     /** 신청서 작성 여부 */
     @Column(name="APLY_FORM_YN")

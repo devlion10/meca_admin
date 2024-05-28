@@ -221,6 +221,7 @@ public class CurriculumService extends CSServiceSupport {
                      */
                     if(curriculumApiRequestVO.getCurriculumCollaborationList() != null && curriculumApiRequestVO.getCurriculumCollaborationList().size() == 0) {
                         /** 교육과정 연계 교육과정 목록 초기화 */
+
                         curriculumCollaborationRepository.deleteAll(
                                 curriculumCollaborationRepository.findAll(Example.of(CurriculumCollaboration.builder()
                                         .curriculumCode(curriculumMaster.getCurriculumCode())

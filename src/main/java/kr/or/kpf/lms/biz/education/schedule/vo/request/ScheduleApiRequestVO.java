@@ -127,8 +127,11 @@ public class ScheduleApiRequestVO {
     @Schema(description="교육 장소", example="")
     private String educationPlace;
 
-    @Schema(description="정원", example="")
+    @Schema(description="정원(화상교육)", example="")
     private Integer numberOfPeople;
+
+    @Schema(description="정원(집합교육)", example="")
+    private Integer numberOfPeopleParallel;
 
     @Schema(description="숙박 제공")
     private Boolean isAccommodation;

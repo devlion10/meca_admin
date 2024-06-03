@@ -163,6 +163,10 @@ public class EducationPlan extends CSEntitySupport implements Serializable {
     @JoinColumn(name="PLAN_CD", insertable=false, updatable=false)
     List<LectureMaster> lectureMasterList;
 
+    /** 병행교육시 정원 */
+    @Column(name="NOPE_PRL")
+    private Integer numberOfPeopleParallel;
+
     /** 첨부파일 */
     @Transient
     List<FileMaster> fileMasters;

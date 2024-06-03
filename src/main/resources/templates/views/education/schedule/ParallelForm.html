@@ -222,13 +222,22 @@
                             </td>
                         </tr>
                         <tr>
-                            <th scope="row"><span class="el_required">*</span>정원</th>
+                            <th scope="row" ><span class="el_required">*</span>화상교육 정원</th>
                             <td>
                                 <div class="d-flex-2">
                                     <input type="text" class="hp_w80" name="numberOfPeople" th:value="${dataSet?.numberOfPeople}" cts-required="정원을 입력해주세요." oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');" />
                                     명(0명일 경우 무제한)
                                 </div>
                             </td>
+                            <th id="parallel2" scope="row"><span class="el_required">*</span>집합교육 정원</th>
+                            <td id="parallel3"  >
+                                <div  class="d-flex-2" >
+                                    <input type="text" class="hp_w80" name="numberOfPeopleParallel" th:value="${dataSet?.numberOfPeopleParallel}" cts-required="정원을 입력해주세요." oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');" />
+                                    명(0명일 경우 무제한)
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
                             <th scope="row"><span class="el_required">*</span>숙박제공 여부</th>
                             <td>
                                 <div class="radio_box">
@@ -393,6 +402,19 @@
 
             function onLoadSubmit() {
                 console.log('commonCode: ', [[ ${commonCode} ]] )
+                console.log('content: ', [[ ${content} ]] )
+                if(content.curriculumMaster.educationType == '4'){
+                    console.log("병행교육");
+                    $('#parallel1').show();
+                    $('#parallel2').show();
+                    $('#parallel3').show();
+                    $('#Pnm').hide();
+                }else{
+                    $('#parallel1').hide();
+                    $('#parallel2').hide();
+                    $('#parallel3').hide();
+                    $('#Pnm').show();
+                }
                 eventBind();
                 setFormData();
                 //지점 셀렉트

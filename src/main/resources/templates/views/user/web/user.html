@@ -28,7 +28,7 @@
                     </tr>
                     <tr>
                         <th scope="row">회원유형</th>
-                        <td colspan="3">
+                        <td colspan="1">
                             <div class="chk_box">
                                 <input id="groupsAll" name="roleGroups" type="checkbox" value="0" class="all_checkbox">
                                 <label for="groupsAll">
@@ -72,6 +72,29 @@
                                 </label>
                             </div>
                         </td>
+                        <th scope="row">언론인 승인 여부</th>
+                        <td>
+                            <div class="radio_box">
+                                <input id="userAppro_All" type="radio" name="userAppro" value="0" checked>
+                                <label for="userAppro_All">
+                                    <span></span>
+                                    전체
+                                </label>
+                            </div>
+                            <div class="radio_box">
+                                <input id="userAppro_Y" type="radio" name="userAppro" value="Y">
+                                <label for="userAppro_Y">
+                                    <span></span>
+                                    Y
+                                </label>
+                            </div>
+                            <div class="radio_box">
+                                <input id="userAppro_N" type="radio" name="userAppro" value="N">
+                                <label for="userAppro_N">
+                                    <span></span>
+                                    N
+                                </label>
+                            </div>
                     </tr>
                     <tr>
                         <th scope="row">회원권한</th>
@@ -362,49 +385,53 @@
                 }
             })
 
-            function searchUser(){
+            function searchUser() {
                 let searchQuery = {}
                 let uid = $("#userId").val();
                 let name = $("#userName").val();
                 let oname = $("#organizationName").val();
-                let auth =$("input[name=businessAuthoritys]:checked").length>0 ? new Array(  $("input[name=businessAuthoritys]:checked").length ) :"0";
-                $("input[name=businessAuthoritys]:checked").each(function(index, item) {
-                    if($(this).val()!="0" &&auth!="0"){
+                let auth = $("input[name=businessAuthoritys]:checked").length > 0 ? new Array($("input[name=businessAuthoritys]:checked").length) : "0";
+                $("input[name=businessAuthoritys]:checked").each(function (index, item) {
+                    if ($(this).val() != "0" && auth != "0") {
                         auth[index] = $(this).val();
-                    }else{
+                    } else {
                         auth = "0";
                     }
                 })
                 let state = $('input:radio[name=state]:checked').val();
-                let type =$("input[name=roleGroups]:checked").length>0 ? new Array(  $("input[name=roleGroups]:checked").length ) :"0";
-                $("input[name=roleGroups]:checked").each(function(index, item) {
-                    if($(this).val()!="0" &&type!="0"){
+                let type = $("input[name=roleGroups]:checked").length > 0 ? new Array($("input[name=roleGroups]:checked").length) : "0";
+                $("input[name=roleGroups]:checked").each(function (index, item) {
+                    if ($(this).val() != "0" && type != "0") {
                         type[index] = $(this).val();
-                    }else{
+                    } else {
                         type = "0";
                     }
                 })
                 let tutor = $('input:radio[name=tutor]:checked').val();
-                if(uid){
+                let approFlag = $('input:radio[name=userAppro]:checked').val();
+                if (uid) {
                     searchQuery.userId = uid
                 }
-                if(name){
+                if (name) {
                     searchQuery.userName = name
                 }
-                if(oname){
+                if (oname) {
                     searchQuery.organizationName = oname
                 }
-                if(auth&&auth!="0"){
+                if (auth && auth != "0") {
                     searchQuery.businessAuthoritys = auth.toString();
                 }
-                if(type&&type!="0"){
+                if (type && type != "0") {
                     searchQuery.roleGroups = type.toString();
                 }
-                if(state && state!="0"){
+                if (state && state != "0") {
                     searchQuery.state = state
                 }
-                if(tutor && tutor!="0"){
+                if (tutor && tutor != "0") {
                     searchQuery.tutorYn = tutor.toString();
+                }
+                if (approFlag && approFlag != "0") {
+                    searchQuery.approFlag = approFlag.toString();
                 }
                  searchJson(searchQuery)
             }
@@ -413,7 +440,7 @@
                 console.log('commonCode: ', [[ ${commonCode} ]] )
                 pagination([[ ${pageable} ]]);
             }
-            
+
             function getCont(){
                 const cont = [[ ${content} ]]
                 return cont;

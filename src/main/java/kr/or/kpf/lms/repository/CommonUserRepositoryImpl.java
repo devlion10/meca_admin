@@ -713,7 +713,6 @@ public class CommonUserRepositoryImpl extends CSRepositorySupport implements Com
                             lmsUser.userAddress1,
                             lmsUser.userAddress2,
                             lmsUser.tutorYn,
-                            lmsUser.approFlag,
                             lmsUser.personalNiceNo
                 ))
             .from(lmsUser)
@@ -1107,7 +1106,6 @@ public class CommonUserRepositoryImpl extends CSRepositorySupport implements Com
                         condition(arrRoleGroup, lmsUser.roleGroup::in),
                         condition(arrBusinessAuthority, lmsUser.businessAuthority::in),
                         condition(((WebUserViewRequestVO) requestObject).getTutorYn(), lmsUser.tutorYn::eq),
-                        condition(((WebUserViewRequestVO) requestObject).getApproFlag(), lmsUser.approFlag::eq),
 
                         condition(((WebUserViewRequestVO) requestObject).getOrganizationName(), organizationInfo.organizationName::contains),
                         condition(Code.USER_STATE.valueOfEnum(((WebUserViewRequestVO) requestObject).getState()), lmsUser.state::eq),

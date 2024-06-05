@@ -48,8 +48,6 @@ public class WebUserViewRequestVO extends CSViewVOSupport {
     private String organizationName;
     /** 회원 상태 */
     private String state;
-    /**회원승인여부*/
-    private String approFlag;
 
 
     /**

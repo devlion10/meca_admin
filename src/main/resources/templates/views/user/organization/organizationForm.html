@@ -48,6 +48,24 @@
                             </div>
                         </td>
                     </tr>
+                    <tr th:if="${content != null} and ${content[0].attachFilePath != null}">
+                        <th scope="row">사업자등록증</th>
+                        <td>
+                            <div class="bl_uploadGrid">
+                                <div class="bl_upload js_upload hp_lg_w462">
+                                    <input type="text" class="bl_upload_path js_path" readonly th:if="${content == null}">
+                                    <input type="text" class="bl_upload_path js_path" readonly th:if="${content != null} and ${content[0].attachFilePath == null}">
+                                    <input type="text" class="bl_upload_path js_path" readonly th:if="${content != null} and ${content[0].attachFilePath != null}" th:value="${content[0].attachFilePath}">
+
+                                    <!--<label class="btn btnDefault bg-secondary text-white bl_upload_btn viewControlBtn">파일찾기</label>-->
+                                    <input id="attachFile" type="file" name="file" class="bl_upload_file js_file viewControlBtn">
+
+                                </div>
+                            </div>
+
+                            <!--<p class="bl_uploadNote">※ 파일형식 pdf, jpg, png, gif / 5MB 미만</p>-->
+                        </td>
+                    </tr>
                     <tr>
                         <th scope="row">대표번호</th>
                         <td>

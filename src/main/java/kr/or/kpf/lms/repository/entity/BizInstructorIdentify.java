@@ -98,6 +98,9 @@ public class BizInstructorIdentify extends CSEntitySupport {
     private String userTel;
 
     @Transient
+    private String instrNm;
+
+    @Transient
     private String organizationName;
 
     @Transient

@@ -1,6 +1,7 @@
 package kr.or.kpf.lms.repository;
 
 import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.EntityPath;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
@@ -62,6 +63,7 @@ import kr.or.kpf.lms.framework.model.ResponseSummary;
 import kr.or.kpf.lms.repository.entity.*;
 import kr.or.kpf.lms.repository.entity.system.CommonCodeMaster;
 import kr.or.kpf.lms.repository.entity.role.OrganizationAuthorityHistory;
+import kr.or.kpf.lms.repository.entity.user.InstructorInfo;
 import kr.or.kpf.lms.repository.entity.user.LmsUser;
 import kr.or.kpf.lms.repository.entity.user.OrganizationInfo;
 import org.apache.commons.lang3.StringUtils;
@@ -113,6 +115,7 @@ import static kr.or.kpf.lms.repository.entity.QFileMaster.fileMaster;
 import static kr.or.kpf.lms.repository.entity.QFormeBizlecinfo.formeBizlecinfo;
 import static kr.or.kpf.lms.repository.entity.QFormeFomBizapplyTtable.formeFomBizapplyTtable;
 import static kr.or.kpf.lms.repository.entity.system.QCommonCodeMaster.commonCodeMaster;
+import static kr.or.kpf.lms.repository.entity.user.QInstructorInfo.instructorInfo;
 import static kr.or.kpf.lms.repository.entity.user.QLmsUser.lmsUser;
 import static kr.or.kpf.lms.repository.entity.user.QOrganizationInfo.organizationInfo;
 import static org.springframework.util.StringUtils.hasText;
@@ -1020,6 +1023,7 @@ public class CommonBusinessRepositoryImpl extends CSRepositorySupport implements
         } else if(requestObject instanceof BizInstructorIdentifyViewRequestVO) { /** 강의확인서 */
             List<BizInstructorIdentifyExcelVO> dtos = jpaQueryFactory.select(Projections.fields(BizInstructorIdentifyExcelVO.class,
                             lmsUser.userName,
+                            instructorInfo.instrNm,
                             bizInstructorIdentify.registUserId,
                             bizPbancMaster.bizPbancNm,
                             organizationInfo.organizationName,
@@ -1035,12 +1039,15 @@ public class CommonBusinessRepositoryImpl extends CSRepositorySupport implements
                             bizInstructorIdentify.bizInstrIdntyNo,
                             bizInstructorIdentify.bizInstrIdntyAmt,
                             bizInstructorIdentify.bizInstrIdntyAprvDt,
-                            bizInstructorIdentify.bizInstrIdntyPayYm
+                            bizInstructorIdentify.bizInstrIdntyPayYm,
+                            bizInstructorAply.bizInstrAplyInstrNm
 
                     ))
                     .from(bizInstructorIdentify)
                     .leftJoin(bizOrganizationAply).on(bizOrganizationAply.bizOrgAplyNo.eq(bizInstructorIdentify.bizOrgAplyNo))
                     .leftJoin(lmsUser).on(lmsUser.userId.eq(bizInstructorIdentify.registUserId))
+                    .leftJoin(instructorInfo).on(instructorInfo.userId.eq(bizInstructorIdentify.registUserId))
+                    .leftJoin(bizInstructorAply).on(bizInstructorAply.bizInstrAplyInstrNm.eq(lmsUser.userId))
                     .leftJoin(organizationInfo).on(organizationInfo.organizationCode.eq(bizOrganizationAply.orgCd))
                     .leftJoin(bizPbancMaster).on(bizPbancMaster.bizPbancNo.eq(bizOrganizationAply.bizPbancNo))
                     .where(getQuery(requestObject))
@@ -1917,6 +1924,17 @@ public class CommonBusinessRepositoryImpl extends CSRepositorySupport implements
                             .fetchOne();
                     entity.setUserName(lmsUserEntity.getUserName());
                     entity.setUserTel(lmsUserEntity.getPhone());
+
+                    InstructorInfo instrInfo = jpaQueryFactory.selectFrom(instructorInfo)
+                            .where(instructorInfo.userId.eq(lmsUserEntity.getUserId()))
+                            .fetchOne();
+                    /*BizInstructorAply BizInstAply = jpaQueryFactory.selectFrom(bizInstructorAply)
+                            .where(bizInstructorAply.bizInstrAplyInstrId.eq(lmsUserEntity.getUserId()))
+                            .fetchOne();*/
+
+                    entity.setInstrNm(instrInfo.getInstrNm());
+
+
 
                     BizOrganizationAply bizOrgAplyEntity = jpaQueryFactory.selectFrom(bizOrganizationAply)
                             .where(bizOrganizationAply.bizOrgAplyNo.eq(entity.getBizOrgAplyNo()))

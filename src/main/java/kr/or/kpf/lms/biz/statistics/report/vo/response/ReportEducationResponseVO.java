@@ -50,4 +50,7 @@ public class ReportEducationResponseVO {
     /** 수료 인원 */
     private Long countEndUser;
 
+    /** 병행교육시 집합강의 인원 */
+    private Long countUserOfParallel;
+
 }

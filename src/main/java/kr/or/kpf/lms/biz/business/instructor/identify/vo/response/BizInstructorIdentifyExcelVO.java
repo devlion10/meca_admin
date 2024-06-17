@@ -21,6 +21,10 @@ public class BizInstructorIdentifyExcelVO {
     @Schema(description="강사 모집 공고 신청 강사명", required = true, example="홍길동")
     private String userName;
 
+    @ExcelColumn(headerName = "강사명")
+    @Schema(description="강사 정보 강사명(동명이인구분용)", required = true, example="홍길동")
+    private String instrNm;
+
     @ExcelColumn(headerName = "강사ID")
     @Schema(description="강사 모집 공고 신청 강사명", required = true, example="홍길동")
     private String registUserId;

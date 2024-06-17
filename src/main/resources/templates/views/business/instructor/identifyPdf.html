@@ -24,7 +24,7 @@
         </tr>
         <tr>
           <td>강사명</td>
-          <td th:text="${item.userName}">홍길동</td>
+          <td th:text="${item.instrNm}">홍길동</td>
           <td>제출처</td>
           <td  th:text="${item.bizOrganizationAply.bizOrgAplyRgn}">서울</td>
         </tr>
@@ -54,7 +54,7 @@
         <tr><td class="h5">다음과 같이 강의 일지를 제출합니다.</td></tr>
         <tr><td><br></td> </tr>
         <tr><td><br></td> </tr>
-        <tr><td class="h5"> 강사명 : <th:block th:text="${item.userName}"></th:block></td> </tr>
+        <tr><td class="h5"> 강사명 : <th:block th:text="${item.instrNm}"></th:block></td> </tr>
       </table>
       <br>
       <th:block th:each="item2, stat2:${item.bizInstructorIdentifyDtls}">
@@ -104,6 +104,7 @@
       function onLoadSubmit() {
         console.log('commonCode: ', [[ ${commonCode}]])
         let CONT = [[ ${content}]];
+        console.log(CONT);
         if(CONT && CONT.length>0){
           zipFilename = `${toDay}_강의확인서(${CONT.length}).zip`
           getZip(CONT);
@@ -123,7 +124,7 @@
       function getZip(CONT){
         let filename;
         CONT.forEach(function (item){
-          filename=`${item.bizInstrIdntyYm.substring(0,4)}-${item.bizInstrIdntyYm.substring(4,6)}_${item.userName}_${item.organizationName}_강의확인서.pdf`;
+          filename=`${item.bizInstrIdntyYm.substring(0,4)}-${item.bizInstrIdntyYm.substring(4,6)}_${item.instrNm}_${item.organizationName}_강의확인서.pdf`;
           zip.file(filename, getPdf(count, item.bizInstructorIdentifyDtls));
           count+=1;
           if(count==CONT.length){

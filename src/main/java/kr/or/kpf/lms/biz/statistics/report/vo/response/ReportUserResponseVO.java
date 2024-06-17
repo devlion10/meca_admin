@@ -38,6 +38,9 @@ public class ReportUserResponseVO {
     @Schema(description="교육 과정명")
     private String curriculumName;
 
+    @Schema(description="교육유형")
+    private String setEducationType;
+
     @Schema(description="교육시작일")
     private String operationBeginDateTime;
 

@@ -682,6 +682,14 @@ public class CommonStatisticsRepositoryImpl extends CSRepositorySupport implemen
                                 .where(curriculumApplicationMaster.educationPlanCode.eq(data.getEducationPlanCode()),
                                         curriculumApplicationMaster.isComplete.eq("Y"))
                                 .fetchOne());
+
+                        data.setCountUserOfParallel(jpaQueryFactory.select(curriculumApplicationMaster.count())
+                                .from(curriculumApplicationMaster)
+                                .leftJoin(curriculumMaster).on(curriculumMaster.curriculumCode.eq(curriculumApplicationMaster.curriculumCode))
+                                .where(curriculumApplicationMaster.educationPlanCode.eq(data.getEducationPlanCode()),
+                                        curriculumApplicationMaster.isComplete.eq("Y"),
+                                        curriculumApplicationMaster.setEducationType.eq("2"))
+                                .fetchOne());
                     }).collect(Collectors.toList());
         } else if (requestObject instanceof ReportScheduleRequestVO) { /** 통계 관리 > 경영평가 보고서 - 과정별 */
             return jpaQueryFactory.select(Projections.fields(ReportScheduleResponseVO.class,
@@ -780,6 +788,7 @@ public class CommonStatisticsRepositoryImpl extends CSRepositorySupport implemen
                             curriculumMaster.categoryCode,
                             curriculumMaster.educationType,
                             curriculumMaster.curriculumName,
+                            curriculumApplicationMaster.setEducationType,
                             educationPlan.educationPlanCode,
                             educationPlan.province,
                             educationPlan.operationBeginDateTime,

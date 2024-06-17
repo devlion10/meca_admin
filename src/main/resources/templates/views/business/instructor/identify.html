@@ -122,7 +122,7 @@
                                         </div>
                                     </td>
                                     <td th:text="${pageable.totalElements - ((pageable.page * pageable.size) + stat.index)}"></td>
-                                    <td><span th:text="${item.userName}">신소영</span>(<span th:text="${item.registUserId}">soyoung8733</span>)</td>
+                                    <td><span th:text="${item.instrNm}">신소영</span>(<span th:text="${item.registUserId}">soyoung8733</span>)</td>
                                     <td th:if="${item.bizOrganizationAply!=null}" th:text="${item.bizOrganizationAply.bizOrgAplyRgn}">서울</td>
                                     <td th:unless="${item.bizOrganizationAply!=null}" >-</td>
                                     <td th:text="${item.bizPbancMaster.bizPbancYr}">2022</td>
@@ -202,7 +202,7 @@
                                     </td>
                                     <td th:text="${pageable.totalElements - ((pageable.page * pageable.size) + stat.index)}"></td>
                                     <td>
-                                        <span th:text="${item.userName}">신소영</span>(<span th:text="${item.registUserId}">soyoung8733</span>)
+                                        <span th:text="${item.instrNm}">신소영</span>(<span th:text="${item.registUserId}">soyoung8733</span>)
                                     </td>
                                     <td th:if="${item.bizOrganizationAply!=null}" th:text="${item.bizOrganizationAply.bizOrgAplyRgn}">서울</td>
                                     <td th:unless="${item.bizOrganizationAply!=null}" >-</td>
@@ -252,6 +252,8 @@
 
     <th:block layout:fragment="script">
         <script th:inline="javascript">
+            var cons = [[ ${content} ]];
+            console.log('cons',cons);
 
             function searchInstrId(){
                 let searchQuery = {}

@@ -188,7 +188,7 @@
                     <a href="#none" data-education="user">교육명단</a>
                 </li>
             </ul>
-    
+
             <div class="bl_tab2_body js_tab_contents">
                 <div class="bl_tab2_item js_tab_item">
                     <div class="bl_boardCtrls">
@@ -200,7 +200,7 @@
                     </div>
                     <div id="exec-table-education" class="exec-table education"></div>
                 </div>
-    
+
                 <!-- 차시별 -->
                 <div class="bl_tab2_item js_tab_item">
                     <div class="bl_boardCtrls">
@@ -212,7 +212,7 @@
                     </div>
                     <div id="exec-table-schedule" class="exec-table schedule"></div>
                 </div>
-    
+
                 <!-- 사용자별 -->
                 <div class="bl_tab2_item js_tab_item">
                     <div class="bl_boardCtrls">
@@ -380,6 +380,9 @@
             ctsReportController.common.setEducationType = function(value){
                 return value == '1' ? '화상' : value == '2' ? '집합' : value == '3' ? '이러닝' : value == '4' ? '병행' : '-';
             }
+            ctsReportController.common.setEducationType2 = function(value){
+                return value == '1' ? '화상' : value == '2' ? '집합' : value == '3' ? '이러닝' : value == '4' ? '병행' : '-';
+            }
             ctsReportController.common.loading = {
                 start : function(el){
                     $(el).addClass("isloading");
@@ -430,11 +433,17 @@
                     item.managerDepartment = ctsReportController.common.setProvince(data.province);
                     item.countEndUser = data.countEndUser;
                     item.countUser = data.countUser;
+                    item.countUserOfParallel = data.countUserOfParallel;
                     item.managerName = data.managerName;
                     item.operationBeginDateTime = moment(data.operationBeginDateTime).format('YYYY-MM-DD');
                     item.operationEndDateTime = moment(data.operationEndDateTime).format('YYYY-MM-DD');
                     item.curriculumName = data.curriculumName;
                     item.educationPlanCode = data.educationPlanCode;
+
+                    if(item.educationType == '병행'){
+                        item.countEndUser = '집합 '+(item.countEndUser - item.countUserOfParallel)+'/ 화상 '+item.countUserOfParallel
+                    }
+
                     return item;
                 });
                 _self.dataset = dataset;
@@ -489,7 +498,7 @@
                         name : 'operationEndDateTime',
                         readOnly:true,
                     },{
-                        width:80,
+                        width:115,
                         title: '수료인원',
                         name : 'countEndUser',
                         readOnly:true,
@@ -704,6 +713,7 @@
                     item.categoryNm = ctsReportController.common.setCategoryCode(data.categoryCode);
                     item.enforcementType = ctsReportController.common.setEnforcementType(data.enforcementType);
                     item.educationType = ctsReportController.common.setEducationType(data.educationType);
+                    item.setEducationType = ctsReportController.common.setEducationType2(data.setEducationType);
                     item.operationBeginDateTime = moment(data.operationBeginDateTime).format('YYYY-MM-DD');
                     item.operationEndDateTime = moment(data.operationEndDateTime).format('YYYY-MM-DD');
                     item.managerDepartment = ctsReportController.common.setProvince(data.province);
@@ -718,7 +728,9 @@
                     item.department = data.department;
                     item.rank = data.rank;
                     item.birthDay = moment(data.birthDay).format('YYYY-MM-DD');
-
+                    if(item.educationType == '병행'){
+                        item.educationType = item.setEducationType;
+                    }
                     return item;
                 });
                 _self.dataset = dataset;

@@ -36,14 +36,14 @@
                             <input id="organizationName" type="text" class="hp_w400" th:unless="${content == null}" th:value="${content[0].organizationName}"not_null="true" alert_name="기관명">
                         </td>
                     </tr>
-                    <tr>
+                    <tr th:if="${content != null} and ${content[0].organizationType == '3'}">
                         <th scope="row">대표자명</th>
                         <td>
                             <input id="organizationRepresentativeName" type="text" class="hp_w400" th:if="${content == null}" not_null="true" alert_name="대표자명">
                             <input id="organizationRepresentativeName" type="text" class="hp_w400" th:unless="${content == null}" th:value="${content[0].organizationRepresentativeName}"not_null="true" alert_name="대표자명">
                         </td>
                     </tr>
-                    <tr th:if="${content[0].organizationType == '1'}">
+                    <tr th:if="${content != null} and ${content[0].organizationType == '1'}">
                         <th scope="row">제호명(사용자등록)</th>
                         <td>
                             <input id="zehoName" type="text" class="hp_w400"  alert_name="제호명" th:value="${content[0].zehoName}" disabled>

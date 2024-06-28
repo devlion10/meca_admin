@@ -592,6 +592,31 @@
             }
 
             function update(){
+                if($('.bizOrgAplyLsnDtlYmd') != '' && $('.bizOrgAplyLsnDtlYmd') != null){
+                    for (let i = 0; i < $('.bizOrgAplyLsnDtlYmd').length; i++) {
+                        var pickDate = $('.bizOrgAplyLsnDtlYmd')[i].value ;
+                        var pickShour = $('.bgng1')[i].value ;
+                        var pickEhour= $('.end1')[i].value ;
+                        for(let g = 0; g < $('.bizOrgAplyLsnDtlYmd').length; g++){
+                            if(g != i){
+                                if($('.bizOrgAplyLsnDtlYmd')[g].value == pickDate){
+                                    for(c = pickShour; c <= pickEhour ; c++){
+                                        if(c<10 && c != "00"){
+                                            c = "0"+c;
+                                        }
+                                        if(c == $('.bgng1')[g].value){
+                                            alert("수업일정 중 "+ pickDate +" 날짜에 중복된 수업일정이 있습니다. 재확인 해주세요.")
+                                            return false;
+                                        }else if(c == $('.end1')[g].value){
+                                            alert("수업일정 중 "+ pickDate +" 날짜에 중복된 수업일정이 있습니다. 재확인 해주세요.")
+                                            return false;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
                 if(nullCheck()){
                     if(checkTimes() < 1) {
                         let params = getFormData();

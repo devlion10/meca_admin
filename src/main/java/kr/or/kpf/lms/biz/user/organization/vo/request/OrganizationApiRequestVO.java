@@ -50,6 +50,9 @@ public class OrganizationApiRequestVO {
     @Schema(description="소속 기관 팩스 번호", example="")
     private String organizationFaxNumber;
 
+    @Schema(description="소속 기관 대표자명", example="")
+    private String organizationRepresentativeName;
+
     /** 소속 기관 홈페이지 주소 */
     @Schema(description="홈페이지 주소", example="www.naver.com")
     private String organizationHomepage;

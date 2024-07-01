@@ -899,15 +899,22 @@
                 }
                 if( !options.list ){
 
+                    params={};
+                    var organizationCode=options.initOrgCode;
+                    params.organizationCode=organizationCode;
+
+
                     let loading = $(`<div class="spinner-border text-primary spinner-border-sm" role="status"><span class="sr-only">정보를 불러오는 중 입니다.</span></div>`);
                     $(options.target).hide().after(loading);
                     let ajaxData = await $.ajax({
-                        type: "get",
-                        url: "/api/user/media/page?size=1000000",
+                        type: "GET",
+                        url: "/api/user/media/page?size=1000000&organizationCode="+organizationCode,
                         headers: {'Content-Type': 'application/json'},
+                        //data: JSON.stringify(params),
                         dataType: "json",
                         error: function(e) { }
                     });
+                    console.info(ajaxData)  ;
                     if( ajaxData && ajaxData.content && ajaxData.content.length ){
                         options.list = ajaxData.content;
                         window.mediaDbList = ajaxData.content;
@@ -918,10 +925,31 @@
                 let html = $(`<select class="common_select select_media_Code" id="${prefixId}"><option value="">선택없음</option></select>`);
                 let generalItem = function(findList, initValue){
                     html.empty();
-                    html.append(`<option value="">선택없음</option>`);
-                    findList.forEach(function(item){
-                        html.append(`<option value="${item.mediaCode}" ${initValue && initValue == item.mediaCode? "selected" : ""}>${item.mediaName}</option>`);
-                    });
+
+
+                    if(findList.length==1){//제호 결과 1 일시
+                        //html.append(`<option value="">선택없음</option>`);
+                        findList.forEach(function(item,index){
+                            html.append(`<option value="${item.mediaCode}"  "selected" >${item.mediaName}</option>`);
+                        });
+                    }else if(findList.length>1){//제호 결과 복수일 시
+                        console.info(initValue);
+                        if(initValue==null){
+                            findList.forEach(function(item,index){
+                                html.append(`<option value="${item.mediaCode}" ${index  == 0? "selected" : ""}>${item.mediaName}</option>`);
+                            });
+                        }else{
+                            findList.forEach(function(item){
+                                html.append(`<option value="${item.mediaCode}" ${initValue && initValue  == item.mediaCode? "selected" : ""}>${item.mediaName}</option>`);
+                            });
+
+                        }
+
+
+                    }else if(findList.length===0) {//제호 결과 없을 시
+                        html.append(`<option value=""  "selected" >매체등록필요</option>`);
+                    }
+
                 }
                 if( options.initOrgCode ){
                     let findList = _.where(options.list, {organizationCode: options.initOrgCode });

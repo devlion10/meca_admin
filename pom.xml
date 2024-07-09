@@ -10,9 +10,13 @@
 	</parent>
 	<groupId>kr.or.kpf</groupId>
 	<artifactId>kpf-lms-admin</artifactId>
+
+	<packaging>war</packaging>
+
 	<version>0.0.1-SNAPSHOT</version>
 	<name>kpf-lms-admin</name>
 	<description>KoreaPressFoundation for Spring Boot</description>
+
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<java.version>11</java.version>
@@ -56,11 +60,19 @@
 			<groupId>org.hibernate</groupId>
 			<artifactId>hibernate-java8</artifactId>
 		</dependency>
-		<dependency>
+	<!--	<dependency>
 			<groupId>org.hibernate</groupId>
 			<artifactId>hibernate-core</artifactId>
 			<scope>provided</scope>
+		</dependency>-->
+		<!--버전체인지-->
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-core</artifactId>
+			<!--<scope>provided</scope>-->
+			<version>5.6.10.Final</version>
 		</dependency>
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
@@ -382,6 +394,23 @@
 			<systemPath>${project.basedir}/src/main/webapp/WEB-INF/lib/gnu-crypto.jar</systemPath>
 		</dependency>
 
+
+
+		<!--servletapi 의존성 추가-->
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>javax.servlet-api</artifactId>
+			<scope>provided</scope>
+		</dependency>
+
+		<!-- Spring Boot Starter Tomcat (provided scope)  -->
+		<!-- 인텔리j 톰캣환경에서 구동하기 위해-->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-tomcat</artifactId>
+			<scope>provided</scope>
+		</dependency>
+
 	</dependencies>
 
 	<build>
@@ -390,6 +419,7 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
+					<mainClass>kr.or.kpf.lms.KoreaPressFoundationLmsApplication</mainClass>
 					<excludes>
 						<exclude>
 							<groupId>org.projectlombok</groupId>

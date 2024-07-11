@@ -1605,7 +1605,7 @@ async function sendSMSController(userList, options) {
 	// PREFIX DOM ID 설정
 	const prefixEl = "#"+prefix+"_";
 	// 문자 입력 제한
-	const maxLength = 80;
+	const maxLength = 1000;
 	// 기능에서 사용될 ELEMENT DOM
 	const Element = {
 		wrap : _POPUP,  //전체
@@ -1748,10 +1748,10 @@ async function sendSMSController(userList, options) {
 	let cut_80 = function (obj){
 		var text = $(obj).val();
 		var leng = text.length;
-		while(getTextLength(text) > 80){
+		while(getTextLength(text) > 1000){
 			leng--;
 			text = text.substring(0, leng);
-		}
+		}/**/
 		$(obj).val(text);
 		$(Element.text.maxlength).text(`${getTextLength(text)}/${maxLength}`);
 	}

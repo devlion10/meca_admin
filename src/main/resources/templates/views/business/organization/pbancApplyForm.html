@@ -431,7 +431,8 @@
                     </td>
                 </tr>
                 <tr>
-                    <th scope="row"><span class="el_required">*</span>향후 활용계획 및 수업을 통한 기대효과</th>
+                    <th scope="row" ><span class="el_required">*</span>향후 활용계획 및 수업을 통한 기대효과 <br><br><span  class="el_required">*</span>회차 축소, 수업일정 및 시간 조율 가능 여부 기재 – (가능 / 불가능)</th>
+
                     <td colspan="3">
                         <textarea id="bizOrgAplyLsnPlanDscr3" cols="30" rows="10" th:text="${content[0].bizOrgAplyLsnPlanDscr3}" not_null="true" alert_name="활용계획 및 기대효과"></textarea>
                     </td>
@@ -612,13 +613,13 @@
                                         console.log('i',i)
                                         if(c == $('.bgng1')[g].value || c == $('.end1')[g].value){ // i의 시간이 b의 시간과 동일할때
                                             if(c != pickEhour){
-                                                alert("수업일정 중 "+ pickDate +" 날짜에 중복된 수업일정이 있습니다. 재확인 해주세요.123");
+                                                alert("수업일정 중 "+ pickDate +" 날짜에 중복된 수업일정이 있습니다. 재확인 해주세요.");
                                                 return false;
                                             }
                                             if(pickEmin >= $('.bgng2')[g].value){// 분단위 체크
                                                 for(var z = $('.bgng2')[g].value; z <= $('.end2')[g].value; z++){
                                                     if(z == pickSmin || z == pickEmin){
-                                                        alert("수업일정 중 "+ pickDate +" 날짜에 중복된 수업일정이 있습니다. 재확인 해주세요.345")
+                                                        alert("수업일정 중 "+ pickDate +" 날짜에 중복된 수업일정이 있습니다. 재확인 해주세요.")
                                                         return false;
                                                     }
                                                 }

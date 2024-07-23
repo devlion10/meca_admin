@@ -65,7 +65,7 @@
                     <a href="/statistics/evaluation/education">강좌(과정)별</a>
                 </li>
             </ul>
-            
+
             <!-- BOARD : CONTROLLER -->
             <div class="bl_boardCtrls">
                 <div class="bl_boardCtrls_lft">
@@ -131,7 +131,7 @@
                     </tbody>
                 </table>
             </div>
-            
+
             <div class="bl_paginate"></div>
         </div>
     </div>
@@ -144,6 +144,7 @@
             function onLoadSubmit() {
                 console.log('commonCode: ', [[ ${commonCode} ]] )
                 pagination([[ ${pageable} ]], false)
+                console.log('cons = ',[[ ${content} ]])
             }
 
             function searchValue() {
@@ -168,7 +169,7 @@
                 const target = $('#'+item.evaluateSerialNo);
                 const educationType = target.find('#educationType').text();
                 const category = target.find('#category').text();
-                const curriculumName = target.find('#curriculumName').text();
+                const curriculumName = item.curriculumName
 
                 const popup = $(`
                     <article class="pop_wrapper ui-modal" id="popResponseResult">
@@ -205,10 +206,10 @@
                                 </div>
                                 <!-- 설문지 영역 (동적 생성) -->
                             </div>
-                    
+
                             <button type="button" class="pop_close pop-close">닫기</button>
                         </div>
-                    </article> 
+                    </article>
                 `);
                 popup.openModal();
 
@@ -241,7 +242,7 @@
                                         const tdItems = qItem.evaluateStatisticsItems.map(item => `<td>${item.count}</td>`).join('');
                                         const ansBtn = `<div id="answerBtn" class="btn btnDefault" style="background: url(../../assets/images/icons/arrow_down2.png) no-repeat right 7px center; background-size: 7px; padding-right: 20px">답변 보기</div>`;
                                         const ansItems = qItem.evaluateStatisticsItems.map(item => `<div>${item.questionItemValue}</div>`).join('');
-    
+
                                         //문항 영역
                                         const question = $(`
                                             <div class="q_item">
@@ -281,12 +282,12 @@
                                                 'background-size': '7px',
                                             });
                                         })
-                                        
+
                                         if (qItem.questionType === '1' || qItem.questionType === '2') {
                                             const questionChart = document.getElementById('qChart'+(surveyIdx+1)+"-"+(idx+1)).getContext('2d');
                                             const labelsList = qItem.evaluateStatisticsItems.map(item => item.questionItemValue);
                                             const dataList = qItem.evaluateStatisticsItems.map(item => item.count);
-                                            
+
                                             const barChart = new Chart(questionChart, {
                                                 type: 'bar',
                                                 data: {

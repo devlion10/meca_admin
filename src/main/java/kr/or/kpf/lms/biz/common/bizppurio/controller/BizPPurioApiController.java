@@ -62,10 +62,10 @@ public class BizPPurioApiController extends CSApiControllerSupport {
      * @param pageable
      * @return
      */
-    @Tag(name = "Bizppurio Management", description = "비즈뿌리오 API")
+    @Tag(name = "Bizppurio Management", description = "비즈뿌리오 SMS API")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "비즈뿌리오 문자 전송", content = @Content(schema = @Schema(implementation = CSResponseVOSupport.class)))})
-    @Operation(operationId="BizPPurio", summary = "비즈뿌리오 문자 전송", description = "비즈뿌리오 문자 전송한다.")
+            @ApiResponse(responseCode = "200", description = "비즈뿌리오 SMS 문자 전송", content = @Content(schema = @Schema(implementation = CSResponseVOSupport.class)))})
+    @Operation(operationId="BizPPurioSms", summary = "비즈뿌리오 문자 전송", description = "비즈뿌리오 문자 전송한다.")
     @PostMapping(path = {"/send-sms"}, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> sendSMS(HttpServletRequest request, HttpServletResponse response, Pageable pageable,
                                           @NotNull @RequestBody BizPPurioApiRequestVO bizPPurioApiRequestVO) {
@@ -82,10 +82,10 @@ public class BizPPurioApiController extends CSApiControllerSupport {
      * @param pageable
      * @return
      */
-    @Tag(name = "Bizppurio Management", description = "비즈뿌리오 API")
+   /* @Tag(name = "Bizppurio Management", description = "비즈뿌리오 LMS API")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "비즈뿌리오 문자 전송", content = @Content(schema = @Schema(implementation = CSResponseVOSupport.class)))})
-    @Operation(operationId="BizPPurio", summary = "비즈뿌리오 문자 전송", description = "비즈뿌리오 문자 전송한다.")
+            @ApiResponse(responseCode = "200", description = "비즈뿌리오 LMS 문자 전송", content = @Content(schema = @Schema(implementation = CSResponseVOSupport.class)))})
+    @Operation(operationId="BizPPurioLms", summary = "비즈뿌리오 문자 전송", description = "비즈뿌리오 문자 전송한다.")*/
     @PostMapping(path = {"/send-lms"}, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> sendLMS(HttpServletRequest request, HttpServletResponse response, Pageable pageable,
                                           @NotNull @RequestBody BizPPurioApiRequestVO bizPPurioApiRequestVO) {

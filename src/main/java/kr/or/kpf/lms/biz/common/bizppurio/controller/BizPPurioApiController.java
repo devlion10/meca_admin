@@ -73,4 +73,24 @@ public class BizPPurioApiController extends CSApiControllerSupport {
                 .body(Optional.ofNullable(bizPPurioService.sendSMS(bizPPurioApiRequestVO))
                         .orElse(BizPPurioApiResponseVO.builder().build()));
     }
+
+    /**
+     * 비즈뿌리오 LMS 문자 전송
+     *
+     * @param request
+     * @param response
+     * @param pageable
+     * @return
+     */
+    @Tag(name = "Bizppurio Management", description = "비즈뿌리오 API")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "비즈뿌리오 문자 전송", content = @Content(schema = @Schema(implementation = CSResponseVOSupport.class)))})
+    @Operation(operationId="BizPPurio", summary = "비즈뿌리오 문자 전송", description = "비즈뿌리오 문자 전송한다.")
+    @PostMapping(path = {"/send-lms"}, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Object> sendLMS(HttpServletRequest request, HttpServletResponse response, Pageable pageable,
+                                          @NotNull @RequestBody BizPPurioApiRequestVO bizPPurioApiRequestVO) {
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(Optional.ofNullable(bizPPurioService.sendLMS(bizPPurioApiRequestVO))
+                        .orElse(BizPPurioApiResponseVO.builder().build()));
+    }
 }

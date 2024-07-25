@@ -3,6 +3,7 @@ package kr.or.kpf.lms.biz.common.bizppurio.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import kr.or.kpf.lms.biz.common.bizppurio.vo.request.BizPPurioApiRequestVO;
+import kr.or.kpf.lms.biz.common.bizppurio.vo.request.BodyOfBizPPurioLMSRequestVO;
 import kr.or.kpf.lms.biz.common.bizppurio.vo.request.BodyOfBizPPurioRequestVO;
 import kr.or.kpf.lms.biz.common.bizppurio.vo.response.BodyOfBizPPurioResponseVO;
 import kr.or.kpf.lms.common.client.CSWebClient;
@@ -120,6 +121,97 @@ public class BizPPurioService extends CSServiceSupport {
                 HttpEntity<BodyOfBizPPurioRequestVO> request = new HttpEntity<>(requestBody, headers);
                 ResponseEntity<BodyOfBizPPurioResponseVO> result = restTemplate.exchange(bizPPurioUri.toString(), HttpMethod.POST, request, BodyOfBizPPurioResponseVO.class);
                 logger.info("비즈뿌리오 SMS 응답: {}", result);
+
+                if (BIZ_PPURIO_SUCCESS.equals(Objects.requireNonNull(result.getBody()).getResultCode())) { /** 성공 */
+                    successCount.getAndIncrement();
+                    failureCount.getAndDecrement();
+                    smsSendDetail.setIsSuccess(true);
+                    smsSendDetailRepository.saveAndFlush(smsSendDetail);
+                } else { /** 실패 */
+                    smsSendDetail.setIsSuccess(false);
+                    smsSendDetailRepository.saveAndFlush(smsSendDetail);
+                }
+            } catch (HttpClientErrorException | HttpServerErrorException | ResourceAccessException e1) {
+                logger.error("비즈뿌리오 통신 오류 발생({} - {})", smsSendMaster.getSequenceNo(), receiverPhoneNo);
+                smsSendDetail.setIsSuccess(false);
+                smsSendDetailRepository.saveAndFlush(smsSendDetail);
+            } catch (Exception e2) {
+                logger.error("{}- {}", e2.getClass().getCanonicalName(), e2.getMessage(), e2);
+                smsSendDetail.setIsSuccess(false);
+                smsSendDetailRepository.saveAndFlush(smsSendDetail);
+            }
+        });
+
+        /** 성공 수량 업데이트 */
+        smsSendMaster.setSuccessCount(successCount.get());
+        /** 실패 수량 업데이트 */
+        smsSendMaster.setFailureCount(failureCount.get());
+
+        smsSendMasterRepository.saveAndFlush(smsSendMaster);
+        return CSResponseVOSupport.of(KPF_RESULT.SUCCESS);
+    }
+    
+    
+    
+    //LMS 전송 메소드(SMS와 분리)
+    public CSResponseVOSupport sendLMS(BizPPurioApiRequestVO requestObject) {
+        UriComponents bizPPurioUri = UriComponentsBuilder.newInstance()
+                .scheme("https")
+                .host(appConfig.getBizPPurio().getUrl())
+                .path(SEND_MESSAGE)
+                .build();
+
+        RestTemplate restTemplate = "production".equals(System.getenv("spring.profiles.active"))
+//        RestTemplate restTemplate = "local".equals(System.getenv("spring.profiles.active"))
+                ? csWebClient.settingWebProtocol()
+                : csWebClient.settingWebProtocol(true);
+
+        BodyOfBizPPurioLMSRequestVO requestBody = BodyOfBizPPurioLMSRequestVO.builder().build();
+        BeanUtils.copyProperties(requestObject, requestBody);
+        Map<String, String> lmsMap = new HashMap<>();
+        lmsMap.put("message", requestObject.getContent());
+        lmsMap.put("subject", requestObject.getSubject());
+        Map<String, Map<String,String>> content = new HashMap<>();
+        content.put("lms", lmsMap);
+        requestBody.setContent(content);
+
+        AtomicInteger successCount = new AtomicInteger(0);
+        AtomicInteger failureCount = new AtomicInteger(requestObject.getReceiver().size());
+
+        /** 마스터 정보 생성 */
+        SmsSendMaster smsSendMaster = smsSendMasterRepository.saveAndFlush(SmsSendMaster.builder()
+                .content(requestObject.getContent())
+                .sender(requestObject.getSender())
+                .sendDateTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()))
+                .totalCount(requestObject.getReceiver().size())
+                .successCount(successCount.get())
+                .failureCount(failureCount.get())
+                .build());
+
+        requestObject.getReceiver().forEach(receiverPhoneNo -> {
+            /** 상세 정보 생성 */
+            SmsSendDetail smsSendDetail = SmsSendDetail.builder()
+                    .masterSequenceNo(smsSendMaster.getSequenceNo())
+                    .sender(smsSendMaster.getSender())
+                    .receiver(receiverPhoneNo)
+                    .build();
+
+            /** 토근 획득 */
+            String accessToken = getToken();
+            /** 헤더 셋팅 */
+            HttpHeaders headers = new HttpHeaders();
+
+            headers.add("Authorization", GENERAL_AUTHORIZATION_TYPE + " " + accessToken);
+            headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
+
+            requestBody.setReceiver(receiverPhoneNo);
+            requestBody.setReferenceKey(appConfig.getBizPPurio().getPassword());
+
+            try {
+                logger.info("비즈뿌리오 LMS 요청: {}", requestBody);
+                HttpEntity<BodyOfBizPPurioLMSRequestVO> request = new HttpEntity<>(requestBody, headers);
+                ResponseEntity<BodyOfBizPPurioResponseVO> result = restTemplate.exchange(bizPPurioUri.toString(), HttpMethod.POST, request, BodyOfBizPPurioResponseVO.class);
+                logger.info("비즈뿌리오 LMS 응답: {}", result);
 
                 if (BIZ_PPURIO_SUCCESS.equals(Objects.requireNonNull(result.getBody()).getResultCode())) { /** 성공 */
                     successCount.getAndIncrement();

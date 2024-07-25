@@ -1673,10 +1673,12 @@ async function sendSMSController(userList, options) {
 				let params = {};
 				params.sender = sendNum;
 				params.receiver = userList;
+				params.subject = sendMessageTitle;
 				params.content = sendMessageContent;
 				$.ajax({
 					type: "post", //http method
 					url: `/api/bizppurio/send-sms`, //값을 가져올 경로
+					//url: `/api/bizppurio/send-lms`, //값을 가져올 경로
 					headers: {'Content-Type': 'application/json'},
 					data: JSON.stringify(params),
 					dataType: "json",

@@ -21,6 +21,8 @@ public class BizPPurioApiRequestVO extends CSViewVOSupport {
     private String sender;
     /** 수신인 */
     private List<String> receiver;
+    /** 타이틀*/
+    private String subject;
     /** 내용 */
     private String content;
 }

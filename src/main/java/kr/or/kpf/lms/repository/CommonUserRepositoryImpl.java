@@ -859,7 +859,8 @@ public class CommonUserRepositoryImpl extends CSRepositorySupport implements Com
                             instructorInfo.instrBank,
                             instructorInfo.instrActno,
                             instructorInfo.orgName,
-                            instructorInfo.department
+                            instructorInfo.department,
+                            instructorInfo.prvtrcptnagreyn
                     ))
                     .from(instructorInfo)
                     .where(getQuery(requestObject))

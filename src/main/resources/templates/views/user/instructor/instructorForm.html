@@ -165,6 +165,27 @@
                                     </div>
                                 </td>
                             </tr>
+                            <tr>
+                                <th scope="row">개인정보수집이용 동의서 보유 상태</th>
+                                <td>
+                                    <div class="radio_box">
+                                        <input id="useprvt" type="radio" name="useprvt" th:if="${content == null}">
+                                        <input id="useprvt" type="radio" name="useprvt" th:unless="${content == null}" th:checked="${content[0].prvtrcptnagreyn == 'Y'}">
+                                        <label for="useprvt">
+                                            <span></span>
+                                            보유
+                                        </label>
+                                    </div>
+                                    <div class="radio_box">
+                                        <input id="not_useprvt" type="radio" name="useprvt" th:if="${content == null}" checked>
+                                        <input id="not_useprvt" type="radio" name="useprvt" th:unless="${content == null}" th:checked="${content[0].prvtrcptnagreyn == 'N'}">
+                                        <label for="not_useprvt">
+                                            <span></span>
+                                            미보유
+                                        </label>
+                                    </div>
+                                </td>
+                            </tr>
                             </tbody>
                         </table>
                     </div>
@@ -764,6 +785,7 @@
             params.instrTel = params.phoneSelect +params.phone1 +params.phone2;
             params.instrEml = params.mail+"@"+params.mailInput;
             params.instrStts = $("#use").is(":checked")? 1:0;
+            params.prvtrcptnagreyn = $("#useprvt").is(":checked")? 'Y':'N';
             params.gender = $("#male").is(":checked")? 1:2;
             params.instrBrdt = $("#instrBrdt").val()
             params.department = $('#department').val();

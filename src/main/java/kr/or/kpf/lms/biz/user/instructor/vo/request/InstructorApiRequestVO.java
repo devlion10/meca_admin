@@ -69,6 +69,7 @@ public class InstructorApiRequestVO {
     @Schema(description="강사 자택 우편번호", required = true, example="")
     private String instrZipCd;
 
+
     @Schema(description="강사 자택 주소1", required = true, example="")
     private String instrAddr1;
 
@@ -113,6 +114,9 @@ public class InstructorApiRequestVO {
 
     @Schema(description="강사 부서/직급", required = false, example="")
     private String department;
+
+    @Schema(description="언론인강사 개인정보수집이용 동의여부", required = false, example="")
+    private String prvtrcptnagreyn;
 
     private List<InstructorHistoryApiRequestVO> instructorHistoryApiRequestVOs;
     private List<InstructorQualificationApiRequestVO> instructorQualificationApiRequestVOs;

@@ -154,6 +154,10 @@ public class InstructorInfo extends CSEntitySupport implements Serializable {
     @Column(name = "LECTR_NO")
     private Integer lectrNo;
 
+    /** 언론인강사 개인정보수집이용 동의여부 */
+    @Column(name = "PRVT_RCPTN_AGRE_YN")
+    private String prvtrcptnagreyn;
+
     /** 미디어강사 정보 */
     @NotFound(action= NotFoundAction.IGNORE)
     @ManyToOne(fetch=FetchType.LAZY)

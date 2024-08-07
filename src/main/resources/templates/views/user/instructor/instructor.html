@@ -193,6 +193,7 @@
                         </th>
                         <th scope="col" rowspan="2">가입일</th>
                         <th scope="col" rowspan="2">강사 상태</th>
+                        <th scope="col" rowspan="2">개인정보 동의서 보유여부</th>
                         <th scope="col" rowspan="2">관리</th>
                     </tr>
                 </thead>
@@ -231,6 +232,10 @@
                         <td>
                             <span th:if="${item.instrStts == 0}" class="color_red">미사용</span>
                             <span th:if="${item.instrStts == 1}" class="color_blue">정상</span>
+                        </td>
+                        <td>
+                            <span th:if="${item.prvtrcptnagreyn == 'N'}" class="color_red">미보유</span>
+                            <span th:if="${item.prvtrcptnagreyn == 'Y'}" class="color_blue">보유</span>
                         </td>
                         <td>
                             <a th:if="${#strings.contains(item.instrCtgr, 'INSTR')}" th:href="@{/user/instructor/{id}(id=${item.instrSerialNo})}" class="btn btnDefault btnView icon_none">보기</a>
@@ -273,6 +278,8 @@
 
     <th:block layout:fragment="script">
         <script th:inline="javascript">
+            var cons = [[ ${content} ]]
+            console.log("cons",cons);
             $(".all_checkbox").bind('click',function (e){
                 if($(this).is(":checked")){
                     let name=$(this).attr("name");

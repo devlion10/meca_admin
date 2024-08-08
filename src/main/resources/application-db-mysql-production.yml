@@ -1,13 +1,13 @@
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    #url: ENC(ThxdpXYxM0kqIQqsxwsqXHNgY0pFqYCve9gc+DQN9vdfU7G7IKuBJOm+8aROTT5VGlHcscLMJerMYz4pyIuabdygtK8c2TBjnw53tPors5fv4DcB60m5KkgydP+/Lf71)
-    #username: ENC(tdxp/D6FaU0zEcQ80jbSSg==)
-    #password: ENC(2UK4RRFZNivdsMFxKzLABToWwvKV5SE1)
+    url: ENC(ThxdpXYxM0kqIQqsxwsqXHNgY0pFqYCve9gc+DQN9vdfU7G7IKuBJOm+8aROTT5VGlHcscLMJerMYz4pyIuabdygtK8c2TBjnw53tPors5fv4DcB60m5KkgydP+/Lf71)
+    username: ENC(tdxp/D6FaU0zEcQ80jbSSg==)
+    password: ENC(2UK4RRFZNivdsMFxKzLABToWwvKV5SE1)
     #개발디비, kbrainc, vpn 켰을 시
-    url: jdbc:mysql://db-18q25-kr1.vpc-cdb.gov-ntruss.com:3306/kbrainc?characterEncoding=UTF-8
-    username: kbrainc
-    password: kbrainc1!
+    #url: jdbc:mysql://db-18q25-kr1.vpc-cdb.gov-ntruss.com:3306/kbrainc?characterEncoding=UTF-8
+    #username: kbrainc
+    #password: kbrainc1!
     hikari:
       connection-timeout: 50000
       maximum-pool-size: 10
